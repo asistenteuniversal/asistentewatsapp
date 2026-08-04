@@ -1,0 +1,25 @@
+export type AppMode = 'chatgpt' | 'neon';
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+export interface VoiceConfig {
+  voiceName: string;
+  pitch: number;
+  rate: number;
+  useGeminiTts: boolean;
+}
+
+export interface AppSettings {
+  chatUrl: string;
+  stealthOpacity: number;
+  hotkeyEnabled: boolean;
+  pulseSpeed: number; // 1 to 3
+  voiceConfig: VoiceConfig;
+  autoStartVoice: boolean;
+  showIframeFallback: boolean;
+}
