@@ -72,7 +72,19 @@ export default function App() {
     },
     autoStartVoice: false,
     showIframeFallback: false,
+    studioEnabled: true,
   });
+
+  // Sincronizar el estado de encendido/apagado de Google Studio (Página 2) con el celular
+  useEffect(() => {
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.setStudioEnabled) {
+      try {
+        (window as any).AndroidInterface.setStudioEnabled(settings.studioEnabled);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [settings.studioEnabled]);
 
   // Handle incoming AI response from backend
   const handleUserPrompt = useCallback(
