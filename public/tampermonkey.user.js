@@ -141,7 +141,7 @@
     }
 
     function triggerStartCall() {
-        console.log("[Phantom Link] Comando start-call recibido. Buscando botón Talk...");
+        console.log("[Phantom Link] Comando start-call recibido. Iniciando bucle de clics para botón Talk...");
 
         // 1. Asegurar micrófono encendido
         try {
@@ -160,67 +160,53 @@
             console.warn("[Phantom Link] Error al intentar des-silenciar mic:", e);
         }
 
-        // 2. Buscar botón Talk
-        var btn = deepFindTalk(document);
-        if (btn) {
-            console.log("[Phantom Link] ¡Botón Talk encontrado! Simulando clics mecánicos...");
-            btn.focus();
-            
-            // Simular secuencia completa de eventos de puntero y ratón
-            ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(function(evtName) {
-                try {
-                    var evt = new PointerEvent(evtName, { bubbles: true, cancelable: true, composed: true, view: window });
-                    btn.dispatchEvent(evt);
-                } catch (e) {
+        // 2. Bucle de clics persistente para asegurar la activación
+        let attempts = 0;
+        const maxAttempts = 15; // 15 intentos = 3 segundos en total
+        const interval = setInterval(() => {
+            // Verificar si el stream ya se activó
+            const isLive = Array.from(document.querySelectorAll('*')).some(el => (el.textContent || '').includes('Stream is live'));
+            var btn = deepFindTalk(document);
+
+            if (isLive || !btn) {
+                console.log("[Phantom Link] Llamada activa ('Stream is live') o botón Talk ausente. Deteniendo bucle.");
+                clearInterval(interval);
+                return;
+            }
+
+            if (btn) {
+                console.log("[Phantom Link] Clickeando botón Talk (intento " + (attempts + 1) + ")...");
+                btn.focus();
+                
+                // Simular secuencia completa de eventos de puntero y ratón
+                ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(function(evtName) {
                     try {
-                        btn.dispatchEvent(new MouseEvent(evtName, { bubbles: true, cancelable: true, composed: true, view: window }));
-                    } catch (err) {}
-                }
-            });
-            
-            try {
-                btn.click();
-            } catch (e) {}
-        } else {
-            console.warn("[Phantom Link] No se encontró el botón Talk en la página actual.");
-        }
+                        var evt = new PointerEvent(evtName, { bubbles: true, cancelable: true, composed: true, view: window });
+                        btn.dispatchEvent(evt);
+                    } catch (e) {
+                        try {
+                            btn.dispatchEvent(new MouseEvent(evtName, { bubbles: true, cancelable: true, composed: true, view: window }));
+                        } catch (err) {}
+                    }
+                });
+                
+                try {
+                    btn.click();
+                } catch (e) {}
+            }
+
+            attempts++;
+            if (attempts >= maxAttempts) {
+                console.log("[Phantom Link] Finalizado bucle de clics por límite de intentos.");
+                clearInterval(interval);
+            }
+        }, 200);
     }
 
-    // Colgar llamada
+    // Colgar llamada mediante recarga física de la página (100% confiable)
     function triggerEndCall() {
-        console.log("[Phantom Link] Comando end-call recibido. Colgando llamada...");
-        
-        try {
-            var allNodes = document.querySelectorAll('*');
-            let closed = false;
-            
-            for (var i = 0; i < allNodes.length; i++) {
-                var node = allNodes[i];
-                var txt = (node.textContent || '').trim();
-                if (node.children.length === 0 && txt.includes('Stream is live')) {
-                    var bar = node.closest('div, section, footer') || node.parentElement;
-                    if (bar) {
-                        var closeBtn = bar.querySelector('button, [role="button"], mat-icon, svg');
-                        if (closeBtn) {
-                            closeBtn.click();
-                            closed = true;
-                            console.log("[Phantom Link] Botón de colgar presionado con éxito.");
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            // Si por alguna razón no se localiza el botón, recargamos la página
-            // para limpiar completamente la conexión WebRTC y liberar los recursos.
-            if (!closed) {
-                console.log("[Phantom Link] No se localizó botón de colgar activo. Recargando página...");
-                location.reload();
-            }
-        } catch (e) {
-            console.error("[Phantom Link] Error intentando colgar la llamada. Recargando como respaldo...", e);
-            location.reload();
-        }
+        console.log("[Phantom Link] Comando end-call recibido. Recargando página para colgar...");
+        location.reload();
     }
 
     // Iniciar bucle de conexión
