@@ -1,6 +1,5 @@
 import React from 'react';
 import { Phone, PhoneOff, Globe, Radio } from 'lucide-react';
-import { NeonSphereCanvas } from './NeonSphereCanvas';
 
 interface NeonCoverLayerProps {
   isCallActive: boolean;
@@ -97,17 +96,14 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             </p>
           </div>
 
-          {/* Center 3D Glowing Sphere Container (`pulso` effect) */}
+          {/* Center Glowing Sphere Container - 100% Static & Lightweight (0% CPU / No Canvas) */}
           <div className="flex-1 w-full my-2 relative flex items-center justify-center overflow-hidden">
-            {/* Sphere Canvas */}
-            <div className="w-full h-full absolute inset-0 z-10">
-              <NeonSphereCanvas
-                audioLevel={audioLevel}
-                isCallActive={isCallActive}
-                isListening={isListening}
-                isSpeaking={isSpeaking}
-                pulseSpeed={pulseSpeed}
-              />
+            {/* Esfera Neon Estática y Ligera de Alto Rendimiento */}
+            <div className="relative w-44 h-44 rounded-full bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-purple-500/5 border border-cyan-400/30 flex items-center justify-center shadow-[0_0_50px_rgba(6,182,212,0.25)] z-10">
+              {/* Núcleo central brillante */}
+              <div className="w-20 h-20 rounded-full bg-cyan-400/10 border border-cyan-300/40 shadow-[0_0_30px_rgba(34,211,238,0.4)] flex items-center justify-center">
+                <Globe className="w-10 h-10 text-cyan-300 opacity-80" />
+              </div>
             </div>
 
             {/* Binary Matrix Code Rain Overlay */}
