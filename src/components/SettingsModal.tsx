@@ -77,6 +77,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </p>
           </div>
 
+          {/* Memoria de Hoy (Prompt de Recuerdos) */}
+          <div className="space-y-1.5">
+            <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
+              <span className="text-sm">📓</span>
+              Memoria de Hoy (Recuerdos Diarios):
+            </label>
+            <textarea
+              value={settings.systemMemory || ''}
+              onChange={(e) => {
+                const text = e.target.value;
+                setSettings((prev) => ({ 
+                  ...prev, 
+                  systemMemory: text,
+                  memorySaveDate: new Date().toDateString()
+                }));
+              }}
+              rows={3}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md resize-none"
+              placeholder="Escribe recuerdos de hoy (Ej: Alberto vino a visitarme a las 5pm y platicamos de...)"
+            />
+            <p className="text-[9px] text-zinc-400 leading-normal">
+              Añade recuerdos temporales. Se unirán al comportamiento y se borrarán automáticamente al cambiar de día.
+            </p>
+          </div>
+
           {/* Stealth Button Transparency */}
 
 

@@ -76,12 +76,21 @@ export default function App() {
       autoStartVoice: false,
       showIframeFallback: false,
       bridgeEnabled: true,
-      systemInstructions: 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.'
+      systemInstructions: 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.',
+      systemMemory: '',
+      memorySaveDate: new Date().toDateString()
     };
 
     if (saved) {
       try {
-        return { ...defaultSettings, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        const today = new Date().toDateString();
+        // Si la fecha guardada es de un día anterior, limpiar memoria de 1 día
+        if (parsed.memorySaveDate && parsed.memorySaveDate !== today) {
+          parsed.systemMemory = '';
+          parsed.memorySaveDate = today;
+        }
+        return { ...defaultSettings, ...parsed };
       } catch (e) {
         console.error(e);
       }
@@ -105,16 +114,22 @@ export default function App() {
     }
   }, [settings.bridgeEnabled]);
 
-  // Sincronizar las instrucciones del sistema con el celular
+  // Sincronizar las instrucciones del sistema (comportamiento + memoria de hoy) con el celular
   useEffect(() => {
     if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
       try {
-        (window as any).AndroidInterface.updateSystemInstructions(settings.systemInstructions);
+        const instructions = settings.systemInstructions || '';
+        const memory = settings.systemMemory || '';
+        const mergedText = memory.trim()
+          ? `${instructions}\n\n[MEMORIA DE HOY / RECUERDOS RECIENTES (No repitas esto a menos que se te pregunte, son solo tus recuerdos de hoy)]:\n${memory}`
+          : instructions;
+
+        (window as any).AndroidInterface.updateSystemInstructions(mergedText);
       } catch (e) {
         console.error(e);
       }
     }
-  }, [settings.systemInstructions]);
+  }, [settings.systemInstructions, settings.systemMemory]);
 
   // Handle incoming AI response from backend
   const handleUserPrompt = useCallback(

@@ -24,4 +24,6 @@ export interface AppSettings {
   showIframeFallback: boolean;
   bridgeEnabled: boolean;
   systemInstructions: string;
+  systemMemory: string;
+  memorySaveDate: string;
 }
