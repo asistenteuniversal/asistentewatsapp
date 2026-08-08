@@ -220,6 +220,7 @@ export default function App() {
             isListening={voiceEngine.isListening}
             isSpeaking={voiceEngine.isSpeaking}
             settings={settings}
+            onClose={() => setMode('neon')}
           />
         </div>
 
