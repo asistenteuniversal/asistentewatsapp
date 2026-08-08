@@ -57,7 +57,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             />
           </div>
 
+          {/* System Instructions (Prompt) */}
+          <div className="space-y-1.5">
+            <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
+              <span className="text-sm">🧠</span>
+              Instrucciones del Sistema (Comportamiento):
+            </label>
+            <textarea
+              value={settings.systemInstructions || ''}
+              onChange={(e) =>
+                setSettings((prev) => ({ ...prev, systemInstructions: e.target.value }))
+              }
+              rows={4}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md resize-none"
+              placeholder="Ejemplo: Eres un asistente servicial..."
+            />
+            <p className="text-[9px] text-zinc-400 leading-normal">
+              Define la personalidad del asistente. Se inyectará automáticamente en Google Studio al abrir sus ajustes.
+            </p>
+          </div>
+
           {/* Stealth Button Transparency */}
+
 
           <div className="space-y-1.5">
             <div className="flex justify-between items-center text-zinc-300 font-semibold">

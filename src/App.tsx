@@ -59,21 +59,42 @@ export default function App() {
     },
   ]);
 
-  const [settings, setSettings] = useState<AppSettings>({
-    chatUrl: 'https://aistudio.google.com/live?model=gemini-3.1-flash-live-preview',
-    stealthOpacity: 0.9,
-    hotkeyEnabled: true,
-    pulseSpeed: 1.0,
-    voiceConfig: {
-      voiceName: 'Kore',
-      pitch: 1.0,
-      rate: 1.0,
-      useGeminiTts: false,
-    },
-    autoStartVoice: false,
-    showIframeFallback: false,
-    bridgeEnabled: true,
   });
+
+  // Cargar Ajustes desde el almacenamiento local persistente (localStorage) del celular
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const saved = localStorage.getItem('neonSettings');
+    const defaultSettings = {
+      chatUrl: 'https://aistudio.google.com/live?model=gemini-3.1-flash-live-preview',
+      stealthOpacity: 0.9,
+      hotkeyEnabled: true,
+      pulseSpeed: 1.0,
+      voiceConfig: {
+        voiceName: 'Kore',
+        pitch: 1.0,
+        rate: 1.0,
+        useGeminiTts: false,
+      },
+      autoStartVoice: false,
+      showIframeFallback: false,
+      bridgeEnabled: true,
+      systemInstructions: 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.'
+    };
+
+    if (saved) {
+      try {
+        return { ...defaultSettings, ...JSON.parse(saved) };
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return defaultSettings;
+  });
+
+  // Guardar Ajustes en localStorage cada vez que cambien
+  useEffect(() => {
+    localStorage.setItem('neonSettings', JSON.stringify(settings));
+  }, [settings]);
 
   // Sincronizar el estado del puente (conectar/desconectar Página 1) con el celular
   useEffect(() => {
@@ -85,6 +106,17 @@ export default function App() {
       }
     }
   }, [settings.bridgeEnabled]);
+
+  // Sincronizar las instrucciones del sistema con el celular
+  useEffect(() => {
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
+      try {
+        (window as any).AndroidInterface.updateSystemInstructions(settings.systemInstructions);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [settings.systemInstructions]);
 
   // Handle incoming AI response from backend
   const handleUserPrompt = useCallback(
