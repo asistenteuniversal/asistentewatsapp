@@ -10,13 +10,17 @@ export default function App() {
   const [mode, setMode] = useState<AppMode>('neon'); // Default to NEON phone cover
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Escuchar la llamada nativa de Android al presionar el botón Atrás
+  // Escuchar la llamada nativa de Android al presionar el botón Atrás o tocar la cabecera
   useEffect(() => {
     (window as any).setAppModeNeon = () => {
       setMode('neon');
     };
+    (window as any).setAppModeStudio = () => {
+      setMode('studio');
+    };
     return () => {
       delete (window as any).setAppModeNeon;
+      delete (window as any).setAppModeStudio;
     };
   }, []);
 
