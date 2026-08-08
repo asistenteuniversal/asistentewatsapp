@@ -314,8 +314,6 @@ export default function App() {
         onClose={() => setIsSettingsOpen(false)}
         settings={settings}
         setSettings={setSettings}
-        micGranted={voiceEngine.micPermissionGranted}
-        onRequestMic={handleToggleCall}
       />
     </div>
   );

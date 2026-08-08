@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Mic, Globe, Eye, Sliders, KeyRound } from 'lucide-react';
+import { X, Globe, Eye, Sliders } from 'lucide-react';
 import { AppSettings } from '../types';
 
 interface SettingsModalProps {
@@ -7,8 +7,6 @@ interface SettingsModalProps {
   onClose: () => void;
   settings: AppSettings;
   setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
-  micGranted: boolean | null;
-  onRequestMic: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -16,8 +14,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   settings,
   setSettings,
-  micGranted,
-  onRequestMic,
 }) => {
   if (!isOpen) return null;
 
@@ -91,27 +87,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </p>
           </div>
 
-          {/* Pulse Animation Speed */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between items-center text-zinc-300 font-semibold">
-              <span>Velocidad de Animación Pulso (`pulso.xml`):</span>
-              <span className="font-mono text-cyan-400">{settings.pulseSpeed}x</span>
-            </div>
-            <input
-              type="range"
-              min="0.5"
-              max="3.0"
-              step="0.25"
-              value={settings.pulseSpeed}
-              onChange={(e) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  pulseSpeed: parseFloat(e.target.value),
-                }))
-              }
-              className="w-full accent-cyan-500 cursor-pointer"
-            />
-          </div>
           {/* Bridge Button Toggle (ON/OFF) */}
           <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-2 backdrop-blur-md">
             <div className="flex items-center justify-between">
@@ -142,45 +117,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {settings.bridgeEnabled !== false
                 ? '🟢 ACTIVO — El botón de la carátula presiona el botón "Talk" de Google automáticamente.'
                 : '🔴 DESACTIVADO — El botón de la carátula está desconectado de Google (modo prueba manual).'}
-            </p>
-          </div>
-
-          {/* Microphone Permission Status */}
-          <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-2 backdrop-blur-md">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
-                <Mic className="w-4 h-4 text-cyan-400" />
-                Permiso de Micrófono:
-              </span>
-              <span
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                  micGranted === true
-                    ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/40'
-                    : 'bg-amber-950/80 text-amber-400 border border-amber-500/40'
-                }`}
-              >
-                {micGranted === true ? 'CONCEDIDO' : 'REQUIERE PERMISO'}
-              </span>
-            </div>
-
-            {micGranted !== true && (
-              <button
-                onClick={onRequestMic}
-                className="w-full py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold transition text-xs shadow-[0_0_20px_rgba(6,182,212,0.4)]"
-              >
-                Solicitar Permiso de Audio
-              </button>
-            )}
-          </div>
-
-          {/* Shortcut guide */}
-          <div className="p-3.5 bg-cyan-950/30 rounded-2xl border border-cyan-500/30 text-cyan-300 space-y-1 backdrop-blur-md">
-            <div className="flex items-center gap-1.5 font-bold text-[11px]">
-              <KeyRound className="w-4 h-4 text-cyan-400" />
-              Atajo de Teclado Rápido:
-            </div>
-            <p className="text-[10px] text-cyan-200/80 leading-relaxed">
-              Presiona <kbd className="px-1.5 py-0.5 bg-white/10 rounded font-mono border border-white/10 text-cyan-300">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 bg-white/10 rounded font-mono border border-white/10 text-cyan-300">Shift</kbd> + <kbd className="px-1.5 py-0.5 bg-white/10 rounded font-mono border border-white/10 text-cyan-300">H</kbd> para ocultar o mostrar la pantalla al instante.
             </p>
           </div>
         </div>
