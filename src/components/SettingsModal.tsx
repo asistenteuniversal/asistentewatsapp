@@ -44,7 +44,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Form Body */}
         <div className="space-y-4 text-xs">
-          {/* ChatGPT URL setting */}
+          {/* Google Studio URL setting */}
           <div className="space-y-1.5">
             <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
               <Globe className="w-4 h-4 text-cyan-400" />

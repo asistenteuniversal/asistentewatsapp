@@ -101,7 +101,7 @@ async function startServer() {
     }
   });
 
-  // Chat completion endpoint (emulating ChatGPT backend engine under NEON skin)
+  // Chat completion endpoint (emulating Google AI Studio backend engine under NEON skin)
   app.post("/api/chat", async (req, res) => {
     try {
       const { message, history, mode } = req.body;
@@ -135,7 +135,7 @@ async function startServer() {
 
       const systemInstruction = mode === "voice"
         ? "Eres una inteligencia artificial avanzada conversando en una llamada de voz. Responde de forma concisa, directa, natural y conversacional (máximo 2 a 3 frases cortas), adaptada para ser escuchada por audio como en una llamada de voz telefónica."
-        : "Eres ChatGPT en la interfaz oculta de NEON. Responde de manera servicial, fluida y precisa en español.";
+        : "Eres Google AI Studio en la interfaz oculta de NEON. Responde de manera servicial, fluida y precisa en español.";
 
       const response = await ai.models.generateContent({
         model: "gemini-3.6-flash",

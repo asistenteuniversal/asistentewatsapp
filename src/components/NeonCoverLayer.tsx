@@ -181,7 +181,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
                 type="button"
                 onClick={onToggleVoice}
                 className="absolute w-32 h-32 rounded-full bg-transparent border-none cursor-pointer z-30 focus:outline-none"
-                title="Tocar para iniciar/detener llamada con ChatGPT"
+                title="Tocar para iniciar/detener llamada con Google AI Studio"
               />
             </div>
 

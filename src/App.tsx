@@ -35,7 +35,7 @@ export default function App() {
   ]);
 
   const [settings, setSettings] = useState<AppSettings>({
-    chatUrl: 'https://aistudio.google.com/apps',
+    chatUrl: 'https://aistudio.google.com/live?model=gemini-3.1-flash-live-preview',
     stealthOpacity: 0.9,
     hotkeyEnabled: true,
     pulseSpeed: 1.0,
@@ -180,7 +180,7 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'h') {
         e.preventDefault();
-        setMode((prev) => (prev === 'neon' ? 'chatgpt' : 'neon'));
+        setMode((prev) => (prev === 'neon' ? 'studio' : 'neon'));
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -202,10 +202,10 @@ export default function App() {
 
       {/* Main Container switching between Fase 1 (ChatGPT) and Fase 2 (NEON Cover) */}
       <main className="w-full h-full relative flex-1 overflow-hidden">
-        {/* Layer 1: ChatGPT Interface (Visible or Hidden underneath) */}
+        {/* Layer 1: Google AI Studio Interface (Visible or Hidden underneath) */}
         <div
           className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${
-            mode === 'chatgpt'
+            mode === 'studio'
               ? 'z-20 opacity-100 pointer-events-auto'
               : 'z-0 opacity-0 pointer-events-none'
           }`}

@@ -1,4 +1,4 @@
-export type AppMode = 'chatgpt' | 'neon';
+export type AppMode = 'studio' | 'neon';
 
 export interface ChatMessage {
   id: string;

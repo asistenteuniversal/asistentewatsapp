@@ -24,7 +24,7 @@ export const StealthHeader: React.FC<StealthHeaderProps> = ({
   const isHiddenMode = mode === 'neon';
 
   const toggleMode = () => {
-    setMode(isHiddenMode ? 'chatgpt' : 'neon');
+    setMode(isHiddenMode ? 'studio' : 'neon');
   };
 
   return (
