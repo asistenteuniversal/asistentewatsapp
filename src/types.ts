@@ -23,5 +23,4 @@ export interface AppSettings {
   autoStartVoice: boolean;
   showIframeFallback: boolean;
   bridgeEnabled: boolean;
-  systemInstructions: string;
 }
