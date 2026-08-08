@@ -168,14 +168,15 @@
             const isLive = Array.from(document.querySelectorAll('*')).some(el => (el.textContent || '').includes('Stream is live'));
             var btn = deepFindTalk(document);
 
-            if (isLive || !btn) {
-                console.log("[Phantom Link] Llamada activa ('Stream is live') o botón Talk ausente. Deteniendo bucle.");
+            if (isLive) {
+                console.log("[Phantom Link] Llamada activa ('Stream is live'). Deteniendo bucle.");
                 clearInterval(interval);
                 return;
             }
 
             if (btn) {
-                console.log("[Phantom Link] Clickeando botón Talk (intento " + (attempts + 1) + ")...");
+                console.log("[Phantom Link] Clickeando botón Talk una sola vez y deteniendo bucle...");
+                clearInterval(interval); // Detener de inmediato para no cancelar la conexión
                 btn.focus();
                 
                 // Simular secuencia completa de eventos de puntero y ratón
@@ -193,6 +194,7 @@
                 try {
                     btn.click();
                 } catch (e) {}
+                return;
             }
 
             attempts++;

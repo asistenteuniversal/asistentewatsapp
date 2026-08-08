@@ -182,13 +182,27 @@ export default function App() {
     };
   }, []);
 
-  // Intercept call toggle to send commands to agent via WebSockets
+  // Intercept call toggle to send commands to agent via WebSockets or native bridge
   const handleToggleCall = useCallback(async () => {
     // 1. Toggle call locally in UI
     await voiceEngine.toggleCall();
 
-    // 2. Send command to agent via WebSocket
     const willBeActive = !voiceEngine.isCallActive;
+
+    // 2. Tell the native Android app directly (if running inside APK)
+    if ((window as any).AndroidInterface) {
+      try {
+        if (willBeActive) {
+          (window as any).AndroidInterface.startVoiceCall();
+        } else {
+          (window as any).AndroidInterface.endVoiceCall();
+        }
+      } catch (e) {
+        console.error("Error calling native voice toggler:", e);
+      }
+    }
+
+    // 3. Send command to agent via WebSocket (for web version fallback)
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       const command = willBeActive ? 'start-call' : 'end-call';
       console.log('[Controller] Enviando comando por WebSocket:', command);
