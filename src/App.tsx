@@ -103,6 +103,32 @@ export default function App() {
     localStorage.setItem('neonSettings', JSON.stringify(settings));
   }, [settings]);
 
+  // Escuchar transcripciones extraídas de Google y guardarlas en la memoria diaria
+  useEffect(() => {
+    (window as any).onGoogleTranscriptExtracted = (text: string) => {
+      if (text && text.trim()) {
+        setSettings((prev) => {
+          const currentMemory = prev.systemMemory || '';
+          const cleanText = text.trim();
+          // Evitar duplicar el mismo bloque de conversación
+          if (currentMemory.includes(cleanText)) return prev;
+
+          const newMemory = currentMemory.trim()
+            ? `${currentMemory}\n${cleanText}`
+            : cleanText;
+          return {
+            ...prev,
+            systemMemory: newMemory,
+            memorySaveDate: new Date().toDateString(),
+          };
+        });
+      }
+    };
+    return () => {
+      delete (window as any).onGoogleTranscriptExtracted;
+    };
+  }, []);
+
   // Sincronizar el estado del puente (conectar/desconectar Página 1) con el celular
   useEffect(() => {
     if ((window as any).AndroidInterface && (window as any).AndroidInterface.setBridgeEnabled) {
@@ -121,7 +147,7 @@ export default function App() {
         const instructions = settings.systemInstructions || '';
         const memory = settings.systemMemory || '';
         const mergedText = memory.trim()
-          ? `${instructions}\n\n[MEMORIA DE HOY / RECUERDOS RECIENTES (No repitas esto a menos que se te pregunte, son solo tus recuerdos de hoy)]:\n${memory}`
+          ? `${instructions}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO (Esta es tu memoria de lo que platicaste anteriormente con la persona con la que estás hablando. No repitas nada de lo que está aquí, son solo tus recuerdos de hoy. Es información confidencial de tu pasado inmediato, úsala solo como referencia para responder)]: \n${memory}`
           : instructions;
 
         (window as any).AndroidInterface.updateSystemInstructions(mergedText);
