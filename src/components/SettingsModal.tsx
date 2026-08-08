@@ -87,36 +87,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </p>
           </div>
 
-          {/* Toggle to turn off/on Google Studio (Page 2) entirely */}
+          {/* Toggle to disconnect Page 1 from Page 2 */}
           <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-2 backdrop-blur-md">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-zinc-300 flex items-center gap-1.5 font-sans">
-                <span className="text-lg">🤖</span>
-                Habilitar Google Studio:
+                <span className="text-lg">🔗</span>
+                Conectar Botón con Google:
               </span>
               <button
-                id="studio-toggle-btn"
+                id="bridge-toggle-btn"
                 onClick={() =>
                   setSettings((prev) => ({
                     ...prev,
-                    studioEnabled: !prev.studioEnabled,
+                    bridgeEnabled: !prev.bridgeEnabled,
                   }))
                 }
                 className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none ${
-                  settings.studioEnabled ? 'bg-cyan-500' : 'bg-zinc-600'
+                  settings.bridgeEnabled ? 'bg-cyan-500' : 'bg-zinc-600'
                 }`}
               >
                 <span
                   className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 ${
-                    settings.studioEnabled ? 'translate-x-6' : 'translate-x-0'
+                    settings.bridgeEnabled ? 'translate-x-6' : 'translate-x-0'
                   }`}
                 />
               </button>
             </div>
             <p className="text-[10px] text-zinc-400 leading-normal font-sans">
-              {settings.studioEnabled
-                ? '🟢 ACTIVADO — La Página 2 (Google Studio) está cargada en fondo y lista para usarse.'
-                : '🔴 APAGADO — La Página 2 está completamente destruida. Cero consumo y sin interferencia.'}
+              {settings.bridgeEnabled
+                ? '🟢 CONECTADO — El botón de la carátula (Página 1) presiona el botón "Talk" de Google automáticamente.'
+                : '🔴 DESCONECTADO — La Página 1 está aislada de Google. Úsalo para probar Google de forma 100% manual.'}
             </p>
           </div>
         </div>

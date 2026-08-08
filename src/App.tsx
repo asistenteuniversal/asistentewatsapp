@@ -72,19 +72,19 @@ export default function App() {
     },
     autoStartVoice: false,
     showIframeFallback: false,
-    studioEnabled: true,
+    bridgeEnabled: true,
   });
 
-  // Sincronizar el estado de encendido/apagado de Google Studio (Página 2) con el celular
+  // Sincronizar el estado del puente (conectar/desconectar Página 1) con el celular
   useEffect(() => {
-    if ((window as any).AndroidInterface && (window as any).AndroidInterface.setStudioEnabled) {
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.setBridgeEnabled) {
       try {
-        (window as any).AndroidInterface.setStudioEnabled(settings.studioEnabled);
+        (window as any).AndroidInterface.setBridgeEnabled(settings.bridgeEnabled);
       } catch (e) {
         console.error(e);
       }
     }
-  }, [settings.studioEnabled]);
+  }, [settings.bridgeEnabled]);
 
   // Handle incoming AI response from backend
   const handleUserPrompt = useCallback(
