@@ -141,6 +141,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 : '🔴 DESCONECTADO — La Página 1 está aislada de Google. Úsalo para probar Google de forma 100% manual.'}
             </p>
           </div>
+
+          {/* Cerrar Sesión de Google para cambiar cuenta */}
+          <div className="pt-1">
+            <button
+              onClick={() => {
+                if ((window as any).AndroidInterface && (window as any).AndroidInterface.logoutGoogle) {
+                  try {
+                    (window as any).AndroidInterface.logoutGoogle();
+                  } catch (e) {
+                    console.error(e);
+                  }
+                } else {
+                  alert("Esta opción solo está disponible dentro de la aplicación de celular.");
+                }
+              }}
+              className="w-full py-2.5 rounded-xl border border-rose-500/30 bg-rose-950/20 hover:bg-rose-950/40 text-rose-300 font-semibold text-[11px] transition duration-200 flex items-center justify-center gap-1.5 backdrop-blur-md"
+            >
+              <span className="text-xs">🔑</span>
+              Cerrar Sesión de Google (Cambiar Correo)
+            </button>
+          </div>
         </div>
 
         {/* Modal Footer */}
