@@ -18,9 +18,8 @@ export interface AppSettings {
   chatUrl: string;
   stealthOpacity: number;
   hotkeyEnabled: boolean;
-  pulseSpeed: number; // 1 to 3
+  pulseSpeed: number;
   voiceConfig: VoiceConfig;
   autoStartVoice: boolean;
   showIframeFallback: boolean;
-  bridgeEnabled?: boolean;
 }
