@@ -112,6 +112,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               className="w-full accent-cyan-500 cursor-pointer"
             />
           </div>
+          {/* Bridge Button Toggle (ON/OFF) */}
+          <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-2 backdrop-blur-md">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
+                <span className="text-lg">🔗</span>
+                Conectar Botón con Google:
+              </span>
+              <button
+                id="bridge-toggle-btn"
+                onClick={() =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    bridgeEnabled: !(prev.bridgeEnabled !== false),
+                  }))
+                }
+                className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none ${
+                  settings.bridgeEnabled !== false ? 'bg-cyan-500' : 'bg-zinc-600'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 ${
+                    settings.bridgeEnabled !== false ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="text-[10px] text-zinc-400 leading-normal">
+              {settings.bridgeEnabled !== false
+                ? '🟢 ACTIVO — El botón de la carátula presiona el botón "Talk" de Google automáticamente.'
+                : '🔴 DESACTIVADO — El botón de la carátula está desconectado de Google (modo prueba manual).'}
+            </p>
+          </div>
 
           {/* Microphone Permission Status */}
           <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-2 backdrop-blur-md">

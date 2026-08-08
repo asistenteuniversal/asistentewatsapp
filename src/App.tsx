@@ -72,7 +72,19 @@ export default function App() {
     },
     autoStartVoice: false,
     showIframeFallback: false,
+    bridgeEnabled: true,
   });
+
+  // Sincronizar el estado del puente del botón con Java nativo en el celular
+  useEffect(() => {
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.setBridgeEnabled) {
+      try {
+        (window as any).AndroidInterface.setBridgeEnabled(settings.bridgeEnabled !== false);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [settings.bridgeEnabled]);
 
   // Handle incoming AI response from backend
   const handleUserPrompt = useCallback(
