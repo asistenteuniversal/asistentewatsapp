@@ -10,6 +10,27 @@ export default function App() {
   const [mode, setMode] = useState<AppMode>('neon'); // Default to NEON phone cover
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+  // Escuchar la llamada nativa de Android al presionar el botón Atrás
+  useEffect(() => {
+    (window as any).setAppModeNeon = () => {
+      setMode('neon');
+    };
+    return () => {
+      delete (window as any).setAppModeNeon;
+    };
+  }, []);
+
+  const handleSetMode = useCallback((newMode: AppMode) => {
+    setMode(newMode);
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.showStudio) {
+      try {
+        (window as any).AndroidInterface.showStudio(newMode === 'studio');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
   // Initial chat history matching Image 1
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -180,7 +201,17 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'h') {
         e.preventDefault();
-        setMode((prev) => (prev === 'neon' ? 'studio' : 'neon'));
+        setMode((prev) => {
+          const nextMode = prev === 'neon' ? 'studio' : 'neon';
+          if ((window as any).AndroidInterface && (window as any).AndroidInterface.showStudio) {
+            try {
+              (window as any).AndroidInterface.showStudio(nextMode === 'studio');
+            } catch (e) {
+              console.error(e);
+            }
+          }
+          return nextMode;
+        });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -192,7 +223,7 @@ export default function App() {
       {/* Top Stealth Header Bar */}
       <StealthHeader
         mode={mode}
-        setMode={setMode}
+        setMode={handleSetMode}
         settings={settings}
         setSettings={setSettings}
         onOpenSettings={() => setIsSettingsOpen(true)}
@@ -220,7 +251,7 @@ export default function App() {
             isListening={voiceEngine.isListening}
             isSpeaking={voiceEngine.isSpeaking}
             settings={settings}
-            onClose={() => setMode('neon')}
+            onClose={() => handleSetMode('neon')}
           />
         </div>
 
