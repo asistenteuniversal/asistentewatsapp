@@ -59,8 +59,6 @@ export default function App() {
     },
   ]);
 
-  });
-
   // Cargar Ajustes desde el almacenamiento local persistente (localStorage) del celular
   const [settings, setSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem('neonSettings');
