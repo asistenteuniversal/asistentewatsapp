@@ -234,26 +234,28 @@ export default function App() {
       {/* Main Container switching between Fase 1 (ChatGPT) and Fase 2 (NEON Cover) */}
       <main className="w-full h-full relative flex-1 overflow-hidden">
         {/* Layer 1: Google AI Studio Interface (Visible or Hidden underneath) */}
-        <div
-          className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${
-            mode === 'studio'
-              ? 'z-20 opacity-100 pointer-events-auto'
-              : 'z-0 opacity-0 pointer-events-none'
-          }`}
-        >
-          <ChatGPTLayer
-            chatUrl={settings.chatUrl}
-            onUpdateUrl={(newUrl) => setSettings((prev) => ({ ...prev, chatUrl: newUrl }))}
-            messages={messages}
-            onSendMessage={handleUserPrompt}
-            onToggleVoice={handleToggleCall}
-            isCallActive={voiceEngine.isCallActive}
-            isListening={voiceEngine.isListening}
-            isSpeaking={voiceEngine.isSpeaking}
-            settings={settings}
-            onClose={() => handleSetMode('neon')}
-          />
-        </div>
+        {!((window as any).AndroidInterface) && (
+          <div
+            className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${
+              mode === 'studio'
+                ? 'z-20 opacity-100 pointer-events-auto'
+                : 'z-0 opacity-0 pointer-events-none'
+            }`}
+          >
+            <ChatGPTLayer
+              chatUrl={settings.chatUrl}
+              onUpdateUrl={(newUrl) => setSettings((prev) => ({ ...prev, chatUrl: newUrl }))}
+              messages={messages}
+              onSendMessage={handleUserPrompt}
+              onToggleVoice={handleToggleCall}
+              isCallActive={voiceEngine.isCallActive}
+              isListening={voiceEngine.isListening}
+              isSpeaking={voiceEngine.isSpeaking}
+              settings={settings}
+              onClose={() => handleSetMode('neon')}
+            />
+          </div>
+        )}
 
         {/* Layer 2: NEON Stealth Cover Interface */}
         <div
