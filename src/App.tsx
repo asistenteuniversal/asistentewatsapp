@@ -73,6 +73,7 @@ export default function App() {
     autoStartVoice: false,
     showIframeFallback: false,
     bridgeEnabled: true,
+    systemInstructions: 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.',
   });
 
   // Sincronizar el estado del puente (conectar/desconectar Página 1) con el celular
@@ -85,6 +86,17 @@ export default function App() {
       }
     }
   }, [settings.bridgeEnabled]);
+
+  // Sincronizar las instrucciones del sistema con el celular
+  useEffect(() => {
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
+      try {
+        (window as any).AndroidInterface.updateSystemInstructions(settings.systemInstructions);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [settings.systemInstructions]);
 
   // Handle incoming AI response from backend
   const handleUserPrompt = useCallback(
