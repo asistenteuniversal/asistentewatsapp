@@ -72,25 +72,6 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
         }}
       />
 
-      {/* ── VENTANA DE VIDEO: transparente cuando llamada activa, invisible cuando inactiva ──
-          A través de esta zona transparente se ve el webViewStudio (AI Studio) que está debajo.
-          Aparece cuando isCallActive=true y desaparece cuando isCallActive=false. */}
-      {isCallActive && (
-        <div
-          className="absolute z-10"
-          style={{
-            top: '22%',
-            left: '5%',
-            right: '5%',
-            height: '48%',
-            borderRadius: '16px',
-            background: 'transparent',
-            border: '1.5px solid rgba(212,175,55,0.35)',
-            boxShadow: '0 0 25px rgba(212,175,55,0.12)',
-          }}
-        />
-      )}
-
       {/* ── BOTÓN: MOSTRAR INTERFAZ (arriba izquierda) ── */}
       {SHOW_MOSTRAR_INTERFAZ && onShowStudio && (
         <button
