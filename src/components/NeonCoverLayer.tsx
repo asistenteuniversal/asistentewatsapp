@@ -1,6 +1,25 @@
 import React from 'react';
-import { Settings, Video, Phone, Eye } from 'lucide-react';
+import { Settings, Video, Phone, Eye, MicOff } from 'lucide-react';
 import neonPhoneCover from '../assets/images/neon_phone_cover_1785688045682.jpg';
+
+// ============================================================
+// CONFIGURACIÓN FÁCIL - Para producción cambia true/false aquí
+// ============================================================
+const SHOW_MOSTRAR_INTERFAZ = true;  // ← false para ocultar en producción
+const SHOW_SETTINGS_BUTTON  = true;  // ← false para ocultar en producción
+const SHOW_MUTE_BUTTON      = true;  // ← false para quitar botón de silencio
+// ============================================================
+
+// Estilos de oro metálico ultra-realista (reutilizable)
+const goldGradient = 'linear-gradient(135deg, #fff5c0 0%, #f0d060 20%, #d4af37 45%, #b8860b 70%, #f0d060 85%, #fff5c0 100%)';
+const goldTextStyle: React.CSSProperties = {
+  background: goldGradient,
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+  filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.8))',
+  fontFamily: "'Outfit', sans-serif",
+};
 
 interface NeonCoverLayerProps {
   isCallActive: boolean;
@@ -27,136 +46,140 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   onShowStudio,
   onOpenSettings,
 }) => {
-  // Format seconds into MM:SS
+  // Formato MM:SS para el cronómetro
   const formatTimer = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60)
-      .toString()
-      .padStart(2, '0');
+    const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
     const secs = (totalSeconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
   };
 
   return (
-    <div className="w-full h-full bg-[#020205] flex items-center justify-center select-none overflow-hidden relative font-sans">
-      {/* Import Premium Outfit Font */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&display=swap');
-      `}</style>
+    <div
+      className="w-full h-full bg-black overflow-hidden relative select-none"
+      style={{ fontFamily: "'Outfit', sans-serif" }}
+    >
+      {/* Fuente premium */}
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');`}</style>
 
-      {/* Smartphone Chassis using the clean gold cover as background directly, spanning 100% of screen */}
-      <div 
-        className="relative z-10 w-full h-full overflow-hidden"
+      {/* Imagen de fondo: logo + NEON AVANTAR, fondo negro puro, 100% pantalla */}
+      <div
+        className="absolute inset-0 w-full h-full"
         style={{
           backgroundImage: `url(${neonPhoneCover})`,
-          backgroundSize: '100% 100%',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
         }}
+      />
+
+      {/* ── BOTÓN: MOSTRAR INTERFAZ (arriba izquierda) ── */}
+      {SHOW_MOSTRAR_INTERFAZ && onShowStudio && (
+        <button
+          type="button"
+          onClick={onShowStudio}
+          className="absolute top-[5%] left-[5%] z-30 flex items-center gap-2 px-3 py-2 rounded-xl
+                     bg-black/70 border border-[#d4af37]/40 text-[#d4af37]
+                     text-[10px] font-bold tracking-widest uppercase
+                     shadow-[0_0_12px_rgba(212,175,55,0.15)]
+                     active:scale-95 transition-all duration-150 focus:outline-none
+                     hover:bg-[#d4af37]/10"
+          title="Mostrar interfaz"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          <span>MOSTRAR INTERFAZ</span>
+        </button>
+      )}
+
+      {/* ── BOTÓN: CONFIGURACIÓN (arriba derecha) ── */}
+      {SHOW_SETTINGS_BUTTON && onOpenSettings && (
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="absolute top-[5%] right-[5%] z-30 p-2.5 rounded-xl
+                     bg-black/70 border border-[#d4af37]/40 text-[#d4af37]
+                     shadow-[0_0_12px_rgba(212,175,55,0.15)]
+                     active:scale-95 transition-all duration-150 focus:outline-none
+                     hover:bg-[#d4af37]/10"
+          title="Configuración"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* ── CRONÓMETRO: escala con vw para cualquier Android ── */}
+      <div className="absolute bottom-[24%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+        <span
+          className={`font-bold font-mono transition-all duration-300 ${
+            isCallActive ? 'opacity-100 animate-pulse' : 'opacity-35'
+          }`}
+          style={{
+            ...goldTextStyle,
+            fontSize: 'clamp(18px, 6vw, 30px)',
+            letterSpacing: '0.2em',
+          }}
+        >
+          {formatTimer(isCallActive ? callDuration : 0)}
+        </span>
+      </div>
+
+      {/* ── FILA DE BOTONES DE LLAMADA: escala con vw para cualquier Android ── */}
+      <div
+        className="absolute bottom-[9%] left-1/2 -translate-x-1/2 z-30 flex items-center"
+        style={{ gap: 'clamp(16px, 5vw, 32px)' }}
       >
-        {/* HTML BUTTONS AND TEXTS ALIGNED EXACTLY TO THE GOLD PHONE FRAME GRAPHICS */}
-
-        {/* 1. Top Button: MOSTRAR INTERFAZ (Positioned at top-left: 6.8% top, 8.5% left, 32% width, 5% height) */}
-        {onShowStudio && (
-          <button
-            type="button"
-            onClick={onShowStudio}
-            className="absolute top-[6.8%] left-[8.5%] w-[32%] h-[5%] rounded-xl border border-[#d4af37]/45 bg-black/85 backdrop-blur-md text-[#d4af37] text-[10px] font-bold tracking-wider hover:bg-[#d4af37]/15 active:scale-95 transition-all duration-200 ease-out focus:outline-none shadow-lg ring-4 ring-black pointer-events-auto flex items-center justify-center gap-1.5 z-30"
-            title="Mostrar interfaz de chat y logs"
-          >
-            <Eye className="w-3.5 h-3.5 text-[#d4af37]" />
-            <span>MOSTRAR INTERFAZ</span>
-          </button>
-        )}
-
-        {/* 2. Top Button: Settings Gear (Positioned at top-right: 6.8% top, 8.5% right, 12% width, 5% height) */}
-        {onOpenSettings && (
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className="absolute top-[6.8%] right-[8.5%] w-[12%] h-[5%] rounded-xl border border-[#d4af37]/45 bg-black/85 backdrop-blur-md text-[#d4af37] hover:bg-[#d4af37]/15 active:scale-95 transition-all duration-200 ease-out focus:outline-none shadow-lg ring-4 ring-black pointer-events-auto flex items-center justify-center z-30"
-            title="Configuración"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
-        )}
-
-        {/* 3. Text Section (NEON AVANTAR in polished gold: centered horizontally, 26.5% top) */}
-        <div className="absolute top-[26.5%] left-1/2 transform -translate-x-1/2 flex flex-col items-center select-none pointer-events-none w-[60%] z-20">
-          {/* NEON */}
-          <h1 
-            className="text-[38px] sm:text-[44px] font-bold tracking-[0.25em] text-center uppercase leading-none"
-            style={{
-              background: 'linear-gradient(135deg, #fffae0 0%, #d4af37 40%, #b38600 70%, #f3e5ab 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))',
-              fontFamily: 'Outfit, sans-serif'
-            }}
-          >
-            NEON
-          </h1>
-          {/* AVANTAR (smaller) */}
-          <h2 
-            className="text-[14px] sm:text-[16px] font-semibold tracking-[0.35em] text-center uppercase mt-3.5 leading-none"
-            style={{
-              background: 'linear-gradient(135deg, #fffae0 0%, #d4af37 40%, #b38600 70%, #f3e5ab 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))',
-              fontFamily: 'Outfit, sans-serif'
-            }}
-          >
-            AVANTAR
-          </h2>
-        </div>
-
-        {/* 4. Call Duration Timer (Centered horizontally, 20.8% bottom height) */}
-        <div className="absolute bottom-[20.8%] left-1/2 transform -translate-x-1/2 px-4 py-1.5 rounded-xl bg-black/90 border border-white/5 shadow-md ring-4 ring-black pointer-events-none select-none z-20">
-          <span 
-            className={`text-[23px] sm:text-[25px] font-bold tracking-[0.2em] font-mono transition-all duration-300 ${
-              isCallActive 
-                ? 'animate-pulse' 
-                : 'opacity-40'
-            }`}
-            style={{
-              background: 'linear-gradient(135deg, #fffae0 0%, #d4af37 40%, #b38600 70%, #f3e5ab 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))'
-            }}
-          >
-            {formatTimer(isCallActive ? callDuration : 0)}
-          </span>
-        </div>
-
-        {/* 5. Bottom Video Call Button (Active, bottom-left: 10.5% bottom, 23.5% left, 21% width, 9.5% height) */}
-        <div className="absolute bottom-[10.5%] left-[23.5%] w-[21%] h-[9.5%] z-30">
+        {/* BOTÓN IZQUIERDA: Videollamada (ACTIVO y CONECTADO) */}
+        <div className="relative">
           {isCallActive && (
-            <div className="absolute inset-0 rounded-full border-2 border-emerald-400/60 animate-ping pointer-events-none" />
+            <div
+              className="absolute inset-0 rounded-full border-2 border-emerald-400/50 animate-ping pointer-events-none"
+              style={{ transform: 'scale(1.15)' }}
+            />
           )}
           <button
             id="boton_llamar_falso"
             type="button"
             onClick={onToggleVoice}
-            className={`w-full h-full rounded-full border-2 flex items-center justify-center pointer-events-auto transition-all duration-200 ease-out focus:outline-none shadow-lg ring-6 ring-black active:scale-90 ${
-              isCallActive 
-                ? 'border-emerald-500 text-emerald-400 bg-black/80 shadow-[0_0_20px_rgba(16,185,129,0.4)]' 
-                : 'border-[#d4af37] text-[#d4af37] bg-black/60 shadow-[0_0_20px_rgba(212,175,55,0.25)] hover:bg-[#d4af37]/15'
-            }`}
-            title="Activar o desactivar videollamada"
+            className={`rounded-full border-2 flex items-center justify-center
+                        transition-all duration-150 ease-out focus:outline-none active:scale-90
+                        ${isCallActive
+                          ? 'border-emerald-400 text-emerald-400 bg-black shadow-[0_0_22px_rgba(52,211,153,0.45)]'
+                          : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)]'
+                        }`}
+            style={{ width: 'clamp(56px, 16vw, 76px)', height: 'clamp(56px, 16vw, 76px)' }}
+            title="Iniciar / detener videollamada"
           >
-            <Video className="w-7 h-7" />
+            <Video style={{ width: 'clamp(22px, 6.5vw, 32px)', height: 'clamp(22px, 6.5vw, 32px)' }} />
           </button>
         </div>
 
-        {/* 6. Bottom Audio Call Button (Disabled, bottom-right: 10.5% bottom, 23.5% right, 21% width, 9.5% height) */}
+        {/* BOTÓN CENTRO: Silencio (visible, SIN conectar aún) */}
+        {SHOW_MUTE_BUTTON && (
+          <button
+            type="button"
+            disabled
+            className="rounded-full border-2 border-[#d4af37]/25 bg-black
+                       flex items-center justify-center
+                       text-[#d4af37]/30 cursor-not-allowed focus:outline-none"
+            style={{ width: 'clamp(46px, 13vw, 62px)', height: 'clamp(46px, 13vw, 62px)' }}
+            title="Silencio (próximamente)"
+          >
+            <MicOff style={{ width: 'clamp(18px, 5vw, 26px)', height: 'clamp(18px, 5vw, 26px)' }} />
+          </button>
+        )}
+
+        {/* BOTÓN DERECHA: Teléfono (visible, DESCONECTADO) */}
         <button
           type="button"
           disabled
-          className="absolute bottom-[10.5%] right-[23.5%] w-[21%] h-[9.5%] rounded-full border-2 border-[#d4af37]/15 bg-black/40 flex items-center justify-center text-[#d4af37]/20 cursor-not-allowed focus:outline-none pointer-events-auto shadow-inner ring-6 ring-black/40 z-30"
-          title="Llamada de audio no disponible en este momento"
+          className="rounded-full border-2 border-[#d4af37]/20 bg-black
+                     flex items-center justify-center
+                     text-[#d4af37]/20 cursor-not-allowed focus:outline-none"
+          style={{ width: 'clamp(56px, 16vw, 76px)', height: 'clamp(56px, 16vw, 76px)' }}
+          title="Llamada de audio (no disponible)"
         >
-          <Phone className="w-7 h-7 rotate-[135deg]" />
+          <Phone
+            style={{ width: 'clamp(22px, 6.5vw, 32px)', height: 'clamp(22px, 6.5vw, 32px)', transform: 'rotate(135deg)' }}
+          />
         </button>
       </div>
     </div>
