@@ -98,6 +98,32 @@ export default function App() {
     return defaultSettings;
   });
 
+  // Cargar instrucciones externas de comportamiento configuradas desde el PC
+  useEffect(() => {
+    fetch('/asistente_config.json')
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error('No config file');
+      })
+      .then((data) => {
+        if (data && data.systemInstructions) {
+          setSettings((prev) => ({
+            ...prev,
+            systemInstructions: data.systemInstructions,
+          }));
+          // Inyectar en Android de inmediato si la interfaz nativa está activa
+          if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
+            try {
+              (window as any).AndroidInterface.updateSystemInstructions(data.systemInstructions);
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        }
+      })
+      .catch((err) => console.log('Using local configuration fallback:', err));
+  }, []);
+
   // Guardar Ajustes en localStorage cada vez que cambien
   useEffect(() => {
     localStorage.setItem('neonSettings', JSON.stringify(settings));
