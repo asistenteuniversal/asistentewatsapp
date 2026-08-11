@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, Video, Phone, Eye, MicOff } from 'lucide-react';
 import neonPhoneCover from '../assets/images/neon_phone_cover_1785688045682.jpg';
 
@@ -19,7 +19,9 @@ const goldTextStyle: React.CSSProperties = {
   backgroundClip: 'text',
   filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.8))',
   fontFamily: "'Outfit', sans-serif",
-};interface NeonCoverLayerProps {
+};
+
+interface NeonCoverLayerProps {
   isCallActive: boolean;
   isListening: boolean;
   isSpeaking: boolean;
@@ -46,6 +48,14 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   onShowStudio,
   onOpenSettings,
 }) => {
+  const [activeCallType, setActiveCallType] = useState<'video' | 'audio' | null>(null);
+
+  // Sincronizar estado de luz local cuando termine la llamada
+  useEffect(() => {
+    if (!isCallActive) {
+      setActiveCallType(null);
+    }
+  }, [isCallActive]);
 
   // Formato MM:SS para el cronómetro
   const formatTimer = (totalSeconds: number) => {
@@ -130,7 +140,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
       >
         {/* BOTÓN IZQUIERDA: Videollamada (ACTIVO y CONECTADO) */}
         <div className="relative">
-          {isCallActive && (
+          {isCallActive && activeCallType === 'video' && (
             <div
               className="absolute inset-0 rounded-full border-2 border-emerald-400/50 animate-ping pointer-events-none"
               style={{ transform: 'scale(1.15)' }}
@@ -139,10 +149,18 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
           <button
             id="boton_llamar_falso"
             type="button"
-            onClick={onToggleVoice}
+            onClick={() => {
+              if (isCallActive) {
+                onToggleVoice();
+                setActiveCallType(null);
+              } else {
+                onToggleVoice();
+                setActiveCallType('video');
+              }
+            }}
             className={`rounded-full border-2 flex items-center justify-center
                         transition-all duration-150 ease-out focus:outline-none active:scale-90
-                        ${isCallActive
+                        ${isCallActive && activeCallType === 'video'
                           ? 'border-emerald-400 text-emerald-400 bg-black shadow-[0_0_22px_rgba(52,211,153,0.45)]'
                           : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)]'
                         }`}
@@ -167,9 +185,10 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             <MicOff style={{ width: 'clamp(18px, 5vw, 26px)', height: 'clamp(18px, 5vw, 26px)' }} />
           </button>
         )}
+
         {/* BOTÓN DERECHA: Teléfono (activo para llamadas de audio) */}
         <div className="relative">
-          {isCallActive && (
+          {isCallActive && activeCallType === 'audio' && (
             <div
               className="absolute inset-0 rounded-full border-2 border-red-500/50 animate-ping pointer-events-none"
               style={{ transform: 'scale(1.15)' }}
@@ -177,10 +196,20 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
           )}
           <button
             type="button"
-            onClick={onToggleAudio}
+            onClick={() => {
+              if (onToggleAudio) {
+                if (isCallActive) {
+                  onToggleAudio();
+                  setActiveCallType(null);
+                } else {
+                  onToggleAudio();
+                  setActiveCallType('audio');
+                }
+              }
+            }}
             className={`rounded-full border-2 flex items-center justify-center
                         transition-all duration-150 ease-out focus:outline-none active:scale-90
-                        ${isCallActive
+                        ${isCallActive && activeCallType === 'audio'
                           ? 'border-red-500 text-red-500 bg-black shadow-[0_0_22px_rgba(239,68,68,0.45)]'
                           : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
                         }`}
@@ -191,7 +220,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
               style={{ 
                 width: 'clamp(22px, 6.5vw, 32px)', 
                 height: 'clamp(22px, 6.5vw, 32px)', 
-                transform: isCallActive ? 'rotate(135deg)' : 'none' 
+                transform: isCallActive && activeCallType === 'audio' ? 'rotate(135deg)' : 'none' 
               }}
             />
           </button>
