@@ -38,6 +38,11 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
 
   return (
     <div className="w-full h-full bg-[#020205] flex items-center justify-center select-none overflow-hidden relative font-sans">
+      {/* Import Premium Outfit Font */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&display=swap');
+      `}</style>
+
       {/* Smartphone Chassis using the clean gold cover as background directly, spanning 100% of screen */}
       <div 
         className="relative z-10 w-full h-full flex flex-col justify-between overflow-hidden"
@@ -48,8 +53,8 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
           backgroundRepeat: 'no-repeat'
         }}
       >
-        {/* Screen contents positioned inside the physical phone chassis boundaries */}
-        <div className="absolute inset-0 top-[2.2%] bottom-[2.2%] left-[2.6%] right-[2.6%] rounded-[40px] overflow-hidden flex flex-col justify-between p-6 pb-12 pt-14 pointer-events-none z-20">
+        {/* Screen contents aligned exactly inside the gold chassis frame boundaries (12.5% padding on sides, 4% vertical) */}
+        <div className="absolute top-[4%] bottom-[4%] left-[12.5%] right-[12.5%] rounded-[36px] overflow-hidden flex flex-col justify-between p-5 pb-10 pt-12 pointer-events-none z-20">
           
           {/* Top Control Bar */}
           <div className="flex items-center justify-between w-full mt-4 px-2">
@@ -58,10 +63,10 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
               <button
                 type="button"
                 onClick={onShowStudio}
-                className="px-4 py-2 rounded-xl border border-[#d4af37]/45 bg-black/40 backdrop-blur-md text-[#d4af37] text-xs font-bold tracking-wider hover:bg-[#d4af37]/15 active:scale-95 transition-all duration-200 ease-out focus:outline-none shadow-[0_0_15px_rgba(212,175,55,0.1)] pointer-events-auto flex items-center gap-2"
+                className="px-3.5 py-2 rounded-xl border border-[#d4af37]/45 bg-black/85 backdrop-blur-md text-[#d4af37] text-[10px] font-bold tracking-wider hover:bg-[#d4af37]/15 active:scale-95 transition-all duration-200 ease-out focus:outline-none shadow-lg ring-4 ring-black pointer-events-auto flex items-center gap-1.5"
                 title="Mostrar interfaz de chat y logs"
               >
-                <Eye className="w-3.5 h-3.5" />
+                <Eye className="w-3 h-3 text-[#d4af37]" />
                 <span>MOSTRAR INTERFAZ</span>
               </button>
             ) : (
@@ -73,24 +78,24 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
               <button
                 type="button"
                 onClick={onOpenSettings}
-                className="p-2.5 rounded-xl border border-[#d4af37]/45 bg-black/40 backdrop-blur-md text-[#d4af37] hover:bg-[#d4af37]/15 active:scale-95 transition-all duration-200 ease-out focus:outline-none shadow-[0_0_15px_rgba(212,175,55,0.1)] pointer-events-auto"
+                className="p-2 rounded-xl border border-[#d4af37]/45 bg-black/85 backdrop-blur-md text-[#d4af37] hover:bg-[#d4af37]/15 active:scale-95 transition-all duration-200 ease-out focus:outline-none shadow-lg ring-4 ring-black pointer-events-auto"
                 title="Configuración"
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
           {/* Texts Section (NEON AVANTAR in polished gold with AVANTAR smaller) */}
-          <div className="w-full flex flex-col items-center justify-center mt-12 select-none">
+          <div className="w-full flex flex-col items-center justify-center mt-10 select-none">
             {/* NEON */}
             <h1 
-              className="text-4xl sm:text-5xl font-bold tracking-[0.25em] text-center uppercase"
+              className="text-3.5xl sm:text-4xl font-bold tracking-[0.25em] text-center uppercase"
               style={{
                 background: 'linear-gradient(135deg, #fffae0 0%, #d4af37 40%, #b38600 70%, #f3e5ab 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))',
                 fontFamily: 'Outfit, sans-serif'
               }}
             >
@@ -98,12 +103,12 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             </h1>
             {/* AVANTAR */}
             <h2 
-              className="text-[17px] sm:text-[19px] font-semibold tracking-[0.35em] text-center uppercase mt-2.5"
+              className="text-[14px] sm:text-[16px] font-semibold tracking-[0.35em] text-center uppercase mt-2"
               style={{
                 background: 'linear-gradient(135deg, #fffae0 0%, #d4af37 40%, #b38600 70%, #f3e5ab 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.5))',
+                filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))',
                 fontFamily: 'Outfit, sans-serif'
               }}
             >
@@ -115,11 +120,11 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
           <div className="flex-1" />
 
           {/* Bottom Interactive Area */}
-          <div className="w-full flex flex-col items-center gap-6 pb-6">
-            {/* Call Duration Timer in polished gold digits */}
-            <div className="text-center">
+          <div className="w-full flex flex-col items-center gap-6 pb-4">
+            {/* Call Duration Timer (Smaller, high legibility, wrapped in solid black badge to mask) */}
+            <div className="px-4 py-1.5 rounded-xl bg-black/90 border border-white/5 shadow-md ring-4 ring-black pointer-events-none select-none">
               <span 
-                className={`text-[34px] font-bold tracking-[0.25em] font-mono transition-all duration-300 select-none ${
+                className={`text-[24px] sm:text-[26px] font-bold tracking-[0.2em] font-mono transition-all duration-300 ${
                   isCallActive 
                     ? 'animate-pulse' 
                     : 'opacity-40'
@@ -128,7 +133,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
                   background: 'linear-gradient(135deg, #fffae0 0%, #d4af37 40%, #b38600 70%, #f3e5ab 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))'
+                  filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))'
                 }}
               >
                 {formatTimer(isCallActive ? callDuration : 0)}
@@ -136,7 +141,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             </div>
 
             {/* Dynamic Buttons Layout */}
-            <div className="flex items-center justify-center gap-12 w-full max-w-xs px-4">
+            <div className="flex items-center justify-center gap-10 w-full max-w-xs px-4">
               {/* Left Button: Video Call (Active & functional) */}
               <div className="relative">
                 {isCallActive && (
@@ -146,14 +151,14 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
                   id="boton_llamar_falso"
                   type="button"
                   onClick={onToggleVoice}
-                  className={`w-20 h-20 rounded-full border-2 flex items-center justify-center pointer-events-auto transition-all duration-200 ease-out focus:outline-none shadow-lg active:scale-90 ${
+                  className={`w-[72px] h-[72px] rounded-full border-2 flex items-center justify-center pointer-events-auto transition-all duration-200 ease-out focus:outline-none shadow-lg ring-6 ring-black active:scale-90 ${
                     isCallActive 
-                      ? 'border-emerald-500 text-emerald-400 bg-black/60 shadow-[0_0_25px_rgba(16,185,129,0.4)] active:shadow-[0_0_10px_rgba(16,185,129,0.2)]' 
-                      : 'border-[#d4af37] text-[#d4af37] bg-black/40 backdrop-blur-md shadow-[0_0_25px_rgba(212,175,55,0.2)] hover:bg-[#d4af37]/15 active:shadow-[0_0_10px_rgba(212,175,55,0.1)]'
+                      ? 'border-emerald-500 text-emerald-400 bg-black/80 shadow-[0_0_20px_rgba(16,185,129,0.4)]' 
+                      : 'border-[#d4af37] text-[#d4af37] bg-black/60 shadow-[0_0_20px_rgba(212,175,55,0.25)] hover:bg-[#d4af37]/15'
                   }`}
                   title="Activar o desactivar videollamada"
                 >
-                  <Video className="w-8 h-8" />
+                  <Video className="w-7 h-7" />
                 </button>
               </div>
 
@@ -161,10 +166,10 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
               <button
                 type="button"
                 disabled
-                className="w-20 h-20 rounded-full border-2 border-[#d4af37]/15 bg-black/20 backdrop-blur-sm flex items-center justify-center text-[#d4af37]/20 cursor-not-allowed focus:outline-none pointer-events-auto shadow-inner"
+                className="w-[72px] h-[72px] rounded-full border-2 border-[#d4af37]/15 bg-black/40 flex items-center justify-center text-[#d4af37]/20 cursor-not-allowed focus:outline-none pointer-events-auto shadow-inner ring-6 ring-black/40"
                 title="Llamada de audio no disponible en este momento"
               >
-                <Phone className="w-8 h-8 rotate-[135deg]" />
+                <Phone className="w-7 h-7 rotate-[135deg]" />
               </button>
             </div>
           </div>
