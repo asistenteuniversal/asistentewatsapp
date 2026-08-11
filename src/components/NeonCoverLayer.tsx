@@ -1,4 +1,5 @@
 import React from 'react';
+import { Settings, Video, Phone, Eye } from 'lucide-react';
 import neonPhoneCover from '../assets/images/neon_phone_cover_1785688045682.jpg';
 
 interface NeonCoverLayerProps {
@@ -37,56 +38,95 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
 
   return (
     <div className="w-full h-full bg-[#020205] flex items-center justify-center select-none overflow-hidden relative font-sans">
-      {/* Smartphone Chassis using the clean gold image cover as background directly, spanning 100% of screen */}
+      {/* Smartphone Wallpaper showing only the gold logo and text, scaling automatically */}
       <div 
-        className="relative z-10 w-full h-full flex flex-col justify-between overflow-hidden"
+        className="relative z-10 w-full h-full flex flex-col justify-between overflow-hidden p-6 pb-16 pt-10"
         style={{
           backgroundImage: `url(${neonPhoneCover})`,
-          backgroundSize: '100% 100%',
+          backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
         }}
       >
-        {/* Transparent overlay button for 'MOSTRAR INTERFAZ' (Top-Left of the cover image) */}
-        {onShowStudio && (
-          <button
-            type="button"
-            onClick={onShowStudio}
-            className="absolute top-[6.5%] left-[8%] w-[32%] h-[5%] bg-transparent border-none cursor-pointer z-30 focus:outline-none"
-            title="Mostrar interfaz de Google AI Studio"
-          />
-        )}
+        {/* Top Control Bar */}
+        <div className="flex items-center justify-between w-full mt-4 px-2">
+          {/* Button: MOSTRAR INTERFAZ */}
+          {onShowStudio ? (
+            <button
+              type="button"
+              onClick={onShowStudio}
+              className="px-4 py-2 rounded-xl border border-[#d4af37]/45 bg-black/40 backdrop-blur-md text-[#d4af37] text-xs font-bold tracking-wider hover:bg-[#d4af37]/15 active:scale-95 active:shadow-[0_0_5px_rgba(212,175,55,0.1)] transition-all duration-200 ease-out focus:outline-none shadow-[0_0_15px_rgba(212,175,55,0.1)] flex items-center gap-2"
+              title="Mostrar interfaz de chat y logs"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>MOSTRAR INTERFAZ</span>
+            </button>
+          ) : (
+            <div />
+          )}
 
-        {/* Transparent overlay button for Settings Gear (Top-Right of the cover image) */}
-        {onOpenSettings && (
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className="absolute top-[6.5%] right-[8%] w-[12%] h-[5%] bg-transparent border-none cursor-pointer z-30 focus:outline-none"
-            title="Abrir Configuración"
-          />
-        )}
-
-        {/* Gold Monospace Timer overlay positioned exactly over the 00:00 printed on the background image */}
-        <div className="absolute bottom-[20.8%] left-1/2 transform -translate-x-1/2 z-20">
-          <span className="text-[26px] font-bold tracking-widest text-[#d4af37] font-mono select-none pointer-events-none">
-            {formatTimer(isCallActive ? callDuration : 0)}
-          </span>
+          {/* Button: Settings Config Gear */}
+          {onOpenSettings && (
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              className="p-2.5 rounded-xl border border-[#d4af37]/45 bg-black/40 backdrop-blur-md text-[#d4af37] hover:bg-[#d4af37]/15 active:scale-95 active:shadow-[0_0_5px_rgba(212,175,55,0.1)] transition-all duration-200 ease-out focus:outline-none shadow-[0_0_15px_rgba(212,175,55,0.1)]"
+              title="Configuración"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
-        {/* Transparent overlay button for Video Call (Bottom-Left of the cover image) */}
-        <button
-          id="boton_llamar_falso"
-          type="button"
-          onClick={onToggleVoice}
-          className="absolute bottom-[10.5%] left-[23%] w-[21%] h-[9.5%] rounded-full bg-transparent border-none cursor-pointer z-30 focus:outline-none"
-          title="Tocar para iniciar/detener llamada con Google AI Studio"
-        />
+        {/* Empty flex area to separate content */}
+        <div className="flex-1" />
 
-        {/* Pulsing ring indicator centered on the video button when call is active */}
-        {isCallActive && (
-          <div className="absolute bottom-[10.5%] left-[23%] w-[21%] h-[9.5%] rounded-full border-2 border-emerald-400 animate-ping pointer-events-none z-20" />
-        )}
+        {/* Bottom Interactive Area */}
+        <div className="w-full flex flex-col items-center gap-6 pb-6">
+          {/* Call Duration Timer */}
+          <div className="text-center">
+            <span className={`text-[32px] font-bold tracking-[0.2em] font-mono transition-all duration-300 ${
+              isCallActive 
+                ? 'text-[#d4af37] drop-shadow-[0_0_12px_rgba(212,175,55,0.6)] animate-pulse' 
+                : 'text-[#d4af37]/40 drop-shadow-[0_0_5px_rgba(212,175,55,0.1)]'
+            }`}>
+              {formatTimer(isCallActive ? callDuration : 0)}
+            </span>
+          </div>
+
+          {/* Dynamic Buttons Layout */}
+          <div className="flex items-center justify-center gap-12 w-full max-w-xs px-4">
+            {/* Left Button: Video Call (Active & functional) */}
+            <div className="relative">
+              {isCallActive && (
+                <div className="absolute inset-0 rounded-full border-2 border-emerald-400/60 animate-ping pointer-events-none" />
+              )}
+              <button
+                id="boton_llamar_falso"
+                type="button"
+                onClick={onToggleVoice}
+                className={`w-20 h-20 rounded-full border-2 flex items-center justify-center transition-all duration-200 ease-out focus:outline-none shadow-lg ${
+                  isCallActive 
+                    ? 'border-emerald-500 text-emerald-400 bg-black/60 shadow-[0_0_25px_rgba(16,185,129,0.4)] hover:bg-emerald-500/10 active:scale-90 active:shadow-[0_0_10px_rgba(16,185,129,0.2)]' 
+                    : 'border-[#d4af37] text-[#d4af37] bg-black/40 backdrop-blur-md shadow-[0_0_25px_rgba(212,175,55,0.2)] hover:bg-[#d4af37]/15 active:scale-90 active:shadow-[0_0_10px_rgba(212,175,55,0.1)]'
+                }`}
+                title="Activar o desactivar videollamada"
+              >
+                <Video className="w-8 h-8" />
+              </button>
+            </div>
+
+            {/* Right Button: Audio Call (Disconnected / Disabled) */}
+            <button
+              type="button"
+              disabled
+              className="w-20 h-20 rounded-full border-2 border-[#d4af37]/15 bg-black/20 backdrop-blur-sm flex items-center justify-center text-[#d4af37]/20 cursor-not-allowed focus:outline-none shadow-inner"
+              title="Llamada de audio no disponible en este momento"
+            >
+              <Phone className="w-8 h-8 rotate-[135deg]" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
