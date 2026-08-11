@@ -19,15 +19,14 @@ const goldTextStyle: React.CSSProperties = {
   backgroundClip: 'text',
   filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.8))',
   fontFamily: "'Outfit', sans-serif",
-};
-
-interface NeonCoverLayerProps {
+};interface NeonCoverLayerProps {
   isCallActive: boolean;
   isListening: boolean;
   isSpeaking: boolean;
   audioLevel: number;
   callDuration: number;
   onToggleVoice: () => void;
+  onToggleAudio?: () => void;
   transcript: string;
   pulseSpeed: number;
   onShowStudio?: () => void;
@@ -41,11 +40,13 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   audioLevel,
   callDuration,
   onToggleVoice,
+  onToggleAudio,
   transcript,
   pulseSpeed,
   onShowStudio,
   onOpenSettings,
 }) => {
+
   // Formato MM:SS para el cronómetro
   const formatTimer = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -166,21 +167,35 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             <MicOff style={{ width: 'clamp(18px, 5vw, 26px)', height: 'clamp(18px, 5vw, 26px)' }} />
           </button>
         )}
-
-        {/* BOTÓN DERECHA: Teléfono (visible, DESCONECTADO) */}
-        <button
-          type="button"
-          disabled
-          className="rounded-full border-2 border-[#d4af37]/20 bg-black
-                     flex items-center justify-center
-                     text-[#d4af37]/20 cursor-not-allowed focus:outline-none"
-          style={{ width: 'clamp(56px, 16vw, 76px)', height: 'clamp(56px, 16vw, 76px)' }}
-          title="Llamada de audio (no disponible)"
-        >
-          <Phone
-            style={{ width: 'clamp(22px, 6.5vw, 32px)', height: 'clamp(22px, 6.5vw, 32px)', transform: 'rotate(135deg)' }}
-          />
-        </button>
+        {/* BOTÓN DERECHA: Teléfono (activo para llamadas de audio) */}
+        <div className="relative">
+          {isCallActive && (
+            <div
+              className="absolute inset-0 rounded-full border-2 border-red-500/50 animate-ping pointer-events-none"
+              style={{ transform: 'scale(1.15)' }}
+            />
+          )}
+          <button
+            type="button"
+            onClick={onToggleAudio}
+            className={`rounded-full border-2 flex items-center justify-center
+                        transition-all duration-150 ease-out focus:outline-none active:scale-90
+                        ${isCallActive
+                          ? 'border-red-500 text-red-500 bg-black shadow-[0_0_22px_rgba(239,68,68,0.45)]'
+                          : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
+                        }`}
+            style={{ width: 'clamp(56px, 16vw, 76px)', height: 'clamp(56px, 16vw, 76px)' }}
+            title="Llamada de audio (solo voz)"
+          >
+            <Phone
+              style={{ 
+                width: 'clamp(22px, 6.5vw, 32px)', 
+                height: 'clamp(22px, 6.5vw, 32px)', 
+                transform: isCallActive ? 'rotate(135deg)' : 'none' 
+              }}
+            />
+          </button>
+        </div>
       </div>
     </div>
   );

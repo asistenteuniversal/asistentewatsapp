@@ -297,6 +297,28 @@ export default function App() {
     }
   }, [voiceEngine]);
 
+  const handleToggleAudioCall = useCallback(async () => {
+    await voiceEngine.toggleCall();
+    const willBeActive = !voiceEngine.isCallActive;
+
+    if ((window as any).AndroidInterface) {
+      try {
+        if (willBeActive) {
+          (window as any).AndroidInterface.startVoiceCall(false); // Llamada de audio (con el flag false)
+        } else {
+          (window as any).AndroidInterface.endVoiceCall(); // Colgar idéntico
+        }
+      } catch (e) {
+        console.error("Error calling native voice toggler:", e);
+      }
+    }
+
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      const command = willBeActive ? 'start-call' : 'end-call';
+      wsRef.current.send(JSON.stringify({ type: 'command', action: command }));
+    }
+  }, [voiceEngine]);
+
   // Keyboard shortcut handler (Ctrl + Shift + H)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -375,6 +397,7 @@ export default function App() {
             audioLevel={voiceEngine.audioLevel}
             callDuration={voiceEngine.callDuration}
             onToggleVoice={handleToggleCall}
+            onToggleAudio={handleToggleAudioCall}
             transcript={voiceEngine.transcript}
             pulseSpeed={settings.pulseSpeed}
             onShowStudio={() => handleSetMode('studio')}
