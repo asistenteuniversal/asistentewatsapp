@@ -321,16 +321,18 @@ export default function App() {
 
   return (
     <div className="w-screen h-screen bg-black overflow-hidden relative flex flex-col select-none">
-      {/* Top Stealth Header Bar */}
-      <StealthHeader
-        mode={mode}
-        setMode={handleSetMode}
-        settings={settings}
-        setSettings={setSettings}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        isCallActive={voiceEngine.isCallActive}
-        audioLevel={voiceEngine.audioLevel}
-      />
+      {/* Top Stealth Header Bar - Only visible in studio mode */}
+      {mode === 'studio' && (
+        <StealthHeader
+          mode={mode}
+          setMode={handleSetMode}
+          settings={settings}
+          setSettings={setSettings}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          isCallActive={voiceEngine.isCallActive}
+          audioLevel={voiceEngine.audioLevel}
+        />
+      )}
 
       {/* Main Container switching between Fase 1 (ChatGPT) and Fase 2 (NEON Cover) */}
       <main className="w-full h-full relative flex-1 overflow-hidden">
@@ -375,6 +377,8 @@ export default function App() {
             onToggleVoice={handleToggleCall}
             transcript={voiceEngine.transcript}
             pulseSpeed={settings.pulseSpeed}
+            onShowStudio={() => handleSetMode('studio')}
+            onOpenSettings={() => setIsSettingsOpen(true)}
           />
         </div>
       </main>
