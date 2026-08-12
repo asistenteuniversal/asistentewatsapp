@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Video, Phone, Eye, MicOff } from 'lucide-react';
+import { Settings, Video, Phone, Eye, MicOff, Sliders } from 'lucide-react';
 import neonPhoneCover from '../assets/images/neon_phone_cover_1785688045682.jpg';
 
 // ============================================================
@@ -32,7 +32,8 @@ interface NeonCoverLayerProps {
   transcript: string;
   pulseSpeed: number;
   onShowStudio?: () => void;
-  onOpenSettings?: () => void;
+  onOpenSettings?: () => void; // Abre administrador (Engrane original)
+  onOpenClientSettings?: () => void; // Abre cliente (Sliders nuevo)
 }
 
 export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
@@ -47,7 +48,9 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   pulseSpeed,
   onShowStudio,
   onOpenSettings,
+  onOpenClientSettings,
 }) => {
+
   const [activeCallType, setActiveCallType] = useState<'video' | 'audio' | null>(null);
 
   // Sincronizar estado de luz local cuando termine la llamada
@@ -88,20 +91,34 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
         <button
           type="button"
           onClick={onShowStudio}
-          className="absolute top-[5%] left-[5%] z-30 flex items-center gap-2 px-3 py-2 rounded-xl
+          className="absolute top-[5%] left-[5%] z-30 flex items-center justify-center p-2.5 rounded-xl
                      bg-black/70 border border-[#d4af37]/40 text-[#d4af37]
-                     text-[10px] font-bold tracking-widest uppercase
                      shadow-[0_0_12px_rgba(212,175,55,0.15)]
                      active:scale-95 transition-all duration-150 focus:outline-none
                      hover:bg-[#d4af37]/10"
           title="Mostrar interfaz"
         >
-          <Eye className="w-3.5 h-3.5" />
-          <span>MOSTRAR INTERFAZ</span>
+          <Eye className="w-4 h-4" />
         </button>
       )}
 
-      {/* ── BOTÓN: CONFIGURACIÓN (arriba derecha) ── */}
+      {/* ── BOTÓN: AJUSTES CLIENTE (arriba derecha, al lado del administrador) ── */}
+      {SHOW_SETTINGS_BUTTON && onOpenClientSettings && (
+        <button
+          type="button"
+          onClick={onOpenClientSettings}
+          className="absolute top-[5%] right-[16%] z-30 p-2.5 rounded-xl
+                     bg-black/70 border border-[#d4af37]/40 text-[#d4af37]
+                     shadow-[0_0_12px_rgba(212,175,55,0.15)]
+                     active:scale-95 transition-all duration-150 focus:outline-none
+                     hover:bg-[#d4af37]/10"
+          title="Ajustes de Usuario"
+        >
+          <Sliders className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* ── BOTÓN: CONFIGURACIÓN ADMINISTRADOR (arriba derecha, posición original) ── */}
       {SHOW_SETTINGS_BUTTON && onOpenSettings && (
         <button
           type="button"
@@ -111,11 +128,12 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
                      shadow-[0_0_12px_rgba(212,175,55,0.15)]
                      active:scale-95 transition-all duration-150 focus:outline-none
                      hover:bg-[#d4af37]/10"
-          title="Configuración"
+          title="Configuración Avanzada"
         >
           <Settings className="w-4 h-4" />
         </button>
       )}
+
 
       {/* ── CRONÓMETRO: escala con vw para cualquier Android ── */}
       <div className="absolute bottom-[24%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">

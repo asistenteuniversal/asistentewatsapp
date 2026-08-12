@@ -4,25 +4,35 @@ import { StealthHeader } from './components/StealthHeader';
 import { ChatGPTLayer } from './components/ChatGPTLayer';
 import { NeonCoverLayer } from './components/NeonCoverLayer';
 import { SettingsModal } from './components/SettingsModal';
+import { ClientSettingsModal } from './components/ClientSettingsModal'; // Importar modal de cliente
 import { useVoiceEngine } from './hooks/useVoiceEngine';
 
 export default function App() {
   const [mode, setMode] = useState<AppMode>('neon'); // Default to NEON phone cover
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Modal de Administrador (original)
+  const [isClientSettingsOpen, setIsClientSettingsOpen] = useState(false); // Modal de Cliente (nuevo)
+
+  // Estado de vinculación reactivo compartido globalmente
+  const [isGoogleLinked, setIsGoogleLinked] = useState(localStorage.getItem('google_logged_in') === 'true');
 
   // Escuchar la llamada nativa de Android al presionar el botón Atrás o tocar la cabecera
   useEffect(() => {
     (window as any).setAppModeNeon = () => {
       setMode('neon');
+      localStorage.setItem('google_logged_in', 'true');
+      setIsGoogleLinked(true); // Actualiza en caliente el modal del cliente
     };
     (window as any).setAppModeStudio = () => {
       setMode('studio');
+      localStorage.setItem('google_logged_in', 'false');
+      setIsGoogleLinked(false); // Actualiza en caliente el modal del cliente
     };
     return () => {
       delete (window as any).setAppModeNeon;
       delete (window as any).setAppModeStudio;
     };
   }, []);
+
 
   const handleSetMode = useCallback((newMode: AppMode) => {
     setMode(newMode);
@@ -427,12 +437,21 @@ export default function App() {
             transcript={voiceEngine.transcript}
             pulseSpeed={settings.pulseSpeed}
             onShowStudio={() => handleSetMode('studio')}
-            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenSettings={() => setIsSettingsOpen(true)} // Engrane abre Administrador (original)
+            onOpenClientSettings={() => setIsClientSettingsOpen(true)} // Sliders abre Cliente (nuevo)
           />
         </div>
       </main>
 
-      {/* Settings Modal */}
+      {/* Modal de Ajustes del Cliente (Público) */}
+      <ClientSettingsModal
+        isOpen={isClientSettingsOpen}
+        onClose={() => setIsClientSettingsOpen(false)}
+        isGoogleLinked={isGoogleLinked}
+        setIsGoogleLinked={setIsGoogleLinked}
+      />
+
+      {/* Settings Modal (Administrador) */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -442,3 +461,4 @@ export default function App() {
     </div>
   );
 }
+
