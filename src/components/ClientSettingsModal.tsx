@@ -16,9 +16,15 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  // Consultar directamente a las cookies reales de la APK de Java en caliente al abrir el modal
+  const activeLinkedState = (window as any).AndroidInterface && (window as any).AndroidInterface.isGoogleSessionActive
+    ? (window as any).AndroidInterface.isGoogleSessionActive()
+    : false;
+
   const handleLinkGoogle = () => {
     // Si ya está vinculada, no hacer nada
-    if (isGoogleLinked) return;
+    if (activeLinkedState) return;
+
 
     if ((window as any).AndroidInterface && (window as any).AndroidInterface.showStudio) {
       try {
@@ -79,14 +85,14 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           {/* Botón 1: Vincular Cuenta de Google */}
           <button
             onClick={handleLinkGoogle}
-            disabled={isGoogleLinked}
+            disabled={activeLinkedState}
             className={`w-full py-3.5 px-4 rounded-xl border font-bold text-xs tracking-wider uppercase transition duration-200 flex items-center justify-center gap-2.5 focus:outline-none
-              ${isGoogleLinked 
+              ${activeLinkedState 
                 ? 'border-emerald-500/30 bg-emerald-950/10 text-emerald-400 cursor-default' 
                 : 'border-[#d4af37]/45 bg-[#d4af37]/5 hover:bg-[#d4af37]/15 text-[#d4af37] active:scale-98'
               }`}
           >
-            {isGoogleLinked ? (
+            {activeLinkedState ? (
               <>
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 Cuenta Vinculada Correctamente
@@ -98,6 +104,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
               </>
             )}
           </button>
+
 
           {/* Botón 2: Cerrar Sesión de Google */}
           <button
