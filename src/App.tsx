@@ -110,7 +110,7 @@ export default function App() {
 
   // Cargar instrucciones externas de comportamiento configuradas desde el PC
   useEffect(() => {
-    fetch('/asistente_config.json')
+    fetch(`/asistente_config.json?v=${new Date().getTime()}`)
       .then((res) => {
         if (res.ok) return res.json();
         throw new Error('No config file');
