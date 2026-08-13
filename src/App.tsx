@@ -11,6 +11,17 @@ export default function App() {
   const [mode, setMode] = useState<AppMode>('neon'); // Default to NEON phone cover
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Modal de Administrador (original)
   const [isClientSettingsOpen, setIsClientSettingsOpen] = useState(false); // Modal de Cliente (nuevo)
+  const [isSystemLoading, setIsSystemLoading] = useState(true); // Temporizador de arranque seguro
+
+  // Temporizador de 4 segundos para permitir carga de Google en background
+  useEffect(() => {
+    if (isSystemLoading) {
+      const timer = setTimeout(() => {
+        setIsSystemLoading(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSystemLoading]);
 
   // Estado de vinculación reactivo compartido globalmente
   const [isGoogleLinked, setIsGoogleLinked] = useState(localStorage.getItem('google_logged_in') === 'true');
@@ -19,6 +30,7 @@ export default function App() {
   useEffect(() => {
     (window as any).setAppModeNeon = () => {
       setMode('neon');
+      setIsSystemLoading(true); // Disparar la pantalla de carga segura al regresar de Google
       localStorage.setItem('google_logged_in', 'true');
       setIsGoogleLinked(true); // Actualiza en caliente el modal del cliente
     };
@@ -36,6 +48,9 @@ export default function App() {
 
   const handleSetMode = useCallback((newMode: AppMode) => {
     setMode(newMode);
+    if (newMode === 'neon') {
+      setIsSystemLoading(true); // Disparar la carga si se vuelve a la carátula
+    }
     if ((window as any).AndroidInterface && (window as any).AndroidInterface.showStudio) {
       try {
         (window as any).AndroidInterface.showStudio(newMode === 'studio');
@@ -379,6 +394,44 @@ export default function App() {
 
   return (
     <div className="w-screen h-screen bg-black overflow-hidden relative flex flex-col select-none">
+      {/* Capa de Carga de Arranque Seguro (4 Segundos) */}
+      {isSystemLoading && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          pointerEvents: 'none'
+        }}>
+          {/* Línea de progreso minimalista color oro en el centro */}
+          <div style={{
+            width: '180px',
+            height: '2px',
+            backgroundColor: 'rgba(212, 175, 55, 0.15)',
+            borderRadius: '2px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              width: '100%',
+              height: '100%',
+              backgroundColor: '#d4af37',
+              borderRadius: '2px',
+              transformOrigin: 'left',
+              animation: 'fillProgress 4s linear forwards'
+            }} />
+          </div>
+
+          <style>{`
+            @keyframes fillProgress {
+              from { transform: scaleX(0); }
+              to { transform: scaleX(1); }
+            }
+          `}</style>
+        </div>
+      )}
       {/* Top Stealth Header Bar - Only visible in studio mode */}
       {mode === 'studio' && (
         <StealthHeader
@@ -427,6 +480,8 @@ export default function App() {
           }`}
         >
           <NeonCoverLayer
+            isSystemLoading={isSystemLoading}
+            isGoogleLinked={isGoogleLinked}
             isCallActive={voiceEngine.isCallActive}
             isListening={voiceEngine.isListening}
             isSpeaking={voiceEngine.isSpeaking}

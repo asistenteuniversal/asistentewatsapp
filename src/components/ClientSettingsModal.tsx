@@ -82,28 +82,28 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
         {/* Buttons List */}
         <div className="space-y-4">
-          {/* Botón 1: Vincular Cuenta de Google */}
-          <button
-            onClick={handleLinkGoogle}
-            disabled={activeLinkedState}
-            className={`w-full py-3.5 px-4 rounded-xl border font-bold text-xs tracking-wider uppercase transition duration-200 flex items-center justify-center gap-2.5 focus:outline-none
-              ${activeLinkedState 
-                ? 'border-emerald-500/30 bg-emerald-950/10 text-emerald-400 cursor-default' 
-                : 'border-[#d4af37]/45 bg-[#d4af37]/5 hover:bg-[#d4af37]/15 text-[#d4af37] active:scale-98'
-              }`}
-          >
-            {activeLinkedState ? (
-              <>
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                Cuenta Vinculada Correctamente
-              </>
-            ) : (
-              <>
-                <span className="text-sm">🔑</span>
-                Vincular Cuenta de Google
-              </>
-            )}
-          </button>
+          {activeLinkedState ? (
+            <button
+              disabled
+              className="w-full py-3.5 px-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10 text-emerald-400 font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2.5 focus:outline-none cursor-default"
+            >
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              Cuenta Vinculada Correctamente
+            </button>
+          ) : (
+            <button
+              onClick={handleLinkGoogle}
+              className="w-full py-3.5 px-4 rounded-xl font-bold text-xs tracking-wider uppercase transition duration-200 flex items-center justify-center focus:outline-none active:scale-98"
+              style={{
+                background: 'linear-gradient(135deg, #fff5c0 0%, #f0d060 20%, #d4af37 45%, #b8860b 70%, #f0d060 85%, #fff5c0 100%)',
+                color: '#000000',
+                border: 'none',
+                boxShadow: '0 0 15px rgba(212, 175, 55, 0.4)'
+              }}
+            >
+              INGRESA CUENTA DE GMAIL
+            </button>
+          )}
 
 
           {/* Botón 2: Cerrar Sesión de Google */}
