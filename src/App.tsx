@@ -22,45 +22,29 @@ export default function App() {
   const [isClientSettingsOpen, setIsClientSettingsOpen] = useState(false); // Modal de Cliente (nuevo)
   const [isSystemLoading, setIsSystemLoading] = useState(true); // Temporizador de arranque seguro
   const [updateAvailable, setUpdateAvailable] = useState(false); // Estado de actualizador flotante
-  const [debugLocalVersion, setDebugLocalVersion] = useState<number | string>('N/A');
-  const [debugServerVersion, setDebugServerVersion] = useState<number | string>('N/A');
-  const [debugInterfaceStatus, setDebugInterfaceStatus] = useState<string>('Buscando...');
-
   // Verificar actualizaciones remotas del chasis APK
   useEffect(() => {
     const checkUpdates = async () => {
       try {
-        const isInterface = !!((window as any).AndroidInterface);
-        setDebugInterfaceStatus(isInterface ? 'Detectado' : 'No Detectado');
-        
         const res = await fetch(`/version.json?v=${new Date().getTime()}`);
         if (res.ok) {
           const data = await res.json();
           if (data && data.versionCode) {
-            setDebugServerVersion(data.versionCode);
             let localVersion = 1;
             if ((window as any).AndroidInterface && (window as any).AndroidInterface.getApkVersionCode) {
               try {
-                const code = (window as any).AndroidInterface.getApkVersionCode();
-                localVersion = parseInt(code, 10);
-                setDebugLocalVersion(localVersion);
+                localVersion = parseInt((window as any).AndroidInterface.getApkVersionCode(), 10);
               } catch (e) {
                 console.error("Error reading native version code:", e);
-                setDebugLocalVersion("Error: " + e.message);
               }
-            } else {
-              setDebugLocalVersion("Sin Puente (Default 1)");
             }
             if (data.versionCode > localVersion) {
               setUpdateAvailable(true);
             }
           }
-        } else {
-          setDebugServerVersion("Error HTTP " + res.status);
         }
       } catch (err) {
         console.error('Error checking updates:', err);
-        setDebugServerVersion("Error red/fetch");
       }
     };
     checkUpdates();
@@ -600,9 +584,6 @@ export default function App() {
             onOpenSettings={() => setIsSettingsOpen(true)} // Engrane abre Administrador (original)
             onOpenClientSettings={() => setIsClientSettingsOpen(true)} // Sliders abre Cliente (nuevo)
             updateAvailable={updateAvailable}
-            debugLocalVersion={debugLocalVersion}
-            debugServerVersion={debugServerVersion}
-            debugInterfaceStatus={debugInterfaceStatus}
           />
         </div>
       </main>

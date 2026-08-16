@@ -37,9 +37,6 @@ interface NeonCoverLayerProps {
   onOpenSettings?: () => void; // Abre administrador (Engrane original)
   onOpenClientSettings?: () => void; // Abre cliente (Sliders nuevo)
   updateAvailable?: boolean;
-  debugLocalVersion?: number | string;
-  debugServerVersion?: number | string;
-  debugInterfaceStatus?: string;
 }
 
 export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
@@ -58,9 +55,6 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   onOpenSettings,
   onOpenClientSettings,
   updateAvailable = false,
-  debugLocalVersion = 'N/A',
-  debugServerVersion = 'N/A',
-  debugInterfaceStatus = 'N/A',
 }) => {
 
   const [activeCallType, setActiveCallType] = useState<'video' | 'audio' | null>(null);
@@ -234,7 +228,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
               fontFamily: "'Outfit', sans-serif"
             }}
           >
-            ✨ Actualización Disponible ✨
+            ACTUALIZACIÓN DISPONIBLE
           </button>
         </div>
       )}
@@ -356,11 +350,6 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             />
           </button>
         </div>
-      </div>
-      {/* Debug overlay */}
-      <div style={{ position: 'absolute', top: '15px', left: '15px', zIndex: 100, fontSize: '12px', color: '#FF0000', fontWeight: 'bold', pointerEvents: 'none', fontFamily: 'monospace' }}>
-        [DEBUG] Bridge: {debugInterfaceStatus} | Local: {debugLocalVersion} | Servidor: {debugServerVersion}
-      </div>
     </div>
   );
 };
