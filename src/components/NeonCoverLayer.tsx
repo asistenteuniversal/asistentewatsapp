@@ -350,6 +350,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             />
           </button>
         </div>
+      </div>
     </div>
   );
 };
