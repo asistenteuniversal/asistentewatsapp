@@ -103,14 +103,14 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
 
   return (
     <div
-      className="w-full h-full bg-black overflow-hidden relative select-none"
-      style={{ fontFamily: "'Outfit', sans-serif" }}
+      className="w-full h-full overflow-hidden relative select-none"
+      style={{ fontFamily: "'Outfit', sans-serif", backgroundColor: '#000000' }}
     >
       {/* Fuente premium */}
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');`}</style>
 
       {/* Fondo negro puro absoluto (#000000) */}
-      <div className="absolute inset-0 w-full h-full bg-black" />
+      <div className="absolute inset-0 w-full h-full" style={{ backgroundColor: '#000000' }} />
 
       {/* Nuevo Logotipo AVA ASISTENTE flotante en el centro superior (PNG Transparente, más arriba y tamaño extra grande) */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
