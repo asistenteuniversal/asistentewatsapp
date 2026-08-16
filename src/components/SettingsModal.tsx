@@ -5,6 +5,7 @@ import { AppSettings } from '../types';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSave?: (newInstructions: string) => Promise<void>;
   settings: AppSettings;
   setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
 }
@@ -12,10 +13,18 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
+  onSave,
   settings,
   setSettings,
 }) => {
   if (!isOpen) return null;
+
+  const handleSave = async () => {
+    if (onSave) {
+      await onSave(settings.systemInstructions || '');
+    }
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-[#020205]/80 backdrop-blur-xl flex items-center justify-center p-4 font-sans text-white">
@@ -192,7 +201,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* Modal Footer */}
         <div className="pt-2">
           <button
-            onClick={onClose}
+            onClick={handleSave}
             className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 font-bold text-black text-xs transition shadow-[0_0_30px_rgba(6,182,212,0.5)] uppercase tracking-wider"
           >
             Guardar y Aplicar

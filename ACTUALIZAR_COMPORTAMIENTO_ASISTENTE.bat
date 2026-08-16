@@ -13,6 +13,10 @@ if %errorlevel% neq 0 (
 )
 
 echo.
+echo Sincronizando con base de datos Supabase...
+call node update_supabase.cjs
+
+echo.
 echo Procesando compilación de seguridad...
 call npm run build
 if %errorlevel% neq 0 (

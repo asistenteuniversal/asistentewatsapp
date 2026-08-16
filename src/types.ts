@@ -1,4 +1,15 @@
-export type AppMode = 'studio' | 'neon';
+export type AppMode = 'studio' | 'neon' | 'admin';
+
+export interface AsistenteConfigRow {
+  client_id: string;
+  system_instructions: string;
+  system_memory: string;
+  client_name: string;
+  is_active: boolean;
+  activation_key: string | null;
+  hardware_id: string | null;
+  updated_at?: string;
+}
 
 export interface ChatMessage {
   id: string;
