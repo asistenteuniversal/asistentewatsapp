@@ -117,7 +117,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
         <img
           src={avaLogo}
           alt="AVA Asistente"
-          className="w-[clamp(280px,75vw,390px)] h-auto object-contain"
+          className="w-[clamp(350px,90vw,480px)] h-auto object-contain"
           style={{
             filter: 'drop-shadow(0 0 15px rgba(212, 175, 55, 0.15))'
           }}
