@@ -315,7 +315,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
         <div className="relative">
           {isCallActive && activeCallType === 'audio' && (
             <div
-              className="absolute inset-0 rounded-full border-2 border-red-500/50 animate-ping pointer-events-none"
+              className="absolute inset-0 rounded-full border-2 border-emerald-400/50 animate-ping pointer-events-none"
               style={{ transform: 'scale(1.15)' }}
             />
           )}
@@ -335,7 +335,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             className={`rounded-full border-2 flex items-center justify-center
                         transition-all duration-150 ease-out focus:outline-none active:scale-90
                         ${isCallActive && activeCallType === 'audio'
-                          ? 'border-red-500 text-red-500 bg-black shadow-[0_0_22px_rgba(239,68,68,0.45)]'
+                          ? 'border-emerald-400 text-emerald-400 bg-black shadow-[0_0_22px_rgba(52,211,153,0.45)]'
                           : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
                         }`}
             style={{ width: 'clamp(82px, 23vw, 110px)', height: 'clamp(82px, 23vw, 110px)' }}
