@@ -6,12 +6,66 @@ import { NeonCoverLayer } from './components/NeonCoverLayer';
 import { SettingsModal } from './components/SettingsModal';
 import { ClientSettingsModal } from './components/ClientSettingsModal'; // Importar modal de cliente
 import { useVoiceEngine } from './hooks/useVoiceEngine';
+import { supabase } from './supabaseClient';
+import { AdminPanel } from './components/AdminPanel';
 
 export default function App() {
-  const [mode, setMode] = useState<AppMode>('neon'); // Default to NEON phone cover
+  const [mode, setMode] = useState<AppMode>(() => {
+    // Detectar si el usuario quiere entrar al panel de administración
+    if (window.location.pathname === '/admin' || window.location.search.includes('admin')) {
+      return 'admin';
+    }
+    const saved = localStorage.getItem('ava_app_mode');
+    return (saved as AppMode) || 'neon';
+  });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Modal de Administrador (original)
   const [isClientSettingsOpen, setIsClientSettingsOpen] = useState(false); // Modal de Cliente (nuevo)
   const [isSystemLoading, setIsSystemLoading] = useState(true); // Temporizador de arranque seguro
+  const [updateAvailable, setUpdateAvailable] = useState(false); // Estado de actualizador flotante
+  const [debugLocalVersion, setDebugLocalVersion] = useState<number | string>('N/A');
+  const [debugServerVersion, setDebugServerVersion] = useState<number | string>('N/A');
+  const [debugInterfaceStatus, setDebugInterfaceStatus] = useState<string>('Buscando...');
+
+  // Verificar actualizaciones remotas del chasis APK
+  useEffect(() => {
+    const checkUpdates = async () => {
+      try {
+        const isInterface = !!((window as any).AndroidInterface);
+        setDebugInterfaceStatus(isInterface ? 'Detectado' : 'No Detectado');
+        
+        const res = await fetch(`/version.json?v=${new Date().getTime()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.versionCode) {
+            setDebugServerVersion(data.versionCode);
+            let localVersion = 1;
+            if ((window as any).AndroidInterface && (window as any).AndroidInterface.getApkVersionCode) {
+              try {
+                const code = (window as any).AndroidInterface.getApkVersionCode();
+                localVersion = parseInt(code, 10);
+                setDebugLocalVersion(localVersion);
+              } catch (e) {
+                console.error("Error reading native version code:", e);
+                setDebugLocalVersion("Error: " + e.message);
+              }
+            } else {
+              setDebugLocalVersion("Sin Puente (Default 1)");
+            }
+            if (data.versionCode > localVersion) {
+              setUpdateAvailable(true);
+            }
+          }
+        } else {
+          setDebugServerVersion("Error HTTP " + res.status);
+        }
+      } catch (err) {
+        console.error('Error checking updates:', err);
+        setDebugServerVersion("Error red/fetch");
+      }
+    };
+    checkUpdates();
+  }, []);
+
 
   // Temporizador de 4 segundos para permitir carga de Google en background
   useEffect(() => {
@@ -123,30 +177,60 @@ export default function App() {
     return defaultSettings;
   });
 
-  // Cargar instrucciones externas de comportamiento configuradas desde el PC
+  // Cargar instrucciones externas de comportamiento configuradas desde el PC o Supabase
   useEffect(() => {
-    fetch(`/asistente_config.json?v=${new Date().getTime()}`)
-      .then((res) => {
-        if (res.ok) return res.json();
-        throw new Error('No config file');
-      })
-      .then((data) => {
-        if (data && data.systemInstructions) {
+    const loadConfig = async () => {
+      try {
+        console.log('[Supabase] Intentando cargar configuración desde la nube...');
+        const { data, error } = await supabase
+          .from('asistente_config')
+          .select('system_instructions')
+          .eq('client_id', 'cliente_maestro')
+          .single();
+
+        if (error) throw error;
+
+        if (data && data.system_instructions) {
+          console.log('[Supabase] Configuración cargada con éxito.');
           setSettings((prev) => ({
             ...prev,
-            systemInstructions: data.systemInstructions,
+            systemInstructions: data.system_instructions,
           }));
           // Inyectar en Android de inmediato si la interfaz nativa está activa
           if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
             try {
-              (window as any).AndroidInterface.updateSystemInstructions(data.systemInstructions);
+              (window as any).AndroidInterface.updateSystemInstructions(data.system_instructions);
             } catch (e) {
               console.error(e);
             }
           }
+          return; // Salir con éxito
         }
-      })
-      .catch((err) => console.log('Using local configuration fallback:', err));
+      } catch (err) {
+        console.warn('[Supabase] Falló carga remota (base de datos pausada o sin conexión). Usando fallback local:', err);
+      }
+
+      // Fallback: Intentar leer el archivo local config
+      try {
+        const res = await fetch(`/asistente_config.json?v=${new Date().getTime()}`);
+        if (res.ok) {
+          const localData = await res.json();
+          if (localData && localData.systemInstructions) {
+            setSettings((prev) => ({
+              ...prev,
+              systemInstructions: localData.systemInstructions,
+            }));
+            if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
+              (window as any).AndroidInterface.updateSystemInstructions(localData.systemInstructions);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[Fallback] Error al cargar archivo local:', err);
+      }
+    };
+
+    loadConfig();
   }, []);
 
   // Guardar Ajustes en localStorage cada vez que cambien
@@ -392,6 +476,27 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Sincronizar nuevas instrucciones con Supabase en la nube
+  const handleSaveSettings = useCallback(async (newInstructions: string) => {
+    try {
+      console.log('[Supabase] Sincronizando nuevas instrucciones con la nube...');
+      const { error } = await supabase
+        .from('asistente_config')
+        .update({ system_instructions: newInstructions })
+        .eq('client_id', 'cliente_maestro');
+
+      if (error) throw error;
+      console.log('[Supabase] Sincronización exitosa.');
+    } catch (err) {
+      console.error('[Supabase] Error de sincronización remota:', err);
+      alert('Las instrucciones se guardaron localmente en este dispositivo, pero no se pudieron sincronizar en la base de datos de Supabase en la nube (el servidor de la base de datos podría estar pausado u offline).');
+    }
+  }, []);
+
+  if (mode === 'admin') {
+    return <AdminPanel />;
+  }
+
   return (
     <div className="w-screen h-screen bg-black overflow-hidden relative flex flex-col select-none">
       {/* Capa de Carga de Arranque Seguro (4 Segundos) */}
@@ -494,6 +599,10 @@ export default function App() {
             onShowStudio={() => handleSetMode('studio')}
             onOpenSettings={() => setIsSettingsOpen(true)} // Engrane abre Administrador (original)
             onOpenClientSettings={() => setIsClientSettingsOpen(true)} // Sliders abre Cliente (nuevo)
+            updateAvailable={updateAvailable}
+            debugLocalVersion={debugLocalVersion}
+            debugServerVersion={debugServerVersion}
+            debugInterfaceStatus={debugInterfaceStatus}
           />
         </div>
       </main>
@@ -510,6 +619,7 @@ export default function App() {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
+        onSave={handleSaveSettings}
         settings={settings}
         setSettings={setSettings}
       />

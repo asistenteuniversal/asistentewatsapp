@@ -36,6 +36,10 @@ interface NeonCoverLayerProps {
   onShowStudio?: () => void;
   onOpenSettings?: () => void; // Abre administrador (Engrane original)
   onOpenClientSettings?: () => void; // Abre cliente (Sliders nuevo)
+  updateAvailable?: boolean;
+  debugLocalVersion?: number | string;
+  debugServerVersion?: number | string;
+  debugInterfaceStatus?: string;
 }
 
 export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
@@ -53,6 +57,10 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   onShowStudio,
   onOpenSettings,
   onOpenClientSettings,
+  updateAvailable = false,
+  debugLocalVersion = 'N/A',
+  debugServerVersion = 'N/A',
+  debugInterfaceStatus = 'N/A',
 }) => {
 
   const [activeCallType, setActiveCallType] = useState<'video' | 'audio' | null>(null);
@@ -200,6 +208,38 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
         </div>
       )}
 
+      {/* ── BOTÓN FLOTANTE: ACTUALIZACIÓN DISPONIBLE (Oro metálico y fondo negro) ── */}
+      {updateAvailable && (
+        <div className="absolute bottom-[31%] left-1/2 -translate-x-1/2 z-30">
+          <button
+            type="button"
+            onClick={() => {
+              if ((window as any).AndroidInterface && (window as any).AndroidInterface.triggerApkUpdate) {
+                try {
+                  (window as any).AndroidInterface.triggerApkUpdate();
+                } catch (e) {
+                  console.error("Error triggering native APK update:", e);
+                }
+              } else {
+                // Fallback en navegador standard de PC
+                window.open("https://neon-studio-gamma.vercel.app/app-release.apk", "_blank");
+              }
+            }}
+            className="py-2.5 px-6 rounded-full font-bold text-xs tracking-widest uppercase transition duration-300 flex items-center justify-center focus:outline-none active:scale-95 border animate-pulse"
+            style={{
+              backgroundColor: '#000000',
+              borderColor: '#d4af37',
+              color: '#d4af37',
+              boxShadow: '0 0 20px rgba(212, 175, 55, 0.4), inset 0 0 8px rgba(212, 175, 55, 0.2)',
+              fontFamily: "'Outfit', sans-serif"
+            }}
+          >
+            ✨ Actualización Disponible ✨
+          </button>
+        </div>
+      )}
+
+
 
       {/* ── CRONÓMETRO: escala con vw para cualquier Android ── */}
       <div className="absolute bottom-[24%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
@@ -316,6 +356,10 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             />
           </button>
         </div>
+      </div>
+      {/* Debug overlay */}
+      <div style={{ position: 'absolute', top: '15px', left: '15px', zIndex: 100, fontSize: '9px', color: '#555555', pointerEvents: 'none', fontFamily: 'monospace' }}>
+        [DEBUG] Bridge: {debugInterfaceStatus} | Local: {debugLocalVersion} | Servidor: {debugServerVersion}
       </div>
     </div>
   );
