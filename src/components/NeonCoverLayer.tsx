@@ -113,7 +113,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
       <div className="absolute inset-0 w-full h-full" style={{ backgroundColor: '#000000' }} />
 
       {/* Nuevo Logotipo AVA ASISTENTE flotante en el centro superior (PNG Transparente, más arriba y tamaño extra grande) */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+      <div className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center" style={{ top: '-45px' }}>
         <img
           src={avaLogo}
           alt="AVA Asistente"
