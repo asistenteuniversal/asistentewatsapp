@@ -358,7 +358,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
         </div>
       </div>
       {/* Debug overlay */}
-      <div style={{ position: 'absolute', top: '15px', left: '15px', zIndex: 100, fontSize: '9px', color: '#555555', pointerEvents: 'none', fontFamily: 'monospace' }}>
+      <div style={{ position: 'absolute', top: '15px', left: '15px', zIndex: 100, fontSize: '12px', color: '#FF0000', fontWeight: 'bold', pointerEvents: 'none', fontFamily: 'monospace' }}>
         [DEBUG] Bridge: {debugInterfaceStatus} | Local: {debugLocalVersion} | Servidor: {debugServerVersion}
       </div>
     </div>
