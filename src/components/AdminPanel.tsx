@@ -833,7 +833,7 @@ export const AdminPanel: React.FC = () => {
                   {/* Clave de Licencia, Celular, Renta y WhatsApp */}
                   <div className="grid grid-cols-1 sm:grid-cols-6 gap-4 bg-black/60 rounded-2xl p-4 border border-[#BF953F]/10 text-xs">
                     <div>
-                      <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Clave de Licencia</p>
+                      <p className="text-[9px] text-white uppercase tracking-widest font-black">Clave de Licencia</p>
                       <div className="flex items-center gap-1.5 mt-1.5">
                         <span className="font-mono font-black text-[#FCF6BA] select-all text-sm tracking-wider">
                           {client.activation_key || 'No Generada'}
@@ -884,7 +884,7 @@ export const AdminPanel: React.FC = () => {
                     </div>
 
                     <div className="sm:col-span-2">
-                      <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">WhatsApp del Cliente</p>
+                      <p className="text-[9px] text-white uppercase tracking-widest font-black">WhatsApp del Cliente</p>
                       <div className="flex flex-col items-start gap-2 mt-1.5">
                         <input
                            type="text"
@@ -930,7 +930,7 @@ export const AdminPanel: React.FC = () => {
                     </div>
 
                     <div>
-                      <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Días de Renta</p>
+                      <p className="text-[9px] text-white uppercase tracking-widest font-black">Días de Renta</p>
                       <div className="flex items-center mt-1.5">
                         <select
                           value={client.rental_days !== undefined && client.rental_days !== null ? client.rental_days : 0}
@@ -976,7 +976,7 @@ export const AdminPanel: React.FC = () => {
                     </div>
 
                     <div>
-                      <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Fecha Inicio / Vence</p>
+                      <p className="text-[9px] text-white uppercase tracking-widest font-black">Fecha Inicio / Vence</p>
                       <div className="space-y-1 mt-1">
                         <div className="flex items-center gap-1">
                           <span className="text-[9px] text-gray-500 uppercase tracking-widest">Ini:</span>
@@ -1008,21 +1008,40 @@ export const AdminPanel: React.FC = () => {
                     </div>
 
                     <div>
-                      <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Estado del Celular</p>
+                      <p className="text-[9px] text-white uppercase tracking-widest font-black">Estado del Celular</p>
                       {client.hardware_id ? (
-                        <div className="flex items-center justify-between gap-2 mt-1.5">
-                          <span className="text-green-400 font-black uppercase text-[10px] tracking-wider">Enlazado</span>
-                          <button
-                            onClick={() => resetHardwareId(client.client_id)}
-                            className="text-[9px] text-red-400 hover:text-red-300 font-bold transition uppercase tracking-wider underline"
-                          >
-                            Liberar
-                          </button>
+                        <div className="space-y-1.5 mt-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-green-400 font-black uppercase text-[10px] tracking-wider">Enlazado 🟢</span>
+                            <button
+                              onClick={() => resetHardwareId(client.client_id)}
+                              className="text-[9px] text-red-400 hover:text-red-300 font-bold transition uppercase tracking-wider underline"
+                            >
+                              Liberar
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            readOnly
+                            value={client.hardware_id}
+                            title="Haz clic para seleccionar todo"
+                            onClick={(e) => (e.target as HTMLInputElement).select()}
+                            className="w-full max-w-[130px] bg-black/60 border border-[#BF953F]/20 rounded-lg px-2 py-1 text-[9px] font-mono text-gray-300 focus:outline-none focus:border-[#FCF6BA] cursor-text text-center"
+                          />
                         </div>
                       ) : (
-                        <p className="text-gray-400 font-bold mt-1.5 text-[10px] uppercase tracking-wider">
-                          Esperando...
-                        </p>
+                        <div className="space-y-1.5 mt-1.5">
+                          <p className="text-gray-400 font-bold text-[10px] uppercase tracking-wider">
+                            Esperando... ⏳
+                          </p>
+                          <input
+                            type="text"
+                            readOnly
+                            value="Sin enlazar"
+                            disabled
+                            className="w-full max-w-[130px] bg-black/30 border border-zinc-800 rounded-lg px-2 py-1 text-[9px] font-mono text-zinc-600 focus:outline-none text-center"
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
