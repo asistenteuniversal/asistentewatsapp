@@ -34,6 +34,23 @@ export default function App() {
   // Estados de bloqueo por licencia pausada
   const [isLicensePaused, setIsLicensePaused] = useState<boolean>(false);
   const [supportPhone, setSupportPhone] = useState<string>('527712070378');
+  const [phoneCopied, setPhoneCopied] = useState<boolean>(false);
+
+  const handleCopySupportPhone = () => {
+    const num = supportPhone || '527712070378';
+    navigator.clipboard.writeText(num).then(() => {
+      setPhoneCopied(true);
+      setTimeout(() => setPhoneCopied(false), 3000);
+    });
+  };
+
+  const formatPhoneForDisplay = (phone: string) => {
+    const clean = phone.replace(/[^0-9]/g, '');
+    if (clean.startsWith('52') && clean.length === 12) {
+      return `+52 ${clean.slice(2, 5)} ${clean.slice(5, 8)} ${clean.slice(8)}`;
+    }
+    return `+${clean}`;
+  };
 
   // Estilos CSS inline para el oro metálico pulido (mismos que en AdminPanel)
   const goldTextGradient = {
@@ -658,8 +675,7 @@ export default function App() {
 
   // Si la licencia está temporalmente pausada
   if (isLicensePaused) {
-    const waMessage = `Hola, mi licencia de asistente (${clientId || ''}) ha sido pausada. Por favor, ayúdeme a reactivarla.`;
-    const waUrl = `https://api.whatsapp.com/send?phone=${supportPhone}&text=${encodeURIComponent(waMessage)}`;
+    const displayPhone = formatPhoneForDisplay(supportPhone);
 
     return (
       <div className="w-screen h-screen bg-black flex items-center justify-center p-4 font-sans text-white select-none">
@@ -667,28 +683,28 @@ export default function App() {
           style={goldBorderGradient}
           className="w-full max-w-sm bg-[#050508] rounded-[2rem] p-8 shadow-[0_0_80px_rgba(191,149,63,0.3)] text-center space-y-8"
         >
-          <div className="space-y-3">
+          <div className="space-y-4">
             <span className="text-5xl block animate-pulse">🔒</span>
             <h1 className="text-xl font-black uppercase tracking-widest text-red-500">
-              Acceso Suspendido
+              ACCESO DESACTIVADO
             </h1>
             <div className="w-20 h-[2px] mx-auto bg-gradient-to-r from-transparent via-[#BF953F] to-transparent" />
-            <p className="text-xs text-gray-400 leading-relaxed font-bold">
-              Licencia Temporalmente Pausada.<br/>
-              Por favor comuníquese a:
+            <p className="text-[11px] sm:text-xs text-white leading-relaxed font-extrabold uppercase tracking-wide">
+              PARA ACTIVAR SU ASISTENTE (POR DÍA, SEMANA O MES), SOLICITAR UNA PRUEBA GRATIS, O HABLAR CON VENTAS Y SOPORTE, COMUNÍQUESE A:
+            </p>
+            <p className="text-xl sm:text-2xl font-mono font-black text-[#FCF6BA] tracking-wider mt-2 select-text">
+              {displayPhone}
             </p>
           </div>
 
           <div className="space-y-4">
-            <a
-              href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ backgroundColor: '#25D366' }}
-              className="w-full py-4 text-black font-extrabold rounded-2xl text-xs uppercase tracking-widest transition duration-300 transform active:scale-95 hover:brightness-110 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            <button
+              onClick={handleCopySupportPhone}
+              style={phoneCopied ? { backgroundColor: '#15803d', color: '#ffffff' } : { backgroundColor: '#25D366', color: '#000000' }}
+              className="w-full py-4 text-black font-extrabold rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest transition-all duration-300 transform active:scale-95 hover:brightness-110 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>💬 Servicio al Cliente Presione Aquí</span>
-            </a>
+              <span>{phoneCopied ? '✅ ¡NÚMERO COPIADO AL PORTAPAPELES!' : '📋 COPIAR NÚMERO DE SOPORTE'}</span>
+            </button>
 
             <button
               type="button"
