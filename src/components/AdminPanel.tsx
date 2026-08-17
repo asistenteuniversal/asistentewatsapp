@@ -472,10 +472,10 @@ export const AdminPanel: React.FC = () => {
     );
   });
 
-  // PANTALLA DE LOGIN (ORO METALICO PULIDO)
+  // PANTALLA DE LOGIN (ORO METALICO PULIDO) — sin botón de diagnóstico
   if (!isLoggedIn) {
     return (
-      <div className="w-full h-full min-h-screen bg-black flex flex-col items-center justify-center p-4 font-sans select-text">
+      <div className="w-full h-full min-h-screen bg-black flex items-center justify-center p-4 font-sans select-text">
         <form 
           onSubmit={handleLogin} 
           style={goldBorderGradient}
@@ -516,21 +516,7 @@ export const AdminPanel: React.FC = () => {
           >
             Entrar al Panel
           </button>
-
-          <button
-            type="button"
-            onClick={() => setIsDiagnosticOpen(true)}
-            className="w-full py-3.5 bg-zinc-900 border border-red-500/40 hover:bg-zinc-800 text-red-400 font-extrabold rounded-2xl text-[10px] uppercase tracking-widest transition duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            <span>Diagnosticar Errores 🔍</span>
-          </button>
         </form>
-
-        {/* Modal de Diagnóstico de Errores — fuera del form pero dentro del flex-col */}
-        <DiagnosticModal
-          isOpen={isDiagnosticOpen}
-          onClose={() => setIsDiagnosticOpen(false)}
-        />
       </div>
     );
   }
@@ -538,7 +524,13 @@ export const AdminPanel: React.FC = () => {
   // PANTALLA PRINCIPAL DEL ADMINISTRADOR (ORO METALICO PULIDO)
   return (
     <div className="w-full min-h-screen bg-[#010103] text-white font-sans select-text pb-20">
-      
+
+      {/* Modal de Diagnóstico — disponible SOLO dentro del panel */}
+      <DiagnosticModal
+        isOpen={isDiagnosticOpen}
+        onClose={() => setIsDiagnosticOpen(false)}
+      />
+
       {/* 📍 CABECERA FIJA SUPERIOR */}
       <header className="sticky top-0 z-50 bg-[#010103]/90 backdrop-blur-md border-b border-[#BF953F]/25 py-4 px-6 shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
         <div className="max-w-4xl mx-auto flex justify-between items-center gap-4">
@@ -553,7 +545,7 @@ export const AdminPanel: React.FC = () => {
             </p>
           </div>
 
-          {/* Centro: Reloj y Fecha del 2026 */}
+          {/* Centro: Reloj y Fecha */}
           <div className="flex flex-col items-center text-center">
             <span className="text-[7px] sm:text-[9px] text-[#FCF6BA] uppercase tracking-widest font-black">Tiempo de Servidor</span>
             <span className="font-mono text-[9px] sm:text-xs font-bold text-white mt-0.5 tracking-wide bg-black/80 border border-[#BF953F]/10 px-2 py-0.5 rounded-md">
@@ -561,17 +553,17 @@ export const AdminPanel: React.FC = () => {
             </span>
           </div>
 
-          {/* Lado Derecho: Botón Salir */}
+          {/* Lado Derecho: Diagnóstico + Salir */}
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setIsDiagnosticOpen(true)}
-              className="px-2.5 py-1.5 sm:px-3 sm:py-2 border border-[#BF953F]/35 hover:bg-[#BF953F]/10 text-[#FCF6BA] font-bold rounded-xl text-[9px] uppercase tracking-wider transition duration-300 cursor-pointer"
+              className="px-2.5 py-1.5 sm:px-3 sm:py-2 border border-red-500/40 hover:bg-red-500/10 text-red-400 font-bold rounded-xl text-[9px] uppercase tracking-wider transition duration-300 cursor-pointer"
             >
-              Diagnosticar Errores 🔍
+              Diagnosticar 🔍
             </button>
             <button
               onClick={handleLogout}
-              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-red-500/50 hover:bg-red-500/10 text-red-400 font-bold rounded-xl text-[10px] uppercase tracking-wider transition duration-300"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-red-500/50 hover:bg-red-500/10 text-red-400 font-bold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 cursor-pointer"
             >
               Salir
             </button>
