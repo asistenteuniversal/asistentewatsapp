@@ -22,6 +22,85 @@ export default function App() {
   const [isClientSettingsOpen, setIsClientSettingsOpen] = useState(false); // Modal de Cliente (nuevo)
   const [isSystemLoading, setIsSystemLoading] = useState(true); // Temporizador de arranque seguro
   const [updateAvailable, setUpdateAvailable] = useState(false); // Estado de actualizador flotante
+
+  // Estados de licenciamiento dinámico
+  const [clientId, setClientId] = useState<string | null>(() => localStorage.getItem('ava_client_id'));
+  const [activationKeyInput, setActivationKeyInput] = useState<string>('');
+  const [licensingError, setLicensingError] = useState<string>('');
+  const [isLicensingLoading, setIsLicensingLoading] = useState<boolean>(false);
+
+  // Estilos CSS inline para el oro metálico pulido (mismos que en AdminPanel)
+  const goldTextGradient = {
+    background: 'linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    textShadow: '0 0 10px rgba(212, 175, 55, 0.1)'
+  };
+
+  const goldMetallicBg = {
+    background: 'linear-gradient(135deg, #BF953F 0%, #FCF6BA 30%, #B38728 70%, #AA771C 100%)',
+    boxShadow: '0 4px 15px rgba(179, 135, 40, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4)'
+  };
+
+  const goldBorderGradient = {
+    position: 'relative' as const,
+    border: '1px solid transparent',
+    backgroundImage: 'linear-gradient(black, black), linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #AA771C)',
+    backgroundOrigin: 'border-box',
+    backgroundClip: 'padding-box, border-box'
+  };
+
+  const handleActivateLicense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLicensingError('');
+    const trimmedKey = activationKeyInput.trim();
+    if (!trimmedKey) return;
+
+    setIsLicensingLoading(true);
+    try {
+      // 1. Consultar si la clave existe en Supabase
+      const { data, error } = await supabase
+        .from('asistente_config')
+        .select('*')
+        .eq('activation_key', trimmedKey)
+        .single();
+
+      if (error || !data) {
+        setLicensingError('Clave de activación inválida. Verifique e intente nuevamente.');
+        setIsLicensingLoading(false);
+        return;
+      }
+
+      // 2. Validar Hardware ID
+      const currentHwId = (window as any).AndroidInterface && (window as any).AndroidInterface.getDeviceId 
+        ? (window as any).AndroidInterface.getDeviceId() 
+        : 'browser-test-id';
+
+      if (data.hardware_id && data.hardware_id !== currentHwId) {
+        setLicensingError('Esta clave ya está vinculada a otro dispositivo. Libérela en su panel antes de continuar.');
+        setIsLicensingLoading(false);
+        return;
+      }
+
+      // 3. Vincular dispositivo en Supabase
+      const { error: updateError } = await supabase
+        .from('asistente_config')
+        .update({ hardware_id: currentHwId })
+        .eq('client_id', data.client_id);
+
+      if (updateError) throw updateError;
+
+      // 4. Guardar datos locales y arrancar
+      localStorage.setItem('ava_client_id', data.client_id);
+      localStorage.setItem('ava_client_name', data.client_name);
+      setClientId(data.client_id);
+    } catch (err: any) {
+      console.error('Error durante la activación de licencia:', err);
+      setLicensingError('Error de conexión con el servidor. Intente más tarde.');
+    } finally {
+      setIsLicensingLoading(false);
+    }
+  };
   // Verificar actualizaciones remotas del chasis APK
   useEffect(() => {
     const checkUpdates = async () => {
@@ -169,7 +248,7 @@ export default function App() {
         const { data, error } = await supabase
           .from('asistente_config')
           .select('system_instructions')
-          .eq('client_id', 'cliente_maestro')
+          .eq('client_id', clientId || 'cliente_maestro')
           .single();
 
         if (error) throw error;
@@ -467,7 +546,7 @@ export default function App() {
       const { error } = await supabase
         .from('asistente_config')
         .update({ system_instructions: newInstructions })
-        .eq('client_id', 'cliente_maestro');
+        .eq('client_id', clientId || 'cliente_maestro');
 
       if (error) throw error;
       console.log('[Supabase] Sincronización exitosa.');
@@ -479,6 +558,57 @@ export default function App() {
 
   if (mode === 'admin') {
     return <AdminPanel />;
+  }
+
+  // Si no está licenciado y no es administrador, mostrar pantalla de activación
+  if (!clientId) {
+    return (
+      <div className="w-screen h-screen bg-black flex items-center justify-center p-4 font-sans text-white select-none">
+        <form 
+          onSubmit={handleActivateLicense} 
+          style={goldBorderGradient}
+          className="w-full max-w-sm bg-[#050508] rounded-[2rem] p-8 shadow-[0_0_80px_rgba(191,149,63,0.25)] space-y-8 text-center"
+        >
+          <div className="space-y-2">
+            <span className="text-4xl block">✨</span>
+            <h1 className="text-2xl font-black uppercase tracking-widest" style={goldTextGradient}>
+              Activar Asistente
+            </h1>
+            <div className="w-20 h-[2px] mx-auto bg-gradient-to-r from-transparent via-[#BF953F] to-transparent" />
+            <p className="text-[10px] text-[#FCF6BA] uppercase tracking-widest font-semibold">
+              Ingrese su clave de licencia
+            </p>
+          </div>
+
+          <div className="space-y-2.5 text-left">
+            <label className="text-[10px] text-gray-400 block font-bold uppercase tracking-wider">
+              Clave de Activación
+            </label>
+            <input
+              type="text"
+              value={activationKeyInput}
+              onChange={(e) => setActivationKeyInput(e.target.value)}
+              placeholder="Ej: AVA12345678"
+              className="w-full bg-black/85 border border-[#BF953F]/30 rounded-2xl px-4 py-3.5 text-white text-sm text-center font-mono font-bold tracking-widest focus:outline-none focus:border-[#FCF6BA] focus:ring-1 focus:ring-[#FCF6BA]/50 transition duration-300 placeholder-gray-700"
+              required
+            />
+          </div>
+
+          {licensingError && (
+            <p className="text-xs text-red-500 font-bold leading-relaxed">{licensingError}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isLicensingLoading}
+            style={goldMetallicBg}
+            className="w-full py-4 text-black font-extrabold rounded-2xl text-xs uppercase tracking-widest transition duration-300 transform active:scale-95 disabled:opacity-50 hover:brightness-110 shadow-lg cursor-pointer"
+          >
+            {isLicensingLoading ? 'Verificando...' : 'Activar Licencia'}
+          </button>
+        </form>
+      </div>
+    );
   }
 
   return (
