@@ -2,7 +2,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://iikdrjygbrbqrvqblple.supabase.co';
-const supabaseAnonKey = 'sb_publishable_V2NLoA-2EuC28cjtUv2m9A_nFw-9KxC';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2RyanlnYnJicXJ2cWJscGxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2MjI3MjQsImV4cCI6MjEwMjE5ODcyNH0.UNNXmGFBS0-AfOiwOhxfawrEn6rPKYF4MxEGoXVPhZg';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
