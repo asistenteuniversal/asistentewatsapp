@@ -11,8 +11,8 @@ import { AdminPanel } from './components/AdminPanel';
 
 export default function App() {
   const [mode, setMode] = useState<AppMode>(() => {
-    // Detectar si el usuario quiere entrar al panel de administración
-    if (window.location.pathname === '/admin' || window.location.search.includes('admin')) {
+    // Detectar si el usuario quiere entrar al panel de administración con la ruta oculta
+    if (window.location.pathname === '/panel-26' || window.location.search.includes('panel-26')) {
       return 'admin';
     }
     const saved = localStorage.getItem('ava_app_mode');
