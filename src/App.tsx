@@ -53,17 +53,75 @@ export default function App() {
   const handleActivateLicense = async (e: React.FormEvent) => {
     e.preventDefault();
     setLicensingError('');
-    const trimmedKey = activationKeyInput.trim().toUpperCase().replace(/\s/g, '');
-    if (!trimmedKey) return;
+    // Limpiar espacios y guiones intermedios para normalizar la entrada
+    const cleanedInput = activationKeyInput.trim().toUpperCase().replace(/[\s-]/g, '');
+    if (!cleanedInput) return;
 
     setIsLicensingLoading(true);
     try {
-      // 1. Consultar si la clave existe en Supabase
-      const { data, error } = await supabase
+      // 1. Consultar si la clave existe en Supabase de forma flexible
+      let data = null;
+      let error = null;
+
+      // Intento 1: Buscar la clave exacta escrita por el usuario
+      const res1 = await supabase
         .from('asistente_config')
         .select('*')
-        .eq('activation_key', trimmedKey)
+        .eq('activation_key', cleanedInput)
         .single();
+
+      if (!res1.error && res1.data) {
+        data = res1.data;
+      } else {
+        // Intento 2: Si no empieza con AVA, intentar agregando el prefijo 'AVA'
+        if (!cleanedInput.startsWith('AVA')) {
+          const res2 = await supabase
+            .from('asistente_config')
+            .select('*')
+            .eq('activation_key', 'AVA' + cleanedInput)
+            .single();
+          if (!res2.error && res2.data) {
+            data = res2.data;
+          } else {
+            // Intento 3: Intentar agregando el prefijo y los guiones de formato viejo (ej: AVA-7551-9412)
+            // Si el texto limpio tiene 8 dígitos numéricos, lo formateamos
+            if (/^\d{8}$/.test(cleanedInput)) {
+              const formattedOldKey = `AVA-${cleanedInput.slice(0, 4)}-${cleanedInput.slice(4)}`;
+              const res3 = await supabase
+                .from('asistente_config')
+                .select('*')
+                .eq('activation_key', formattedOldKey)
+                .single();
+              if (!res3.error && res3.data) {
+                data = res3.data;
+              } else {
+                error = res1.error || res2.error || res3.error;
+              }
+            } else {
+              error = res1.error || res2.error;
+            }
+          }
+        } else {
+          // Intento 4: Si empieza con AVA pero no tiene guiones, intentar formatearlo con guiones
+          // por si es una clave vieja registrada en base de datos con guiones (ej: AVA75519412 -> AVA-7551-9412)
+          const numbersPart = cleanedInput.substring(3);
+          if (numbersPart.length === 8) {
+            const formattedOldKey = `AVA-${numbersPart.slice(0, 4)}-${numbersPart.slice(4)}`;
+            const res4 = await supabase
+              .from('asistente_config')
+              .select('*')
+              .eq('activation_key', formattedOldKey)
+              .single();
+            if (!res4.error && res4.data) {
+              data = res4.data;
+            } else {
+              error = res1.error || res4.error;
+            }
+          } else {
+            error = res1.error;
+          }
+        }
+      }
 
       if (error || !data) {
         setLicensingError('Clave de activación inválida. Verifique e intente nuevamente.');

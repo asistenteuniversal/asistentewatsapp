@@ -226,7 +226,7 @@ export const AdminPanel: React.FC = () => {
     const cleanName = newClientName.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const newClientId = `${cleanName}_${randomSuffix}`;
-    const randomKey = `AVA${Math.floor(1000 + Math.random() * 9000)}${Math.floor(1000 + Math.random() * 9000)}`;
+    const randomKey = String(Math.floor(10000000 + Math.random() * 90000000));
 
     let phoneVal = newClientPhone.trim().replace(/[^0-9]/g, '');
     if (phoneVal.length === 10) {
@@ -760,15 +760,15 @@ export const AdminPanel: React.FC = () => {
                       <button
                         onClick={() => {
                           setModalConfirm({
-                            title: "Confirmar Eliminación",
-                            text: `¿CONFIRME SI DESEA ELIMINAR ESTE CLIENTE?\n\n"${client.client_name || 'Sin Nombre'}"`,
+                            title: "Confirmar Borrado",
+                            text: `¿CONFIRME SI DESEA BORRAR ESTE CLIENTE?\n\n"${client.client_name || 'Sin Nombre'}"`,
                             onConfirm: () => executeDeleteClient(client.client_id)
                           });
                         }}
                         className="px-2 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-red-900/20 border border-red-500/30"
-                        title="Eliminar Cliente"
+                        title="Borrar Cliente"
                       >
-                        <span>ELIMINAR CLIENTE 🗑️</span>
+                        <span>BORRAR CLIENTE 🗑️</span>
                       </button>
                     </div>
                   </div>
@@ -1071,7 +1071,7 @@ export const AdminPanel: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de Confirmación Centralizado (Eliminación) */}
+      {/* Modal de Confirmación Centralizado (Borrado) */}
       {modalConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
           <div 
@@ -1080,19 +1080,14 @@ export const AdminPanel: React.FC = () => {
           >
             <div className="space-y-2">
               <span className="text-4xl block">🗑️</span>
-              <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-widest text-red-500">
+              <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-widest text-red-500 animate-pulse" style={goldTextGradient}>
                 {modalConfirm.title}
               </h2>
-              <div className="w-28 h-[2px] mx-auto bg-gradient-to-r from-transparent via-red-500 to-transparent mt-2" />
+              <div className="w-28 h-[2px] mx-auto bg-gradient-to-r from-transparent via-[#BF953F] to-transparent mt-2" />
             </div>
 
-            <div className="bg-black/50 border border-red-500/20 rounded-3xl p-6 font-sans text-sm leading-relaxed whitespace-pre-line text-white font-bold">
-              <span style={goldTextGradient} className="text-lg font-extrabold block mb-2 uppercase tracking-wide">
-                ¡Atención!
-              </span>
-              <span className="text-gray-300">
-                {modalConfirm.text}
-              </span>
+            <div className="bg-black/50 border border-[#BF953F]/15 rounded-3xl p-6 font-mono text-sm leading-relaxed whitespace-pre-line text-[#FCF6BA] font-bold">
+              {modalConfirm.text}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -1103,7 +1098,7 @@ export const AdminPanel: React.FC = () => {
                 }}
                 className="py-4 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-black rounded-2xl text-xs sm:text-sm uppercase tracking-widest transition duration-300 shadow-md border border-red-500/30 cursor-pointer"
               >
-                Eliminar
+                Confirmar Borrado
               </button>
               <button
                 onClick={() => setModalConfirm(null)}
