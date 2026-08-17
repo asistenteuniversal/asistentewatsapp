@@ -1008,7 +1008,7 @@ export const AdminPanel: React.FC = () => {
                     </div>
 
                     <div>
-                      <p className="text-[9px] text-white uppercase tracking-widest font-black">Estado del Celular</p>
+                      <p className="text-[9px] text-white uppercase tracking-widest font-black">CLAVE ID</p>
                       {client.hardware_id ? (
                         <div className="space-y-1.5 mt-1.5">
                           <div className="flex items-center justify-between gap-2">
@@ -1020,14 +1020,26 @@ export const AdminPanel: React.FC = () => {
                               Liberar
                             </button>
                           </div>
-                          <input
-                            type="text"
-                            readOnly
-                            value={client.hardware_id}
-                            title="Haz clic para seleccionar todo"
-                            onClick={(e) => (e.target as HTMLInputElement).select()}
-                            className="w-full max-w-[130px] bg-black/60 border border-[#BF953F]/20 rounded-lg px-2 py-1 text-[9px] font-mono text-gray-300 focus:outline-none focus:border-[#FCF6BA] cursor-text text-center"
-                          />
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              readOnly
+                              value={client.hardware_id}
+                              title="Haz clic para seleccionar todo"
+                              onClick={(e) => (e.target as HTMLInputElement).select()}
+                              className="w-full max-w-[110px] bg-black/60 border border-[#BF953F]/20 rounded-lg px-2 py-1 text-[9px] font-mono text-gray-300 focus:outline-none focus:border-[#FCF6BA] cursor-text text-center"
+                            />
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(client.hardware_id || '');
+                                alert('¡Clave ID copiada al portapapeles!');
+                              }}
+                              className="text-xs hover:scale-120 active:scale-90 transition duration-150 cursor-pointer"
+                              title="Copiar Clave ID"
+                            >
+                              📋
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="space-y-1.5 mt-1.5">
