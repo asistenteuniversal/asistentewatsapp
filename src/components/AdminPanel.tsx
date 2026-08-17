@@ -475,7 +475,7 @@ export const AdminPanel: React.FC = () => {
   // PANTALLA DE LOGIN (ORO METALICO PULIDO)
   if (!isLoggedIn) {
     return (
-      <div className="w-full h-full min-h-screen bg-black flex items-center justify-center p-4 font-sans select-text">
+      <div className="w-full h-full min-h-screen bg-black flex flex-col items-center justify-center p-4 font-sans select-text">
         <form 
           onSubmit={handleLogin} 
           style={goldBorderGradient}
@@ -526,7 +526,7 @@ export const AdminPanel: React.FC = () => {
           </button>
         </form>
 
-        {/* Modal de Diagnóstico de Errores */}
+        {/* Modal de Diagnóstico de Errores — fuera del form pero dentro del flex-col */}
         <DiagnosticModal
           isOpen={isDiagnosticOpen}
           onClose={() => setIsDiagnosticOpen(false)}
