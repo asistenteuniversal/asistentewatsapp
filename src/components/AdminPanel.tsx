@@ -516,15 +516,22 @@ export const AdminPanel: React.FC = () => {
           >
             Entrar al Panel
           </button>
-
-          <button
-            type="button"
-            onClick={() => setIsDiagnosticOpen(true)}
-            className="w-full py-3.5 bg-zinc-900 border border-red-500/40 hover:bg-zinc-800 text-red-400 font-extrabold rounded-2xl text-[10px] uppercase tracking-widest transition duration-300 transform active:scale-95 cursor-pointer mt-2 flex items-center justify-center gap-1.5"
-          >
-            <span>Diagnosticar Errores 🔍</span>
-          </button>
         </form>
+
+        {/* Botón de diagnóstico colocado de forma independiente ABAJO del recuadro principal */}
+        <button
+          type="button"
+          onClick={() => setIsDiagnosticOpen(true)}
+          className="mt-6 px-6 py-3 bg-zinc-950/80 hover:bg-zinc-900 border border-red-500/30 hover:border-red-500/60 text-red-400/90 hover:text-red-400 font-bold rounded-2xl text-[10px] uppercase tracking-widest transition duration-300 transform active:scale-95 cursor-pointer shadow-lg"
+        >
+          Diagnosticar Errores 🔍
+        </button>
+
+        {/* Modal de Diagnóstico de Errores */}
+        <DiagnosticModal
+          isOpen={isDiagnosticOpen}
+          onClose={() => setIsDiagnosticOpen(false)}
+        />
       </div>
     );
   }
