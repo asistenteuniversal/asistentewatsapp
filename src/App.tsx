@@ -31,6 +31,10 @@ export default function App() {
   const [isLicensingLoading, setIsLicensingLoading] = useState<boolean>(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState<boolean>(false);
 
+  // Estados de bloqueo por licencia pausada
+  const [isLicensePaused, setIsLicensePaused] = useState<boolean>(false);
+  const [supportPhone, setSupportPhone] = useState<string>('527712070378');
+
   // Estilos CSS inline para el oro metálico pulido (mismos que en AdminPanel)
   const goldTextGradient = {
     background: 'linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%)',
@@ -314,27 +318,42 @@ export default function App() {
           .eq('client_id', clientId)
           .single();
 
-        // Si el registro fue eliminado (PGRST116 = no rows returned)
+        // Si el registro fue eliminado (PGRST116 = no rows returned) -> BORRAR LOCAL
         if (error && error.code === 'PGRST116') {
           console.warn('[Licencia] La licencia ha sido eliminada de la base de datos. Cerrando sesión...');
           localStorage.removeItem('ava_client_id');
           localStorage.removeItem('ava_client_name');
           setClientId(null);
+          setIsLicensePaused(false);
           return;
         }
 
         if (error) throw error;
 
         if (data) {
-          // Si la licencia fue pausada
+          // Si la licencia fue pausada -> BLOQUEAR PERO NO BORRAR LOCAL
           if (data.is_active === false) {
-            console.warn('[Licencia] La licencia está desactivada/pausada. Cerrando sesión...');
-            localStorage.removeItem('ava_client_id');
-            localStorage.removeItem('ava_client_name');
-            setClientId(null);
+            console.warn('[Licencia] La licencia está desactivada/pausada. Bloqueando acceso temporalmente...');
+            setIsLicensePaused(true);
+
+            // Intentar recuperar el número de soporte de la cuenta admin
+            try {
+              const { data: adminData } = await supabase
+                .from('asistente_config')
+                .select('client_phone')
+                .eq('client_id', 'admin')
+                .single();
+              if (adminData && adminData.client_phone) {
+                setSupportPhone(adminData.client_phone.trim().replace(/[^0-9]/g, ''));
+              }
+            } catch (e) {
+              console.warn('Error al cargar número de soporte de la nube:', e);
+            }
             return;
           }
 
+          // Si la licencia es válida y activa
+          setIsLicensePaused(false);
           console.log('[Supabase] Licencia y configuración validadas con éxito.');
           setSettings((prev) => ({
             ...prev,
@@ -636,7 +655,61 @@ export default function App() {
       alert('Las instrucciones se guardaron localmente en este dispositivo, pero no se pudieron sincronizar en la base de datos de Supabase en la nube (el servidor de la base de datos podría estar pausado u offline).');
     }
   }, []);
-if (mode === 'admin') {
+
+  // Si la licencia está temporalmente pausada
+  if (isLicensePaused) {
+    const waMessage = `Hola, mi licencia de asistente (${clientId || ''}) ha sido pausada. Por favor, ayúdeme a reactivarla.`;
+    const waUrl = `https://api.whatsapp.com/send?phone=${supportPhone}&text=${encodeURIComponent(waMessage)}`;
+
+    return (
+      <div className="w-screen h-screen bg-black flex items-center justify-center p-4 font-sans text-white select-none">
+        <div 
+          style={goldBorderGradient}
+          className="w-full max-w-sm bg-[#050508] rounded-[2rem] p-8 shadow-[0_0_80px_rgba(191,149,63,0.3)] text-center space-y-8"
+        >
+          <div className="space-y-3">
+            <span className="text-5xl block animate-pulse">🔒</span>
+            <h1 className="text-xl font-black uppercase tracking-widest text-red-500">
+              Acceso Suspendido
+            </h1>
+            <div className="w-20 h-[2px] mx-auto bg-gradient-to-r from-transparent via-[#BF953F] to-transparent" />
+            <p className="text-xs text-gray-400 leading-relaxed font-bold">
+              Licencia Temporalmente Pausada.<br/>
+              Por favor comuníquese a:
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ backgroundColor: '#25D366' }}
+              className="w-full py-4 text-black font-extrabold rounded-2xl text-xs uppercase tracking-widest transition duration-300 transform active:scale-95 hover:brightness-110 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>💬 Servicio al Cliente Presione Aquí</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={() => {
+                if ((window as any).AndroidInterface && (window as any).AndroidInterface.closeApp) {
+                  (window as any).AndroidInterface.closeApp();
+                } else {
+                  window.close();
+                }
+              }}
+              className="w-full py-3 bg-zinc-900/80 border border-zinc-800 text-zinc-500 font-semibold rounded-2xl text-[10px] uppercase tracking-widest hover:text-white transition duration-200 cursor-pointer"
+            >
+              Cerrar Aplicación
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'admin') {
     return <AdminPanel />;
   }
 

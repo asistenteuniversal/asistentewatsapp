@@ -26,6 +26,9 @@ export const AdminPanel: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState<boolean>(false);
 
+  // Estado para el teléfono de soporte de WhatsApp (Ajustes generales)
+  const [supportPhone, setSupportPhone] = useState<string>('527712070378');
+
   // Estados para crear un nuevo cliente
   const [newClientName, setNewClientName] = useState<string>('');
   const [newClientPhone, setNewClientPhone] = useState<string>('');
@@ -144,6 +147,16 @@ export const AdminPanel: React.FC = () => {
 
       if (error) throw error;
       setClients(data || []);
+
+      // Cargar también el teléfono de soporte de la cuenta admin
+      const { data: adminData } = await supabase
+        .from('asistente_config')
+        .select('client_phone')
+        .eq('client_id', 'admin')
+        .single();
+      if (adminData && adminData.client_phone) {
+        setSupportPhone(adminData.client_phone);
+      }
     } catch (err: any) {
       console.error('Error al cargar clientes:', err);
       // Fallback local silencioso si no se ha configurado la base de datos
@@ -164,6 +177,21 @@ export const AdminPanel: React.FC = () => {
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Guardar teléfono de soporte en la base de datos
+  const saveSupportPhone = async (phone: string) => {
+    try {
+      const { error } = await supabase
+        .from('asistente_config')
+        .update({ client_phone: phone })
+        .eq('client_id', 'admin');
+      if (error) throw error;
+      showNotification('✓ Teléfono de soporte actualizado', false);
+    } catch (err: any) {
+      console.warn('Error al guardar teléfono de soporte:', err);
+      showNotification('⚠ Error al guardar teléfono en la nube', true);
     }
   };
 
@@ -551,6 +579,19 @@ export const AdminPanel: React.FC = () => {
             <span className="font-mono text-[9px] sm:text-xs font-bold text-white mt-0.5 tracking-wide bg-black/80 border border-[#BF953F]/10 px-2 py-0.5 rounded-md">
               {currentTime || 'Cargando reloj...'}
             </span>
+          </div>
+
+          {/* WhatsApp de Soporte Técnico */}
+          <div className="flex flex-col items-center text-center">
+            <span className="text-[7px] sm:text-[9px] text-[#FCF6BA] uppercase tracking-widest font-black">WhatsApp de Soporte</span>
+            <input
+              type="text"
+              value={supportPhone}
+              onChange={(e) => setSupportPhone(e.target.value.trim().replace(/[^0-9]/g, ''))}
+              onBlur={(e) => saveSupportPhone(e.target.value)}
+              placeholder="527712070378"
+              className="bg-black/80 border border-[#BF953F]/20 rounded-md px-2 py-0.5 text-[9px] sm:text-xs font-mono text-center text-white focus:outline-none focus:border-[#FCF6BA] w-[100px] sm:w-[130px] mt-0.5"
+            />
           </div>
 
           {/* Lado Derecho: Diagnóstico + Salir */}
