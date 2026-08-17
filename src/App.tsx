@@ -124,7 +124,7 @@ export default function App() {
       }
 
       if (error || !data) {
-        setLicensingError('Clave de activación inválida. Verifique e intente nuevamente.');
+        setLicensingError(`Clave de activación inválida. ${error ? 'Detalle: ' + error.message : 'No encontrada en la base de datos.'}`);
         setIsLicensingLoading(false);
         return;
       }
@@ -154,7 +154,7 @@ export default function App() {
       setClientId(data.client_id);
     } catch (err: any) {
       console.error('Error durante la activación de licencia:', err);
-      setLicensingError('Error de conexión con el servidor. Intente más tarde.');
+      setLicensingError(`Fallo de conexión: ${err.message || 'Verifique su red o credenciales'}`);
     } finally {
       setIsLicensingLoading(false);
     }

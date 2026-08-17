@@ -419,7 +419,7 @@ export const AdminPanel: React.FC = () => {
       console.error('Error al eliminar cliente:', err);
       setModalNotification({
         title: "Fallo al Eliminar",
-        text: "No se pudo eliminar en la base de datos en la nube. Por favor verifique su conexión.",
+        text: `No se pudo eliminar en la base de datos en la nube. Detalle:\n${err.message || JSON.stringify(err) || 'Fallo de red o credenciales'}`,
         isError: true
       });
     }
