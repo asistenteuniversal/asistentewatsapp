@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { DiagnosticModal } from './DiagnosticModal';
 
 // Definición local de la estructura del cliente incluyendo la columna de celular
 interface ClientConfigRow {
@@ -23,6 +24,7 @@ export const AdminPanel: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [clients, setClients] = useState<ClientConfigRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState<boolean>(false);
 
   // Estados para crear un nuevo cliente
   const [newClientName, setNewClientName] = useState<string>('');
@@ -510,9 +512,17 @@ export const AdminPanel: React.FC = () => {
           <button
             type="submit"
             style={goldMetallicBg}
-            className="w-full py-4 text-black font-extrabold rounded-2xl text-xs uppercase tracking-widest transition duration-300 transform active:scale-95 active:brightness-90 hover:brightness-110"
+            className="w-full py-4 text-black font-extrabold rounded-2xl text-xs uppercase tracking-widest transition duration-300 transform active:scale-95 active:brightness-90 hover:brightness-110 cursor-pointer"
           >
             Entrar al Panel
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsDiagnosticOpen(true)}
+            className="w-full py-3.5 bg-zinc-900 border border-red-500/40 hover:bg-zinc-800 text-red-400 font-extrabold rounded-2xl text-[10px] uppercase tracking-widest transition duration-300 transform active:scale-95 cursor-pointer mt-2 flex items-center justify-center gap-1.5"
+          >
+            <span>Diagnosticar Errores 🔍</span>
           </button>
         </form>
       </div>
@@ -546,12 +556,20 @@ export const AdminPanel: React.FC = () => {
           </div>
 
           {/* Lado Derecho: Botón Salir */}
-          <button
-            onClick={handleLogout}
-            className="px-3 py-1.5 sm:px-4 sm:py-2 border border-red-500/50 hover:bg-red-500/10 text-red-400 font-bold rounded-xl text-[10px] uppercase tracking-wider transition duration-300"
-          >
-            Salir
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setIsDiagnosticOpen(true)}
+              className="px-2.5 py-1.5 sm:px-3 sm:py-2 border border-[#BF953F]/35 hover:bg-[#BF953F]/10 text-[#FCF6BA] font-bold rounded-xl text-[9px] uppercase tracking-wider transition duration-300 cursor-pointer"
+            >
+              Diagnosticar Errores 🔍
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-red-500/50 hover:bg-red-500/10 text-red-400 font-bold rounded-xl text-[10px] uppercase tracking-wider transition duration-300"
+            >
+              Salir
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1111,6 +1129,12 @@ export const AdminPanel: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Diagnóstico de Errores */}
+      <DiagnosticModal
+        isOpen={isDiagnosticOpen}
+        onClose={() => setIsDiagnosticOpen(false)}
+      />
     </div>
   );
 };

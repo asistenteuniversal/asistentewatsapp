@@ -8,6 +8,7 @@ import { ClientSettingsModal } from './components/ClientSettingsModal'; // Impor
 import { useVoiceEngine } from './hooks/useVoiceEngine';
 import { supabase } from './supabaseClient';
 import { AdminPanel } from './components/AdminPanel';
+import { DiagnosticModal } from './components/DiagnosticModal';
 
 export default function App() {
   const [mode, setMode] = useState<AppMode>(() => {
@@ -28,6 +29,7 @@ export default function App() {
   const [activationKeyInput, setActivationKeyInput] = useState<string>('');
   const [licensingError, setLicensingError] = useState<string>('');
   const [isLicensingLoading, setIsLicensingLoading] = useState<boolean>(false);
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState<boolean>(false);
 
   // Estilos CSS inline para el oro metálico pulido (mismos que en AdminPanel)
   const goldTextGradient = {
@@ -664,7 +666,21 @@ export default function App() {
           >
             {isLicensingLoading ? 'Verificando...' : 'Activar Licencia'}
           </button>
+
+          <button
+            type="button"
+            onClick={() => setIsDiagnosticOpen(true)}
+            className="w-full py-3.5 bg-zinc-900 border border-red-500/40 hover:bg-zinc-800 text-red-400 font-extrabold rounded-2xl text-[10px] uppercase tracking-widest transition duration-300 transform active:scale-95 cursor-pointer mt-2 flex items-center justify-center gap-1.5"
+          >
+            <span>Diagnosticar Errores 🔍</span>
+          </button>
         </form>
+
+        {/* Modal de Diagnóstico de Errores */}
+        <DiagnosticModal
+          isOpen={isDiagnosticOpen}
+          onClose={() => setIsDiagnosticOpen(false)}
+        />
       </div>
     );
   }
@@ -791,6 +807,12 @@ export default function App() {
         onSave={handleSaveSettings}
         settings={settings}
         setSettings={setSettings}
+      />
+
+      {/* Modal de Diagnóstico de Errores */}
+      <DiagnosticModal
+        isOpen={isDiagnosticOpen}
+        onClose={() => setIsDiagnosticOpen(false)}
       />
     </div>
   );
