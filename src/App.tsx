@@ -615,15 +615,14 @@ export default function App() {
       alert('Las instrucciones se guardaron localmente en este dispositivo, pero no se pudieron sincronizar en la base de datos de Supabase en la nube (el servidor de la base de datos podría estar pausado u offline).');
     }
   }, []);
-
-  if (mode === 'admin') {
+if (mode === 'admin') {
     return <AdminPanel />;
   }
 
   // Si no está licenciado y no es administrador, mostrar pantalla de activación
   if (!clientId) {
     return (
-      <div className="w-screen h-screen bg-black flex flex-col items-center justify-center p-4 font-sans text-white select-none relative">
+      <div className="w-screen h-screen bg-black flex items-center justify-center p-4 font-sans text-white select-none">
         <form 
           onSubmit={handleActivateLicense} 
           style={goldBorderGradient}
@@ -666,16 +665,15 @@ export default function App() {
           >
             {isLicensingLoading ? 'Verificando...' : 'Activar Licencia'}
           </button>
-        </form>
 
-        {/* Botón de diagnóstico colocado de forma independiente ABAJO del recuadro principal */}
-        <button
-          type="button"
-          onClick={() => setIsDiagnosticOpen(true)}
-          className="mt-6 px-6 py-3 bg-zinc-950/80 hover:bg-zinc-900 border border-red-500/30 hover:border-red-500/60 text-red-400/90 hover:text-red-400 font-bold rounded-2xl text-[10px] uppercase tracking-widest transition duration-300 transform active:scale-95 cursor-pointer shadow-lg"
-        >
-          Diagnosticar Errores 🔍
-        </button>
+          <button
+            type="button"
+            onClick={() => setIsDiagnosticOpen(true)}
+            className="w-full py-3.5 bg-zinc-900 border border-red-500/40 hover:bg-zinc-800 text-red-400 font-extrabold rounded-2xl text-[10px] uppercase tracking-widest transition duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <span>Diagnosticar Errores 🔍</span>
+          </button>
+        </form>
 
         {/* Modal de Diagnóstico de Errores */}
         <DiagnosticModal
