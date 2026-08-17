@@ -1008,7 +1008,7 @@ export const AdminPanel: React.FC = () => {
                     </div>
 
                     <div>
-                      <p className="text-[9px] text-white uppercase tracking-widest font-black">CLAVE ID</p>
+                      <p className="text-[9px] text-white uppercase tracking-widest font-black">ESTADO CELULAR/ID</p>
                       {client.hardware_id ? (
                         <div className="space-y-1.5 mt-1.5">
                           <div className="flex items-center justify-between gap-2">

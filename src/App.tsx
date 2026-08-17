@@ -153,9 +153,25 @@ export default function App() {
       }
 
       // 2. Validar Hardware ID
-      const currentHwId = (window as any).AndroidInterface && (window as any).AndroidInterface.getDeviceId 
-        ? (window as any).AndroidInterface.getDeviceId() 
-        : 'browser-test-id';
+      let currentHwId = 'browser-test-id';
+      if ((window as any).AndroidInterface && (window as any).AndroidInterface.getDeviceId) {
+        try {
+          const nativeId = (window as any).AndroidInterface.getDeviceId();
+          if (nativeId) {
+            currentHwId = nativeId;
+          }
+        } catch (e) {
+          console.error("Error al obtener ID de dispositivo nativo:", e);
+        }
+      } else {
+        // Fallback para navegador web en PC: generar y persistir un ID único
+        let browserId = localStorage.getItem('ava_browser_device_id');
+        if (!browserId) {
+          browserId = 'WEB-' + Math.random().toString(36).substring(2, 15).toUpperCase();
+          localStorage.setItem('ava_browser_device_id', browserId);
+        }
+        currentHwId = browserId;
+      }
 
       if (data.hardware_id && data.hardware_id !== currentHwId) {
         setLicensingError('Esta clave ya está vinculada a otro dispositivo. Libérela en su panel antes de continuar.');
