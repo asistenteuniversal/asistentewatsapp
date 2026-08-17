@@ -300,21 +300,42 @@ export default function App() {
     return defaultSettings;
   });
 
-  // Cargar instrucciones externas de comportamiento configuradas desde el PC o Supabase
+  // Cargar instrucciones y validar vigencia de licencia desde Supabase al abrir la app
   useEffect(() => {
     const loadConfig = async () => {
+      // Si no hay clientId o es el cliente maestro offline, no validar
+      if (!clientId || clientId === 'cliente_maestro') return;
+
       try {
-        console.log('[Supabase] Intentando cargar configuración desde la nube...');
+        console.log('[Supabase] Intentando cargar configuración y validar licencia...');
         const { data, error } = await supabase
           .from('asistente_config')
-          .select('system_instructions')
-          .eq('client_id', clientId || 'cliente_maestro')
+          .select('system_instructions, is_active')
+          .eq('client_id', clientId)
           .single();
+
+        // Si el registro fue eliminado (PGRST116 = no rows returned)
+        if (error && error.code === 'PGRST116') {
+          console.warn('[Licencia] La licencia ha sido eliminada de la base de datos. Cerrando sesión...');
+          localStorage.removeItem('ava_client_id');
+          localStorage.removeItem('ava_client_name');
+          setClientId(null);
+          return;
+        }
 
         if (error) throw error;
 
-        if (data && data.system_instructions) {
-          console.log('[Supabase] Configuración cargada con éxito.');
+        if (data) {
+          // Si la licencia fue pausada
+          if (data.is_active === false) {
+            console.warn('[Licencia] La licencia está desactivada/pausada. Cerrando sesión...');
+            localStorage.removeItem('ava_client_id');
+            localStorage.removeItem('ava_client_name');
+            setClientId(null);
+            return;
+          }
+
+          console.log('[Supabase] Licencia y configuración validadas con éxito.');
           setSettings((prev) => ({
             ...prev,
             systemInstructions: data.system_instructions,
@@ -329,11 +350,11 @@ export default function App() {
           }
           return; // Salir con éxito
         }
-      } catch (err) {
-        console.warn('[Supabase] Falló carga remota (base de datos pausada o sin conexión). Usando fallback local:', err);
+      } catch (err: any) {
+        console.warn('[Supabase] Falló validación remota. Manteniendo sesión offline para evitar bloqueos por red:', err);
       }
 
-      // Fallback: Intentar leer el archivo local config
+      // Fallback: Intentar leer el archivo local config si hay problemas de red
       try {
         const res = await fetch(`/asistente_config.json?v=${new Date().getTime()}`);
         if (res.ok) {
@@ -354,7 +375,7 @@ export default function App() {
     };
 
     loadConfig();
-  }, []);
+  }, [clientId]);
 
   // Guardar Ajustes en localStorage cada vez que cambien
   useEffect(() => {
