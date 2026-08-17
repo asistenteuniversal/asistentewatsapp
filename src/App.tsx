@@ -53,7 +53,7 @@ export default function App() {
   const handleActivateLicense = async (e: React.FormEvent) => {
     e.preventDefault();
     setLicensingError('');
-    const trimmedKey = activationKeyInput.trim();
+    const trimmedKey = activationKeyInput.trim().toUpperCase().replace(/\s/g, '');
     if (!trimmedKey) return;
 
     setIsLicensingLoading(true);
