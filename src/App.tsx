@@ -325,20 +325,29 @@ export default function App() {
         const todayStr = new Date().toDateString();
         const maxDays = parsed.memoryDays !== undefined ? parsed.memoryDays : 2;
 
-        // Si la fecha guardada es diferente a hoy, verificar si ya expiro por días
+        // Si la fecha guardada es diferente a hoy, realizar filtrado rotativo de días
         if (parsed.memorySaveDate && parsed.memorySaveDate !== todayStr) {
-          if (maxDays > 0) {
-            const saveDate = new Date(parsed.memorySaveDate);
-            const todayDate = new Date(todayStr);
-            const diffTime = todayDate.getTime() - saveDate.getTime();
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays >= maxDays) {
-              parsed.systemMemory = '';
-              parsed.memorySaveDate = todayStr;
-            }
+          if (maxDays > 0 && parsed.systemMemory) {
+            const lines = parsed.systemMemory.split('\n');
+            const filteredLines = lines.filter((line: string) => {
+              const match = line.match(/^\[([^\]]+)\]/);
+              if (match) {
+                const lineDateStr = match[1];
+                try {
+                  const lineDate = new Date(lineDateStr);
+                  const todayDate = new Date(todayStr);
+                  const diffTime = todayDate.getTime() - lineDate.getTime();
+                  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                  return diffDays < maxDays;
+                } catch (err) {
+                  return true;
+                }
+              }
+              return true;
+            });
+            parsed.systemMemory = filteredLines.join('\n');
+            parsed.memorySaveDate = todayStr;
           }
-          // Si maxDays es 0 (Sin Límite), no se limpia nunca
         }
         return { ...defaultSettings, ...parsed };
       } catch (e) {
@@ -358,7 +367,7 @@ export default function App() {
         console.log('[Supabase] Intentando cargar configuración y validar licencia...');
         const { data, error } = await supabase
           .from('asistente_config')
-          .select('system_instructions, is_active')
+          .select('system_instructions, is_active, memory_days')
           .eq('client_id', clientId)
           .single();
 
@@ -402,6 +411,7 @@ export default function App() {
           setSettings((prev) => ({
             ...prev,
             systemInstructions: data.system_instructions,
+            memoryDays: data.memory_days !== null && data.memory_days !== undefined ? data.memory_days : 2,
           }));
           // Inyectar en Android de inmediato si la interfaz nativa está activa
           if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
@@ -455,9 +465,10 @@ export default function App() {
           // Evitar duplicar el mismo bloque de conversación
           if (currentMemory.includes(cleanText)) return prev;
 
+          const todayPrefix = `[${new Date().toDateString()}]`;
           const newMemory = currentMemory.trim()
-            ? `${currentMemory}\n${cleanText}`
-            : cleanText;
+            ? `${currentMemory}\n${todayPrefix} ${cleanText}`
+            : `${todayPrefix} ${cleanText}`;
           return {
             ...prev,
             systemMemory: newMemory,
@@ -506,8 +517,9 @@ export default function App() {
       try {
         const instructions = settings.systemInstructions || '';
         const memory = settings.systemMemory || '';
-        const mergedText = memory.trim()
-          ? `${instructions}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO (Esta es tu memoria de lo que platicaste anteriormente con la persona con la que estás hablando. No repitas nada de lo que está aquí, son solo tus recuerdos de hoy. Es información confidencial de tu pasado inmediato, úsala solo como referencia para responder)]: \n${memory}`
+        const cleanMemory = memory.replace(/^\[[^\]]+\]\s*/gm, ''); // Eliminar marcas de fecha para la IA
+        const mergedText = cleanMemory.trim()
+          ? `${instructions}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO (Esta es tu memoria de lo que platicaste anteriormente con la persona con la que estás hablando. No repitas nada de lo que está aquí, son solo tus recuerdos de hoy. Es información confidencial de tu pasado inmediato, úsala solo como referencia para responder)]: \n${cleanMemory}`
           : instructions;
 
         (window as any).AndroidInterface.updateSystemInstructions(mergedText);

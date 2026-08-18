@@ -17,6 +17,7 @@ interface ClientConfigRow {
   rental_end_date?: string | null;
   updated_at?: string;
   daily_memory?: string | null;
+  memory_days?: number | null;
 }
 
 export const AdminPanel: React.FC = () => {
@@ -173,7 +174,8 @@ export const AdminPanel: React.FC = () => {
           system_memory: '',
           is_active: true,
           activation_key: 'AVA-1234-5678',
-          hardware_id: null
+          hardware_id: null,
+          memory_days: 2
         }
       ]);
     } finally {
@@ -382,6 +384,22 @@ export const AdminPanel: React.FC = () => {
     } catch (err: any) {
       console.warn('Fallo de conexión. Cambios de memoria guardados localmente.');
       showSaveStatus(clientId, '⚠ Memoria guardada local', true);
+    }
+  };
+
+  // Guardar configuración de días de memoria
+  const saveMemoryDays = async (clientId: string, days: number) => {
+    showSaveStatus(clientId, 'Guardando...', false);
+    try {
+      const { error } = await supabase
+        .from('asistente_config')
+        .update({ memory_days: days })
+        .eq('client_id', clientId);
+      if (error) throw error;
+      showSaveStatus(clientId, '✓ Días de memoria actualizados', false);
+    } catch (err: any) {
+      console.warn('Fallo de conexión. Cambios de días de memoria guardados localmente.');
+      showSaveStatus(clientId, '⚠ Guardado local', true);
     }
   };
 
@@ -1133,9 +1151,30 @@ export const AdminPanel: React.FC = () => {
 
                   {/* Conversación de Hoy (Recuerdos Diarios) */}
                   <div className="space-y-2">
-                    <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
-                      Conversación de Hoy (Recuerdos Diarios en Tiempo Real)
-                    </label>
+                    <div className="flex justify-between items-center">
+                      <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
+                        Conversación de Hoy (Recuerdos Diarios en Tiempo Real)
+                      </label>
+                      <div className="flex items-center gap-1.5 bg-black/40 border border-[#BF953F]/20 px-2 py-0.5 rounded-lg">
+                        <span className="text-[8px] text-[#FCF6BA] uppercase font-black tracking-wider">Conservar por:</span>
+                        <select
+                          value={client.memory_days !== undefined && client.memory_days !== null ? client.memory_days : 2}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: val } : c));
+                            saveMemoryDays(client.client_id, val);
+                          }}
+                          className="bg-black text-cyan-400 border-none outline-none text-[9px] font-black cursor-pointer"
+                        >
+                          <option value={1}>1 Día</option>
+                          <option value={2}>2 Días (Predeter.)</option>
+                          <option value={3}>3 Días</option>
+                          <option value={5}>5 Días</option>
+                          <option value={7}>7 Días</option>
+                          <option value={0}>Sin Límite</option>
+                        </select>
+                      </div>
+                    </div>
                     <textarea
                       readOnly
                       value={client.daily_memory || 'Sin conversación registrada el día de hoy.'}
