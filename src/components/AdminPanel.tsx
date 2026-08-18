@@ -403,6 +403,24 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
+  // Borrar memoria del cliente
+  const clearClientMemory = async (clientId: string) => {
+    if (!window.confirm('¿Estás seguro de que deseas borrar toda la memoria de conversación de este cliente en la nube y en su celular?')) return;
+    showSaveStatus(clientId, 'Borrando...', false);
+    try {
+      const { error } = await supabase
+        .from('asistente_config')
+        .update({ daily_memory: '' })
+        .eq('client_id', clientId);
+      if (error) throw error;
+      setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, daily_memory: '' } : c));
+      showSaveStatus(clientId, '✓ Memoria borrada', false);
+    } catch (err: any) {
+      console.warn('Error al borrar memoria:', err);
+      showSaveStatus(clientId, '⚠ Error al borrar', true);
+    }
+  };
+
   // Guardar teléfono del cliente
   const savePhone = async (clientId: string, phone: string) => {
     showSaveStatus(clientId, 'Guardando...', false);
@@ -1151,28 +1169,52 @@ export const AdminPanel: React.FC = () => {
 
                   {/* Conversación de Hoy (Recuerdos Diarios) */}
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                       <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
                         Conversación de Hoy (Recuerdos Diarios en Tiempo Real)
                       </label>
-                      <div className="flex items-center gap-1.5 bg-black/40 border border-[#BF953F]/20 px-2 py-0.5 rounded-lg">
-                        <span className="text-[8px] text-[#FCF6BA] uppercase font-black tracking-wider">Conservar por:</span>
-                        <select
-                          value={client.memory_days !== undefined && client.memory_days !== null ? client.memory_days : 2}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value, 10);
-                            setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: val } : c));
-                            saveMemoryDays(client.client_id, val);
-                          }}
-                          className="bg-black text-cyan-400 border-none outline-none text-[9px] font-black cursor-pointer"
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {/* Cuadro de entrada de texto para días */}
+                        <div className="flex items-center bg-black/45 border border-[#BF953F]/20 rounded-lg px-2 py-0.5">
+                          <span className="text-[8px] text-[#FCF6BA] uppercase font-black tracking-wider mr-1">Días:</span>
+                          <input
+                            id={`days-input-${client.client_id}`}
+                            type="number"
+                            min="0"
+                            defaultValue={client.memory_days !== undefined && client.memory_days !== null ? client.memory_days : 2}
+                            placeholder="2"
+                            className="bg-transparent text-cyan-400 border-none outline-none text-[9px] font-black w-6 text-center"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const input = document.getElementById(`days-input-${client.client_id}`) as HTMLInputElement;
+                              if (input) {
+                                const val = parseInt(input.value, 10);
+                                if (!isNaN(val) && val >= 0) {
+                                  setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: val } : c));
+                                  saveMemoryDays(client.client_id, val);
+                                } else {
+                                  alert('Por favor escribe un número válido de días (0 o más). 0 significa Sin Límite.');
+                                }
+                              }
+                            }}
+                            style={{ color: '#22c55e' }}
+                            className="ml-1 text-[9px] font-black uppercase tracking-wider hover:brightness-110 active:scale-95 cursor-pointer font-sans"
+                          >
+                            💾 Guardar
+                          </button>
+                        </div>
+
+                        {/* Botón de Borrado de Memoria (Rojo) */}
+                        <button
+                          type="button"
+                          onClick={() => clearClientMemory(client.client_id)}
+                          style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
+                          className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider hover:brightness-110 active:scale-95 transition duration-300 shadow-md cursor-pointer flex items-center gap-1 font-sans"
                         >
-                          <option value={1}>1 Día</option>
-                          <option value={2}>2 Días (Predeter.)</option>
-                          <option value={3}>3 Días</option>
-                          <option value={5}>5 Días</option>
-                          <option value={7}>7 Días</option>
-                          <option value={0}>Sin Límite</option>
-                        </select>
+                          <span>🧹 Borrar Memoria</span>
+                        </button>
                       </div>
                     </div>
                     <textarea

@@ -367,7 +367,7 @@ export default function App() {
         console.log('[Supabase] Intentando cargar configuración y validar licencia...');
         const { data, error } = await supabase
           .from('asistente_config')
-          .select('system_instructions, is_active, memory_days')
+          .select('system_instructions, is_active, memory_days, daily_memory')
           .eq('client_id', clientId)
           .single();
 
@@ -411,6 +411,7 @@ export default function App() {
           setSettings((prev) => ({
             ...prev,
             systemInstructions: data.system_instructions,
+            systemMemory: data.daily_memory || '',
             memoryDays: data.memory_days !== null && data.memory_days !== undefined ? data.memory_days : 2,
           }));
           // Inyectar en Android de inmediato si la interfaz nativa está activa
