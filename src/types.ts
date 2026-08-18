@@ -37,4 +37,6 @@ export interface AppSettings {
   systemInstructions: string;
   systemMemory: string;
   memorySaveDate: string;
+  memoryDays?: number;
+  memorySaveTimestamp?: number;
 }

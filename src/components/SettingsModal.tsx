@@ -107,12 +107,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               placeholder="Escribe recuerdos de hoy (Ej: Alberto vino a visitarme a las 5pm y platicamos de...)"
             />
             <p className="text-[9px] text-zinc-400 leading-normal">
-              Añade recuerdos temporales. Se unirán al comportamiento y se borrarán automáticamente al cambiar de día.
+              Añade recuerdos temporales. Se unirán al comportamiento y se borrarán automáticamente según los días configurados.
             </p>
           </div>
 
-          {/* Stealth Button Transparency */}
-
+          {/* Conservar memoria por días */}
+          <div className="flex items-center justify-between text-zinc-300 font-semibold text-[11px] bg-white/5 border border-white/10 p-2.5 rounded-xl">
+            <span className="flex items-center gap-1.5 font-sans">
+              <span>⏰</span>
+              Conservar recuerdos por:
+            </span>
+            <select
+              value={settings.memoryDays !== undefined ? settings.memoryDays : 2}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setSettings((prev) => ({ ...prev, memoryDays: val }));
+              }}
+              className="bg-black/90 text-cyan-400 border border-white/10 rounded-lg px-2 py-1 outline-none text-[11px] cursor-pointer font-sans"
+            >
+              <option value={1}>1 Día</option>
+              <option value={2}>2 Días (Predeterminado)</option>
+              <option value={3}>3 Días</option>
+              <option value={5}>5 Días</option>
+              <option value={7}>7 Días</option>
+              <option value={0}>Sin Límite (No borrar)</option>
+            </select>
+          </div>
 
           <div className="space-y-1.5">
             <div className="flex justify-between items-center text-zinc-300 font-semibold">

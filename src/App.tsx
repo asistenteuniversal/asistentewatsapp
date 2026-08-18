@@ -299,7 +299,7 @@ export default function App() {
   // Cargar Ajustes desde el almacenamiento local persistente (localStorage) del celular
   const [settings, setSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem('neonSettings');
-    const defaultSettings = {
+    const defaultSettings: AppSettings = {
       chatUrl: 'https://aistudio.google.com/live?model=gemini-3.1-flash-live-preview',
       stealthOpacity: 0.9,
       hotkeyEnabled: true,
@@ -315,17 +315,30 @@ export default function App() {
       bridgeEnabled: true,
       systemInstructions: 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.',
       systemMemory: '',
-      memorySaveDate: new Date().toDateString()
+      memorySaveDate: new Date().toDateString(),
+      memoryDays: 2
     };
 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        const today = new Date().toDateString();
-        // Si la fecha guardada es de un día anterior, limpiar memoria de 1 día
-        if (parsed.memorySaveDate && parsed.memorySaveDate !== today) {
-          parsed.systemMemory = '';
-          parsed.memorySaveDate = today;
+        const todayStr = new Date().toDateString();
+        const maxDays = parsed.memoryDays !== undefined ? parsed.memoryDays : 2;
+
+        // Si la fecha guardada es diferente a hoy, verificar si ya expiro por días
+        if (parsed.memorySaveDate && parsed.memorySaveDate !== todayStr) {
+          if (maxDays > 0) {
+            const saveDate = new Date(parsed.memorySaveDate);
+            const todayDate = new Date(todayStr);
+            const diffTime = todayDate.getTime() - saveDate.getTime();
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays >= maxDays) {
+              parsed.systemMemory = '';
+              parsed.memorySaveDate = todayStr;
+            }
+          }
+          // Si maxDays es 0 (Sin Límite), no se limpia nunca
         }
         return { ...defaultSettings, ...parsed };
       } catch (e) {
