@@ -1182,7 +1182,14 @@ export const AdminPanel: React.FC = () => {
                             type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
-                            defaultValue={client.memory_days !== undefined && client.memory_days !== null ? client.memory_days : 2}
+                            value={client.memory_days !== undefined && client.memory_days !== null ? client.memory_days : 2}
+                            onChange={(e) => {
+                              const valStr = e.target.value;
+                              if (valStr === '' || /^[0-9]+$/.test(valStr)) {
+                                const val = valStr === '' ? 0 : parseInt(valStr, 10);
+                                setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: val } : c));
+                              }
+                            }}
                             placeholder="2"
                             className="bg-[#121214] border border-[#BF953F]/40 rounded-xl px-3 py-1.5 text-cyan-400 font-bold text-center w-14 text-sm focus:outline-none focus:border-[#FCF6BA]"
                           />
@@ -1193,10 +1200,9 @@ export const AdminPanel: React.FC = () => {
                               if (input) {
                                 const val = parseInt(input.value, 10);
                                 if (!isNaN(val) && val >= 0) {
-                                  setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: val } : c));
                                   saveMemoryDays(client.client_id, val);
                                 } else {
-                                  alert('Por favor escribe un número válido de días (0 o más). 0 significa Sin Límite.');
+                                  alert('Por favor escribe un número válido de días (0 o más).');
                                 }
                               }
                             }}
@@ -1207,14 +1213,13 @@ export const AdminPanel: React.FC = () => {
                           </button>
                         </div>
 
-                        {/* Botón de Borrado de Memoria (Rojo) */}
+                        {/* Botón de Borrado de Memoria (Rojo estilo idéntico) */}
                         <button
                           type="button"
                           onClick={() => clearClientMemory(client.client_id)}
-                          style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
-                          className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider hover:brightness-110 active:scale-95 transition duration-300 shadow-md cursor-pointer flex items-center gap-1 font-sans"
+                          className="px-2 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-red-900/20 border border-red-500/30 font-sans cursor-pointer"
                         >
-                          <span>🧹 Borrar Memoria</span>
+                          <span>BORRAR MEMORIA</span>
                         </button>
                       </div>
                     </div>
