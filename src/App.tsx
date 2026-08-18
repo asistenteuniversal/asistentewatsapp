@@ -458,6 +458,24 @@ export default function App() {
     };
   }, []);
 
+  // Sincronizar memoria de hoy (systemMemory) con Supabase en tiempo real
+  useEffect(() => {
+    const syncMemoryToNube = async () => {
+      if (!clientId || clientId === 'cliente_maestro') return;
+      try {
+        const memory = settings.systemMemory || '';
+        await supabase
+          .from('asistente_config')
+          .update({ daily_memory: memory })
+          .eq('client_id', clientId);
+      } catch (e) {
+        console.error('[Supabase] Error al sincronizar memoria diaria:', e);
+      }
+    };
+
+    syncMemoryToNube();
+  }, [settings.systemMemory, clientId]);
+
   // Sincronizar el estado del puente (conectar/desconectar Página 1) con el celular
   useEffect(() => {
     if ((window as any).AndroidInterface && (window as any).AndroidInterface.setBridgeEnabled) {

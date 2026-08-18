@@ -16,6 +16,7 @@ interface ClientConfigRow {
   rental_start_date?: string | null;
   rental_end_date?: string | null;
   updated_at?: string;
+  daily_memory?: string | null;
 }
 
 export const AdminPanel: React.FC = () => {
@@ -180,6 +181,22 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
+  // Cargar lista de clientes de forma silenciosa para actualización en tiempo real
+  const loadClientsSilently = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('asistente_config')
+        .select('*')
+        .neq('client_id', 'admin')
+        .order('client_id', { ascending: true });
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (err: any) {
+      console.warn('Error en recarga silenciosa de clientes:', err);
+    }
+  };
+
   // Guardar teléfono de soporte en la base de datos
   const saveSupportPhone = async (phone: string) => {
     try {
@@ -234,10 +251,14 @@ export const AdminPanel: React.FC = () => {
     }
   }, []);
 
-  // Cargar clientes al iniciar sesión
+  // Cargar clientes al iniciar sesión y mantenerlos actualizados en tiempo real cada 10 segundos
   useEffect(() => {
     if (isLoggedIn) {
       loadClients();
+      const interval = setInterval(() => {
+        loadClientsSilently();
+      }, 10000);
+      return () => clearInterval(interval);
     }
   }, [isLoggedIn]);
 
@@ -1091,6 +1112,20 @@ export const AdminPanel: React.FC = () => {
                           saveMemory(client.client_id, e.target.value);
                         }
                       }}
+                    />
+                  </div>
+
+                  {/* Conversación de Hoy (Recuerdos Diarios) */}
+                  <div className="space-y-2">
+                    <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
+                      Conversación de Hoy (Recuerdos Diarios en Tiempo Real)
+                    </label>
+                    <textarea
+                      readOnly
+                      value={client.daily_memory || 'Sin conversación registrada el día de hoy.'}
+                      placeholder="Aquí se mostrará en tiempo real lo que el usuario habla con la IA hoy..."
+                      rows={6}
+                      className="w-full bg-black/60 border border-zinc-800 rounded-2xl p-4 text-xs text-white focus:outline-none font-mono leading-relaxed select-text cursor-default"
                     />
                   </div>
                 </div>
