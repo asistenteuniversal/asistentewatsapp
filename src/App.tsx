@@ -779,10 +779,7 @@ export default function App() {
             />
           </div>
 
-          {licensingError && (
-            <p className="text-xs text-red-500 font-bold leading-relaxed">{licensingError}</p>
-          )}
-
+          {/* BOTON DE ACTIVAR LICENCIA - Subido justo debajo de la clave */}
           <button
             type="submit"
             disabled={isLicensingLoading}
@@ -792,6 +789,34 @@ export default function App() {
             {isLicensingLoading ? 'Verificando...' : 'Activar Licencia'}
           </button>
 
+          {/* MENSAJES DE ERROR Y BLOQUEO POR DUPLICADO */}
+          {licensingError && (
+            licensingError.includes('VINCULADA') ? (
+              <div className="space-y-4 text-left border border-zinc-800/80 bg-zinc-950/40 p-4 rounded-2xl">
+                <p className="text-[11px] sm:text-xs text-white leading-relaxed font-extrabold uppercase tracking-wide">
+                  ESTA CLAVE YA ESTÁ VINCULADA A OTRO DISPOSITIVO. PARA USARLA AQUÍ, NECESITA QUE NUESTRO EQUIPO LA ACTIVE EN ESTE CELULAR, POR FAVOR CONTACTE A SERVICIO AL CLIENTE.
+                </p>
+                <p className="text-[11px] sm:text-xs text-white leading-relaxed font-extrabold uppercase tracking-wide">
+                  SI DESEA COMPRAR UN ASISTENTE PERSONALIZADO PARA USTED, REQUIERE UNA CLAVE NUEVA (POR DÍA, SEMANA O MES), PEDIR UNA PRUEBA O MUESTRA GRATIS, CONTACTE A SERVICIO AL CLIENTE, POR FAVOR COMUNÍQUESE A:
+                </p>
+                <p className="text-lg sm:text-xl font-mono font-black text-[#FCF6BA] tracking-wider text-center select-text mt-1">
+                  {formatPhoneForDisplay(supportPhone)}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleCopySupportPhone}
+                  style={phoneCopied ? { backgroundColor: '#15803d', color: '#ffffff' } : { backgroundColor: '#25D366', color: '#000000' }}
+                  className="w-full py-3 text-black font-extrabold rounded-xl text-[10px] sm:text-xs uppercase tracking-widest transition-all duration-300 transform active:scale-95 hover:brightness-110 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>{phoneCopied ? '✅ ¡NÚMERO COPIADO!' : '📋 COPIAR NÚMERO'}</span>
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-red-500 font-bold leading-relaxed text-center">{licensingError}</p>
+            )
+          )}
+
+          {/* DIAGNOSTICO DE ERRORES - Dejado abajo de todo */}
           <button
             type="button"
             onClick={() => setIsDiagnosticOpen(true)}
