@@ -48,6 +48,9 @@ export const AdminPanel: React.FC = () => {
   // Estado para el indicador de autoguardado visual (Mejora 5)
   const [saveStatus, setSaveStatus] = useState<{[key: string]: { text: string; isError: boolean } | null}>({});
 
+  // Estado para las transiciones del botón de guardar días de memoria
+  const [savingStates, setSavingStates] = useState<Record<string, 'idle' | 'saving' | 'saved'>>({});
+
   const showSaveStatus = (clientId: string, text: string, isError: boolean = false) => {
     setSaveStatus(prev => ({ ...prev, [clientId]: { text, isError } }));
     setTimeout(() => {
@@ -390,15 +393,35 @@ export const AdminPanel: React.FC = () => {
   // Guardar configuración de días de memoria
   const saveMemoryDays = async (clientId: string, days: number) => {
     showSaveStatus(clientId, 'Guardando...', false);
+    setSavingStates(prev => ({ ...prev, [clientId]: 'saving' }));
     try {
       const { error } = await supabase
         .from('asistente_config')
         .update({ memory_days: days })
         .eq('client_id', clientId);
       if (error) throw error;
+      
+      // Sincronizar estado local de inmediato
+      setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, memory_days: days } : c));
+      setSavingStates(prev => ({ ...prev, [clientId]: 'saved' }));
+      
+      // Revertir a 'idle' tras 2 segundos
+      setTimeout(() => {
+        setSavingStates(prev => ({ ...prev, [clientId]: 'idle' }));
+      }, 2000);
+
       showSaveStatus(clientId, '✓ Días de memoria actualizados', false);
     } catch (err: any) {
-      console.warn('Fallo de conexión. Cambios de días de memoria guardados localmente.');
+      console.error('[Supabase] Error al guardar días de memoria:', err);
+      setSavingStates(prev => ({ ...prev, [clientId]: 'idle' }));
+      
+      // Mostrar el error exacto en ventana emergente de diagnóstico para el usuario
+      setModalNotification({
+        title: "Error al Guardar Días",
+        text: `No se pudo registrar la cantidad de días en la base de datos de Supabase. Detalle del error:\n\n${err.message || JSON.stringify(err) || 'Fallo de red o columna inexistente.'}\n\n*Asegúrate de haber creado la columna 'memory_days' en Supabase ejecutando el script SQL correspondiente.*`,
+        isError: true
+      });
+
       showSaveStatus(clientId, '⚠ Guardado local', true);
     }
   };
@@ -1193,24 +1216,39 @@ export const AdminPanel: React.FC = () => {
                             placeholder="2"
                             className="bg-[#121214] border border-[#BF953F]/40 rounded-xl px-3 py-1.5 text-cyan-400 font-bold text-center w-14 text-sm focus:outline-none focus:border-[#FCF6BA]"
                           />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const input = document.getElementById(`days-input-${client.client_id}`) as HTMLInputElement;
-                              if (input) {
-                                const val = parseInt(input.value, 10);
-                                if (!isNaN(val) && val >= 0) {
-                                  saveMemoryDays(client.client_id, val);
-                                } else {
-                                  alert('Por favor escribe un número válido de días (0 o más).');
-                                }
-                              }
-                            }}
-                            style={{ color: '#22c55e' }}
-                            className="ml-1 px-3 py-1.5 border border-[#22c55e]/30 rounded-xl bg-emerald-950/10 hover:bg-emerald-950/20 text-xs font-bold uppercase tracking-wider hover:brightness-110 active:scale-95 transition cursor-pointer font-sans"
-                          >
-                            💾 Guardar
-                          </button>
+                          {(() => {
+                            const btnState = savingStates[client.client_id] || 'idle';
+                            let btnText = 'GUARDAR';
+                            let btnColor = 'border-[#22c55e]/30 bg-emerald-950/10 text-[#22c55e] hover:bg-emerald-950/20';
+
+                            if (btnState === 'saving') {
+                              btnText = 'GUARDANDO...';
+                              btnColor = 'border-[#BF953F]/40 bg-[#BF953F]/10 text-[#FCF6BA]';
+                            } else if (btnState === 'saved') {
+                              btnText = '✓ GUARDADO';
+                              btnColor = 'border-emerald-500/40 bg-emerald-950/30 text-emerald-400';
+                            }
+
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const input = document.getElementById(`days-input-${client.client_id}`) as HTMLInputElement;
+                                  if (input) {
+                                    const val = parseInt(input.value, 10);
+                                    if (!isNaN(val) && val >= 0) {
+                                      saveMemoryDays(client.client_id, val);
+                                    } else {
+                                      alert('Por favor escribe un número válido de días (0 o más).');
+                                    }
+                                  }
+                                }}
+                                className={`ml-1 px-4 py-1.5 border rounded-xl text-xs font-bold uppercase tracking-wider hover:brightness-115 active:brightness-90 active:scale-95 transition duration-300 cursor-pointer font-sans shadow-md ${btnColor}`}
+                              >
+                                {btnText}
+                              </button>
+                            );
+                          })()}
                         </div>
 
                         {/* Botón de Borrado de Memoria (Rojo estilo idéntico) */}
