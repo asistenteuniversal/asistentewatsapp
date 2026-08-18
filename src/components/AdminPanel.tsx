@@ -1081,10 +1081,26 @@ export const AdminPanel: React.FC = () => {
 
                   {/* Modificar Comportamiento */}
                   <div className="space-y-2">
-                    <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
-                      Instrucciones de Voz (Comportamiento del Asistente)
-                    </label>
+                    <div className="flex justify-between items-center">
+                      <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
+                        Instrucciones de Voz (Comportamiento del Asistente)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const textarea = document.getElementById(`instructions-${client.client_id}`) as HTMLTextAreaElement;
+                          if (textarea) {
+                            saveInstructions(client.client_id, textarea.value);
+                          }
+                        }}
+                        style={{ backgroundColor: '#22c55e', color: '#ffffff' }}
+                        className="px-3 py-1 text-[9px] font-black rounded-lg uppercase tracking-wider hover:brightness-110 active:scale-95 transition duration-300 shadow-md cursor-pointer flex items-center gap-1"
+                      >
+                        <span>💾 Guardar</span>
+                      </button>
+                    </div>
                     <textarea
+                      id={`instructions-${client.client_id}`}
                       defaultValue={client.system_instructions}
                       placeholder="Escribe el comportamiento del asistente aquí..."
                       rows={8}
