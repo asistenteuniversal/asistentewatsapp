@@ -371,13 +371,14 @@ export default function App() {
           .eq('client_id', clientId)
           .single();
 
-        // Si el registro fue eliminado (PGRST116 = no rows returned) -> BORRAR LOCAL
+        // Si el registro fue eliminado (PGRST116 = no rows returned) -> LIMPIAR MEMORIA PERO MANTENER VINCULADO
         if (error && error.code === 'PGRST116') {
-          console.warn('[Licencia] La licencia ha sido eliminada de la base de datos. Cerrando sesión...');
-          localStorage.removeItem('ava_client_id');
-          localStorage.removeItem('ava_client_name');
-          setClientId(null);
-          setIsLicensePaused(false);
+          console.warn('[Licencia] La licencia ha sido eliminada. Limpiando memoria de conversación local...');
+          setSettings((prev) => ({
+            ...prev,
+            systemMemory: '',
+          }));
+          setIsLicensePaused(true);
           return;
         }
 

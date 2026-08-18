@@ -1175,15 +1175,16 @@ export const AdminPanel: React.FC = () => {
                       </label>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {/* Cuadro de entrada de texto para días */}
-                        <div className="flex items-center bg-black/45 border border-[#BF953F]/20 rounded-lg px-2 py-0.5">
+                        <div className="flex items-center gap-1">
                           <span className="text-[8px] text-[#FCF6BA] uppercase font-black tracking-wider mr-1">Días:</span>
                           <input
                             id={`days-input-${client.client_id}`}
-                            type="number"
-                            min="0"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             defaultValue={client.memory_days !== undefined && client.memory_days !== null ? client.memory_days : 2}
                             placeholder="2"
-                            className="bg-transparent text-cyan-400 border-none outline-none text-[9px] font-black w-6 text-center"
+                            className="bg-[#121214] border border-[#BF953F]/40 rounded-xl px-3 py-1.5 text-cyan-400 font-bold text-center w-14 text-sm focus:outline-none focus:border-[#FCF6BA]"
                           />
                           <button
                             type="button"
@@ -1200,7 +1201,7 @@ export const AdminPanel: React.FC = () => {
                               }
                             }}
                             style={{ color: '#22c55e' }}
-                            className="ml-1 text-[9px] font-black uppercase tracking-wider hover:brightness-110 active:scale-95 cursor-pointer font-sans"
+                            className="ml-1 px-3 py-1.5 border border-[#22c55e]/30 rounded-xl bg-emerald-950/10 hover:bg-emerald-950/20 text-xs font-bold uppercase tracking-wider hover:brightness-110 active:scale-95 transition cursor-pointer font-sans"
                           >
                             💾 Guardar
                           </button>
