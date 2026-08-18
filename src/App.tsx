@@ -174,7 +174,7 @@ export default function App() {
       }
 
       if (data.hardware_id && data.hardware_id !== currentHwId) {
-        setLicensingError('Esta clave ya está vinculada a otro dispositivo. Libérela en su panel antes de continuar.');
+        setLicensingError('ESTA CLAVE YA ESTÁ VINCULADA A OTRO DISPOSITIVO. PARA USARLA AQUÍ, NECESITA QUE NUESTRO EQUIPO LA ACTIVE EN ESTE CELULAR, POR FAVOR CONTACTE A SERVICIO AL CLIENTE. SI DESEA COMPRAR UN ASISTENTE PERSONALIZADO PARA USTED, REQUIERE UNA CLAVE NUEVA (POR DÍA, SEMANA O MES), PEDIR UNA PRUEBA O MUESTRA GRATIS, CONTACTE A SERVICIO AL CLIENTE, POR FAVOR COMUNÍQUESE A:');
         setIsLicensingLoading(false);
         return;
       }
