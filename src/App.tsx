@@ -481,14 +481,19 @@ export default function App() {
           // Evitar duplicar el mismo bloque de conversación
           if (currentMemory.includes(cleanText)) return prev;
 
-          const todayPrefix = `[${new Date().toDateString()}]`;
+          const now = new Date();
+          const formattedDate = now.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+          const formattedTime = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
+          const todayPrefix = `[${formattedDate} ${formattedTime}]`;
+
           const newMemory = currentMemory.trim()
             ? `${currentMemory}\n${todayPrefix} ${cleanText}`
             : `${todayPrefix} ${cleanText}`;
           return {
             ...prev,
             systemMemory: newMemory,
-            memorySaveDate: new Date().toDateString(),
+            memorySaveDate: now.toDateString(),
+            memorySaveTimestamp: now.getTime(),
           };
         });
       }
