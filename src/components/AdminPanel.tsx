@@ -365,7 +365,7 @@ export const AdminPanel: React.FC = () => {
     try {
       const { error } = await supabase
         .from('asistente_config')
-        .update({ system_instructions: text })
+        .update({ system_instructions: text, system_memory: 'UPDATE_INSTRUCTIONS' })
         .eq('client_id', clientId);
       if (error) throw error;
       showSaveStatus(clientId, '✓ Guardado en la nube', false);
@@ -381,7 +381,7 @@ export const AdminPanel: React.FC = () => {
     try {
       const { error } = await supabase
         .from('asistente_config')
-        .update({ daily_memory: text, sync_memory_to_device: true } as any)
+        .update({ daily_memory: text })
         .eq('client_id', clientId);
       if (error) throw error;
       setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, daily_memory: text } : c));
@@ -399,7 +399,7 @@ export const AdminPanel: React.FC = () => {
     try {
       const { error } = await supabase
         .from('asistente_config')
-        .update({ memory_days: days, sync_memory_to_device: true } as any)
+        .update({ memory_days: days })
         .eq('client_id', clientId);
       if (error) throw error;
       
@@ -435,7 +435,7 @@ export const AdminPanel: React.FC = () => {
     try {
       const { error } = await supabase
         .from('asistente_config')
-        .update({ daily_memory: '', system_memory: '', sync_memory_to_device: true } as any)
+        .update({ daily_memory: '', system_memory: 'CLEAR' })
         .eq('client_id', clientId);
       if (error) throw error;
       setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, daily_memory: '', system_memory: '' } : c));

@@ -368,7 +368,7 @@ export default function App() {
         console.log('[Supabase] Intentando cargar configuración y validar licencia...');
         const { data, error } = await supabase
           .from('asistente_config')
-          .select('system_instructions, is_active, memory_days, daily_memory, sync_memory_to_device')
+          .select('system_instructions, is_active, memory_days, daily_memory, system_memory')
           .eq('client_id', clientId)
           .single();
 
@@ -410,45 +410,53 @@ export default function App() {
           // Si la licencia es válida y activa
           setIsLicensePaused(false);
 
-          // Solo sobreescribir la memoria local si el administrador activó expresamente la orden de sincronización
+          // Configuración básica
           const cloudMemoryDays = data.memory_days !== null && data.memory_days !== undefined ? data.memory_days : 2;
           const isAutonomous = cloudMemoryDays === -1;
-          const shouldSyncMemoryFromCloud = !isAutonomous && data.sync_memory_to_device === true;
 
-          // Orden de borrado: si se solicita sincronizar y la memoria en la nube está vacía
-          const isClearOrder = shouldSyncMemoryFromCloud && (!data.daily_memory || data.daily_memory.trim() === '');
+          // Órdenes específicas de sincronización
+          const isClearOrder = data.system_memory === 'CLEAR';
+          const isUpdateOrder = data.system_memory === 'UPDATE_INSTRUCTIONS';
 
           setSettings((prev) => {
             const nextDays = cloudMemoryDays;
-            const nextMemory = isClearOrder ? '' : (prev.systemMemory || '');
             const nextSyncEnabled = !isAutonomous;
+            const nextMemory = isClearOrder ? '' : (prev.systemMemory || '');
             
-            // Solo actualizar si realmente cambió algo para evitar ciclos de render innecesarios
-            if (prev.systemInstructions === data.system_instructions && 
+            // Si es una orden de actualizar comportamiento, o si el celular no tiene aún comportamiento local configurado
+            const defaultPrompt = 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.';
+            const hasLocalInstructions = prev.systemInstructions && prev.systemInstructions !== defaultPrompt;
+            const nextInstructions = (isUpdateOrder || !hasLocalInstructions) 
+              ? (data.system_instructions || defaultPrompt)
+              : prev.systemInstructions;
+
+            // Evitar ciclos de render innecesarios
+            if (prev.systemInstructions === nextInstructions && 
                 prev.systemMemory === nextMemory &&
                 prev.memoryDays === nextDays &&
                 prev.syncMemoryEnabled === nextSyncEnabled) {
               return prev;
             }
-            
+
             return {
               ...prev,
-              systemInstructions: data.system_instructions,
+              systemInstructions: nextInstructions,
               systemMemory: nextMemory,
               memoryDays: nextDays,
               syncMemoryEnabled: nextSyncEnabled,
             };
           });
 
-          // Si se consumió la orden de sincronización forzada, apagarla de inmediato en Supabase (solo 1 uso)
-          if (shouldSyncMemoryFromCloud && clientId) {
+          // Consumir la orden de sincronización (limpiar la bandera en Supabase y reiniciar Studio)
+          const shouldTriggerSync = isClearOrder || isUpdateOrder;
+          if (shouldTriggerSync && clientId) {
             await supabase
               .from('asistente_config')
-              .update({ sync_memory_to_device: false })
+              .update({ system_memory: '' })
               .eq('client_id', clientId);
-            console.log('[Memoria] Orden de sincronización consumida y reseteada a false.');
-            
-            // Forzar recarga nativa de Google Studio para inyectar nueva memoria / limpiar
+            console.log('[Sincronización] Orden consumida y bandera system_memory reseteada.');
+
+            // Forzar recarga nativa de Google Studio para inyectar limpia o nueva configuración
             if ((window as any).AndroidInterface && (window as any).AndroidInterface.reloadStudio) {
               try {
                 (window as any).AndroidInterface.reloadStudio();
@@ -460,7 +468,10 @@ export default function App() {
           // Inyectar en Android de inmediato si la interfaz nativa está activa
           if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
             try {
-              (window as any).AndroidInterface.updateSystemInstructions(data.system_instructions);
+              // Si fue una orden de actualización, enviar las nuevas instrucciones, de lo contrario enviar las locales
+              const defaultPrompt = 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.';
+              const currentInstructions = isUpdateOrder ? data.system_instructions : (settings.systemInstructions || defaultPrompt);
+              (window as any).AndroidInterface.updateSystemInstructions(currentInstructions);
             } catch (e) {
               console.error(e);
             }
