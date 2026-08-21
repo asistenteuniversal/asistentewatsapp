@@ -483,8 +483,6 @@ export default function App() {
     };
 
     loadConfig();
-    const interval = setInterval(loadConfig, 5000);
-    return () => clearInterval(interval);
   }, [clientId]);
 
   // Guardar Ajustes en localStorage cada vez que cambien
