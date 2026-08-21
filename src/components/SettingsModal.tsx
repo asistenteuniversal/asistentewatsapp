@@ -128,6 +128,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </p>
           </div>
 
+          {/* Días de Memoria a Conservar */}
+          <div className="space-y-1.5">
+            <label className="text-zinc-300 font-semibold flex items-center gap-1.5 font-sans">
+              <span className="text-sm">📅</span>
+              Días de Memoria a Conservar:
+            </label>
+            <select
+              value={settings.memoryDays !== undefined && settings.memoryDays !== null ? settings.memoryDays : 2}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setSettings((prev) => ({
+                  ...prev,
+                  memoryDays: val
+                }));
+              }}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md"
+            >
+              <option value="-1" className="bg-[#0a0a0f] text-red-400">Desconectado (Celular Autónomo)</option>
+              <option value="0" className="bg-[#0a0a0f] text-cyan-200">0 (Infinito)</option>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((num) => (
+                <option key={num} value={num} className="bg-[#0a0a0f] text-cyan-200">
+                  {num === 2 ? `${num} días (Predeterminado)` : `${num} días`}
+                </option>
+              ))}
+            </select>
+            <p className="text-[9px] text-zinc-400 leading-normal font-sans">
+              Determina cuántos días de historial recordará el asistente. Al cambiar a "Desconectado", la memoria opera de forma autónoma sin internet.
+            </p>
+          </div>
+
           <div className="space-y-1.5">
             <div className="flex justify-between items-center text-zinc-300 font-semibold">
               <span className="flex items-center gap-1.5">
