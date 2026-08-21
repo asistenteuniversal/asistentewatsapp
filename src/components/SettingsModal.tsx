@@ -171,7 +171,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </label>
             <select
               value={settings.memoryDays === -1 ? 2 : (settings.memoryDays !== undefined && settings.memoryDays !== null ? settings.memoryDays : 2)}
-              disabled={settings.memoryDays === -1}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
                 setSettings((prev) => ({
@@ -179,7 +178,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   memoryDays: val
                 }));
               }}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md disabled:opacity-40"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md"
             >
               <option value="0" className="bg-[#0a0a0f] text-cyan-200">0 (Infinito)</option>
               {Array.from({ length: 31 }, (_, i) => i + 1).map((num) => (
