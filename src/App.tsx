@@ -416,12 +416,10 @@ export default function App() {
           const shouldSyncMemoryFromCloud = !isAutonomous && data.sync_memory_to_device === true;
 
           setSettings((prev) => {
-            const nextMemory = shouldSyncMemoryFromCloud ? (data.daily_memory || '') : (prev.systemMemory || '');
             const nextDays = cloudMemoryDays;
             
             // Solo actualizar si realmente cambió algo para evitar ciclos de render innecesarios
             if (prev.systemInstructions === data.system_instructions && 
-                prev.systemMemory === nextMemory && 
                 prev.memoryDays === nextDays) {
               return prev;
             }
@@ -429,7 +427,6 @@ export default function App() {
             return {
               ...prev,
               systemInstructions: data.system_instructions,
-              systemMemory: nextMemory,
               memoryDays: nextDays,
             };
           });
