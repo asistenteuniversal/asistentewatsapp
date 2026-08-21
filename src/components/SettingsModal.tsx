@@ -86,12 +86,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </p>
           </div>
 
-          {/* Memoria de Hoy (Prompt de Recuerdos) */}
+          {/* Memoria de Conversacion (Prompt de Recuerdos) */}
           <div className="space-y-1.5">
-            <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
-              <span className="text-sm">📓</span>
-              Memoria de Hoy (Recuerdos Diarios):
-            </label>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
+                <span className="text-sm">📓</span>
+                Memoria de Conversacion:
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('¿Estás seguro de que deseas borrar toda la memoria de conversación local?')) {
+                    setSettings((prev) => ({
+                      ...prev,
+                      systemMemory: '',
+                      memorySaveDate: new Date().toDateString()
+                    }));
+                  }
+                }}
+                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300"
+              >
+                BORRADO DE MEMORIA DE CONVERSACION
+              </button>
+            </div>
             <textarea
               value={settings.systemMemory || ''}
               onChange={(e) => {
@@ -104,7 +121,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               }}
               rows={3}
               className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md resize-none"
-              placeholder="Escribe recuerdos de hoy (Ej: Alberto vino a visitarme a las 5pm y platicamos de...)"
+              placeholder="Escribe recuerdos de la conversación aquí..."
             />
             <p className="text-[9px] text-zinc-400 leading-normal">
               Añade recuerdos temporales. Se unirán al comportamiento y se borrarán automáticamente al cambiar de día.
