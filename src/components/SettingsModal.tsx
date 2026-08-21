@@ -128,6 +128,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </p>
           </div>
 
+          {/* Conexión de Memoria Celular (Vincular / Autónomo) */}
+          <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-2 backdrop-blur-md font-sans">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-zinc-300 flex items-center gap-1.5 font-sans">
+                <span className="text-sm">🔄</span>
+                Sincronización de Memoria:
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSettings((prev) => {
+                    const isAutonomous = prev.memoryDays === -1;
+                    const nextDays = isAutonomous ? 2 : -1;
+                    return {
+                      ...prev,
+                      memoryDays: nextDays
+                    };
+                  });
+                }}
+                className={`px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer ${
+                  settings.memoryDays === -1
+                    ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/30'
+                    : 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
+                }`}
+              >
+                {settings.memoryDays === -1 ? '🔴 DESCONECTADO (AUTÓNOMO)' : '🟢 CONECTADO (VINCULADO)'}
+              </button>
+            </div>
+            <p className="text-[9px] text-zinc-400 leading-normal font-sans">
+              {settings.memoryDays === -1
+                ? 'El celular está aislado de internet. Guarda sus recuerdos localmente.'
+                : 'El celular sincroniza su memoria de forma bidireccional con Supabase.'}
+            </p>
+          </div>
+
           {/* Días de Memoria a Conservar */}
           <div className="space-y-1.5">
             <label className="text-zinc-300 font-semibold flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-wider">
@@ -135,7 +170,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               DÍAS DE MEMORIA DE CONVERSACIÓN A GUARDAR:
             </label>
             <select
-              value={settings.memoryDays !== undefined && settings.memoryDays !== null ? settings.memoryDays : 2}
+              value={settings.memoryDays === -1 ? 2 : (settings.memoryDays !== undefined && settings.memoryDays !== null ? settings.memoryDays : 2)}
+              disabled={settings.memoryDays === -1}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
                 setSettings((prev) => ({
@@ -143,9 +179,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   memoryDays: val
                 }));
               }}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md disabled:opacity-40"
             >
-              <option value="-1" className="bg-[#0a0a0f] text-red-400">Desconectado (Celular Autónomo)</option>
               <option value="0" className="bg-[#0a0a0f] text-cyan-200">0 (Infinito)</option>
               {Array.from({ length: 31 }, (_, i) => i + 1).map((num) => (
                 <option key={num} value={num} className="bg-[#0a0a0f] text-cyan-200">
@@ -153,9 +188,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </option>
               ))}
             </select>
-            <p className="text-[9px] text-zinc-400 leading-normal font-sans">
-              Determina cuántos días de historial recordará el asistente. Al cambiar a "Desconectado", la memoria opera de forma autónoma sin internet.
-            </p>
           </div>
 
           <div className="space-y-1.5">
