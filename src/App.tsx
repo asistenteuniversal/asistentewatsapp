@@ -680,6 +680,20 @@ export default function App() {
     if ((window as any).AndroidInterface) {
       try {
         if (willBeActive) {
+          // Asegurar sincronización de instrucciones previa al inicio de llamada
+          if ((window as any).AndroidInterface.updateSystemInstructions) {
+            try {
+              const instructions = settings.systemInstructions || '';
+              const memory = settings.systemMemory || '';
+              const cleanMemory = memory.replace(/^\[[^\]]+\]\s*/gm, '');
+              const mergedText = cleanMemory.trim()
+                ? `${instructions}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO (Esta es tu memoria de lo que platicaste anteriormente con la persona con la que estás hablando. No repitas nada de lo que está aquí, son solo tus recuerdos de hoy. Es información confidencial de tu pasado inmediato, úsala solo como referencia para responder)]: \n${cleanMemory}`
+                : instructions;
+              (window as any).AndroidInterface.updateSystemInstructions(mergedText);
+            } catch (e) {
+              console.error(e);
+            }
+          }
           (window as any).AndroidInterface.startVoiceCall();
         } else {
           (window as any).AndroidInterface.endVoiceCall();
@@ -695,7 +709,7 @@ export default function App() {
       console.log('[Controller] Enviando comando por WebSocket:', command);
       wsRef.current.send(JSON.stringify({ type: 'command', action: command }));
     }
-  }, [voiceEngine]);
+  }, [voiceEngine, settings.systemInstructions, settings.systemMemory]);
 
   const handleToggleAudioCall = useCallback(async () => {
     await voiceEngine.toggleCall();
@@ -704,6 +718,20 @@ export default function App() {
     if ((window as any).AndroidInterface) {
       try {
         if (willBeActive) {
+          // Asegurar sincronización de instrucciones previa al inicio de llamada
+          if ((window as any).AndroidInterface.updateSystemInstructions) {
+            try {
+              const instructions = settings.systemInstructions || '';
+              const memory = settings.systemMemory || '';
+              const cleanMemory = memory.replace(/^\[[^\]]+\]\s*/gm, '');
+              const mergedText = cleanMemory.trim()
+                ? `${instructions}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO (Esta es tu memoria de lo que platicaste anteriormente con la persona con la que estás hablando. No repitas nada de lo que está aquí, son solo tus recuerdos de hoy. Es información confidencial de tu pasado inmediato, úsala solo como referencia para responder)]: \n${cleanMemory}`
+                : instructions;
+              (window as any).AndroidInterface.updateSystemInstructions(mergedText);
+            } catch (e) {
+              console.error(e);
+            }
+          }
           (window as any).AndroidInterface.startVoiceCall(false); // Llamada de audio (con el flag false)
         } else {
           (window as any).AndroidInterface.endVoiceCall(); // Colgar idéntico
