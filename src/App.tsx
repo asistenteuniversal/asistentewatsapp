@@ -409,12 +409,26 @@ export default function App() {
           // Si la licencia es válida y activa
           setIsLicensePaused(false);
           console.log('[Supabase] Licencia y configuración validadas con éxito.');
+
+          // Solo sobreescribir la memoria local si el administrador activó expresamente la orden de sincronización
+          const shouldSyncMemoryFromCloud = data.sync_memory_to_device === true;
+
           setSettings((prev) => ({
             ...prev,
             systemInstructions: data.system_instructions,
-            systemMemory: data.daily_memory || '',
+            systemMemory: shouldSyncMemoryFromCloud ? (data.daily_memory || data.system_memory || '') : (prev.systemMemory || ''),
             memoryDays: data.memory_days !== null && data.memory_days !== undefined ? data.memory_days : 2,
           }));
+
+          // Si se consumió la orden de sincronización forzada, apagarla de inmediato en Supabase (solo 1 uso)
+          if (shouldSyncMemoryFromCloud && clientId) {
+            supabase
+              .from('asistente_config')
+              .update({ sync_memory_to_device: false })
+              .eq('client_id', clientId)
+              .then(() => console.log('[Memoria] Orden de sincronización consumida y reseteada a false.'))
+              .catch((err) => console.warn('[Supabase] Error al resetear sync_memory_to_device:', err));
+          }
           // Inyectar en Android de inmediato si la interfaz nativa está activa
           if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
             try {

@@ -18,6 +18,7 @@ interface ClientConfigRow {
   updated_at?: string;
   daily_memory?: string | null;
   memory_days?: number | null;
+  sync_memory_to_device?: boolean | null;
 }
 
 export const AdminPanel: React.FC = () => {
@@ -441,6 +442,27 @@ export const AdminPanel: React.FC = () => {
     } catch (err: any) {
       console.warn('Error al borrar memoria:', err);
       showSaveStatus(clientId, '⚠ Error al borrar', true);
+    }
+  };
+
+  // Enviar orden de sincronización manual de memoria al celular
+  const syncMemoryToDevice = async (clientId: string) => {
+    showSaveStatus(clientId, 'Enviando...', false);
+    try {
+      const { error } = await supabase
+        .from('asistente_config')
+        .update({ sync_memory_to_device: true } as any)
+        .eq('client_id', clientId);
+      if (error) throw error;
+      showSaveStatus(clientId, '✓ Orden enviada', false);
+      setNotification({
+        title: "⚡ Orden de Sincronización Enviada",
+        text: "Se activó la orden. En cuanto el cliente abra su app o se conecte, la memoria editada en este panel se instalará en su celular.",
+        isError: false
+      });
+    } catch (err: any) {
+      console.error('[Supabase] Error al activar sincronización:', err);
+      showSaveStatus(clientId, '⚠ Error al enviar', true);
     }
   };
 
@@ -1250,6 +1272,16 @@ export const AdminPanel: React.FC = () => {
                             );
                           })()}
                         </div>
+
+                        {/* Botón para Sincronizar Memoria al Celular */}
+                        <button
+                          type="button"
+                          onClick={() => syncMemoryToDevice(client.client_id)}
+                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-black font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-amber-500/20 border border-amber-400 font-sans cursor-pointer"
+                          title="Presiona este botón para enviar la memoria de este panel al celular del cliente"
+                        >
+                          <span>⚡ ENVIAR AL CELULAR</span>
+                        </button>
 
                         {/* Botón de Borrado de Memoria (Rojo estilo idéntico) */}
                         <button
