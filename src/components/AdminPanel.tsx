@@ -1165,7 +1165,7 @@ export const AdminPanel: React.FC = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
-                        Instrucciones de Voz (Comportamiento del Asistente)
+                        COMPORTAMIENTO ASISTENTE
                       </label>
                       <button
                         type="button"

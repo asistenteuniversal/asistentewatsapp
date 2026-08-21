@@ -68,9 +68,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* System Instructions (Prompt) */}
           <div className="space-y-1.5">
-            <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
+            <label className="text-zinc-300 font-semibold flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-wider">
               <span className="text-sm">🧠</span>
-              Instrucciones del Sistema (Comportamiento):
+              COMPORTAMIENTO ASISTENTE:
             </label>
             <textarea
               value={settings.systemInstructions || ''}

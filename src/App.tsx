@@ -806,7 +806,7 @@ export default function App() {
       console.error('[Supabase] Error de sincronización remota:', err);
       alert('Las instrucciones se guardaron localmente en este dispositivo, pero no se pudieron sincronizar en la base de datos de Supabase en la nube (el servidor de la base de datos podría estar pausado u offline).');
     }
-  }, []);
+  }, [clientId]);
 
   // Si la licencia está temporalmente pausada
   if (isLicensePaused) {
