@@ -684,6 +684,7 @@ export default function App() {
 
   // Intercept call toggle to send commands to agent via WebSockets or native bridge
   const handleToggleCall = useCallback(async () => {
+    setConnectionError(false); // Quitar aviso de error de conexión automáticamente al intentar llamar
     // 1. Toggle call locally in UI
     await voiceEngine.toggleCall();
 
@@ -711,6 +712,7 @@ export default function App() {
   }, [voiceEngine]);
 
   const handleToggleAudioCall = useCallback(async () => {
+    setConnectionError(false); // Quitar aviso de error de conexión automáticamente al intentar llamar
     await voiceEngine.toggleCall();
     const willBeActive = !voiceEngine.isCallActive;
 

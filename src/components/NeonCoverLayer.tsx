@@ -243,7 +243,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
           <button
             type="button"
             onClick={onRetryConnection}
-            className="py-2 px-6 rounded-full font-bold uppercase transition duration-300 flex flex-col items-center justify-center focus:outline-none active:scale-95 border animate-pulse cursor-pointer"
+            className="py-2.5 px-6 rounded-full font-bold uppercase transition duration-300 flex flex-col items-center justify-center focus:outline-none active:scale-95 border animate-pulse cursor-pointer whitespace-nowrap"
             style={{
               backgroundColor: '#000000',
               borderColor: '#d4af37',
@@ -253,7 +253,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             }}
           >
             <span className="text-[11px] font-black tracking-widest leading-tight text-[#f0d060]">FALLÓ LA CONEXIÓN</span>
-            <span className="text-[9px] font-bold tracking-wider text-[#d4af37] leading-tight mt-0.5">REINTENTAR</span>
+            <span className="text-[9px] font-bold tracking-wider text-[#d4af37] leading-tight mt-0.5">INTENTE LLAMAR OTRA VEZ</span>
           </button>
         </div>
       )}
