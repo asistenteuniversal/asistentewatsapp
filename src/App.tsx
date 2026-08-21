@@ -415,19 +415,28 @@ export default function App() {
           const isAutonomous = cloudMemoryDays === -1;
           const shouldSyncMemoryFromCloud = !isAutonomous && data.sync_memory_to_device === true;
 
+          // Orden de borrado: si se solicita sincronizar y la memoria en la nube está vacía
+          const isClearOrder = shouldSyncMemoryFromCloud && (!data.daily_memory || data.daily_memory.trim() === '');
+
           setSettings((prev) => {
             const nextDays = cloudMemoryDays;
+            const nextMemory = isClearOrder ? '' : (prev.systemMemory || '');
+            const nextSyncEnabled = !isAutonomous;
             
             // Solo actualizar si realmente cambió algo para evitar ciclos de render innecesarios
             if (prev.systemInstructions === data.system_instructions && 
-                prev.memoryDays === nextDays) {
+                prev.systemMemory === nextMemory &&
+                prev.memoryDays === nextDays &&
+                prev.syncMemoryEnabled === nextSyncEnabled) {
               return prev;
             }
             
             return {
               ...prev,
               systemInstructions: data.system_instructions,
+              systemMemory: nextMemory,
               memoryDays: nextDays,
+              syncMemoryEnabled: nextSyncEnabled,
             };
           });
 
