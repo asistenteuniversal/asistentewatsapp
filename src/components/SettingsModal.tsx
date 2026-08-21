@@ -138,26 +138,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setSettings((prev) => {
-                    const isAutonomous = prev.memoryDays === -1;
-                    const nextDays = isAutonomous ? 2 : -1;
-                    return {
-                      ...prev,
-                      memoryDays: nextDays
-                    };
-                  });
+                  setSettings((prev) => ({
+                    ...prev,
+                    syncMemoryEnabled: prev.syncMemoryEnabled === undefined ? false : !prev.syncMemoryEnabled
+                  }));
                 }}
                 className={`px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer ${
-                  settings.memoryDays === -1
+                  settings.syncMemoryEnabled === false
                     ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/30'
                     : 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
                 }`}
               >
-                {settings.memoryDays === -1 ? '🔴 DESCONECTADO (AUTÓNOMO)' : '🟢 CONECTADO (VINCULADO)'}
+                {settings.syncMemoryEnabled === false ? '🔴 DESCONECTADO (AUTÓNOMO)' : '🟢 CONECTADO (VINCULADO)'}
               </button>
             </div>
             <p className="text-[9px] text-zinc-400 leading-normal font-sans">
-              {settings.memoryDays === -1
+              {settings.syncMemoryEnabled === false
                 ? 'El celular está aislado de internet. Guarda sus recuerdos localmente.'
                 : 'El celular sincroniza su memoria de forma bidireccional con Supabase.'}
             </p>
@@ -170,7 +166,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               DÍAS DE MEMORIA DE CONVERSACIÓN A GUARDAR:
             </label>
             <select
-              value={settings.memoryDays === -1 ? 2 : (settings.memoryDays !== undefined && settings.memoryDays !== null ? settings.memoryDays : 2)}
+              value={settings.memoryDays !== undefined && settings.memoryDays !== null ? settings.memoryDays : 2}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
                 setSettings((prev) => ({

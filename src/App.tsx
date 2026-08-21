@@ -316,7 +316,8 @@ export default function App() {
       systemInstructions: 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.',
       systemMemory: '',
       memorySaveDate: new Date().toDateString(),
-      memoryDays: 2
+      memoryDays: 2,
+      syncMemoryEnabled: true
     };
 
     if (saved) {

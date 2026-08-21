@@ -39,4 +39,5 @@ export interface AppSettings {
   memorySaveDate: string;
   memoryDays?: number;
   memorySaveTimestamp?: number;
+  syncMemoryEnabled?: boolean;
 }
