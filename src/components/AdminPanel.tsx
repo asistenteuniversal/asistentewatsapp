@@ -1186,7 +1186,7 @@ export const AdminPanel: React.FC = () => {
                       defaultValue={client.system_instructions}
                       placeholder="Escribe el comportamiento del asistente aquí..."
                       rows={12}
-                      className="w-full bg-black border border-[#BF953F]/25 rounded-2xl p-4 text-xs text-white focus:outline-none focus:border-[#FCF6BA] transition duration-300 font-mono leading-relaxed shadow-inner"
+                      className="w-full bg-black border border-[#BF953F]/25 rounded-2xl p-4 text-base text-white font-sans font-medium leading-relaxed focus:outline-none focus:border-[#FCF6BA] transition duration-300 shadow-inner"
                       onBlur={(e) => {
                         if (e.target.value !== client.system_instructions) {
                           saveInstructions(client.client_id, e.target.value);
@@ -1264,7 +1264,7 @@ export const AdminPanel: React.FC = () => {
                           saveMemory(client.client_id, e.target.value);
                         }
                       }}
-                      className="w-full bg-black border border-[#BF953F]/25 rounded-2xl p-4 text-xs text-white focus:outline-none focus:border-[#FCF6BA] transition duration-300 font-mono leading-relaxed shadow-inner"
+                      className="w-full bg-black border border-[#BF953F]/25 rounded-2xl p-4 text-base text-white font-sans font-medium leading-relaxed focus:outline-none focus:border-[#FCF6BA] transition duration-300 shadow-inner"
                     />
                   </div>
                 </div>

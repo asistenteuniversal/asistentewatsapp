@@ -358,7 +358,7 @@ export default function App() {
     return defaultSettings;
   });
 
-  // Cargar instrucciones y validar vigencia de licencia desde Supabase al abrir la app
+  // Cargar instrucciones y validar vigencia de licencia desde Supabase al abrir la app y cada 5 segundos
   useEffect(() => {
     const loadConfig = async () => {
       // Si no hay clientId o es el cliente maestro offline, no validar
@@ -368,7 +368,7 @@ export default function App() {
         console.log('[Supabase] Intentando cargar configuración y validar licencia...');
         const { data, error } = await supabase
           .from('asistente_config')
-          .select('system_instructions, is_active, memory_days, daily_memory')
+          .select('system_instructions, is_active, memory_days, daily_memory, sync_memory_to_device')
           .eq('client_id', clientId)
           .single();
 
@@ -409,28 +409,38 @@ export default function App() {
 
           // Si la licencia es válida y activa
           setIsLicensePaused(false);
-          console.log('[Supabase] Licencia y configuración validadas con éxito.');
 
           // Solo sobreescribir la memoria local si el administrador activó expresamente la orden de sincronización
           const cloudMemoryDays = data.memory_days !== null && data.memory_days !== undefined ? data.memory_days : 2;
           const isAutonomous = cloudMemoryDays === -1;
           const shouldSyncMemoryFromCloud = !isAutonomous && data.sync_memory_to_device === true;
 
-          setSettings((prev) => ({
-            ...prev,
-            systemInstructions: data.system_instructions,
-            systemMemory: shouldSyncMemoryFromCloud ? (data.daily_memory || data.system_memory || '') : (prev.systemMemory || ''),
-            memoryDays: cloudMemoryDays,
-          }));
+          setSettings((prev) => {
+            const nextMemory = shouldSyncMemoryFromCloud ? (data.daily_memory || '') : (prev.systemMemory || '');
+            const nextDays = cloudMemoryDays;
+            
+            // Solo actualizar si realmente cambió algo para evitar ciclos de render innecesarios
+            if (prev.systemInstructions === data.system_instructions && 
+                prev.systemMemory === nextMemory && 
+                prev.memoryDays === nextDays) {
+              return prev;
+            }
+            
+            return {
+              ...prev,
+              systemInstructions: data.system_instructions,
+              systemMemory: nextMemory,
+              memoryDays: nextDays,
+            };
+          });
 
           // Si se consumió la orden de sincronización forzada, apagarla de inmediato en Supabase (solo 1 uso)
           if (shouldSyncMemoryFromCloud && clientId) {
-            supabase
+            await supabase
               .from('asistente_config')
               .update({ sync_memory_to_device: false })
-              .eq('client_id', clientId)
-              .then(() => console.log('[Memoria] Orden de sincronización consumida y reseteada a false.'))
-              .catch((err) => console.warn('[Supabase] Error al resetear sync_memory_to_device:', err));
+              .eq('client_id', clientId);
+            console.log('[Memoria] Orden de sincronización consumida y reseteada a false.');
           }
           // Inyectar en Android de inmediato si la interfaz nativa está activa
           if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
@@ -467,6 +477,8 @@ export default function App() {
     };
 
     loadConfig();
+    const interval = setInterval(loadConfig, 5000);
+    return () => clearInterval(interval);
   }, [clientId]);
 
   // Guardar Ajustes en localStorage cada vez que cambien
