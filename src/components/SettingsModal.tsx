@@ -130,9 +130,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Días de Memoria a Conservar */}
           <div className="space-y-1.5">
-            <label className="text-zinc-300 font-semibold flex items-center gap-1.5 font-sans">
+            <label className="text-zinc-300 font-semibold flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-wider">
               <span className="text-sm">📅</span>
-              Días de Memoria a Conservar:
+              DÍAS DE MEMORIA DE CONVERSACIÓN A GUARDAR:
             </label>
             <select
               value={settings.memoryDays !== undefined && settings.memoryDays !== null ? settings.memoryDays : 2}
