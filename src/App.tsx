@@ -253,11 +253,8 @@ export default function App() {
       setIsGoogleLinked(false); // Actualiza en caliente el modal del cliente
     };
     (window as any).onGoogleLiveError = () => {
-      console.warn('[Google Live] Detectado fallo de conexión (Something went wrong).');
+      console.warn('[Google Live] Detectado fallo de conexión durante llamada.');
       setConnectionError(true);
-      if (voiceEngine.isCallActive) {
-        voiceEngine.toggleCall();
-      }
     };
     return () => {
       delete (window as any).setAppModeNeon;
