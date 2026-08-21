@@ -485,21 +485,9 @@ export default function App() {
           if (currentMemory.includes(cleanText)) return prev;
 
           const now = new Date();
-          const isoDate = now.toISOString().split('T')[0]; // Ej: 2026-08-21
-          const daysOfWeek = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
-          const monthsOfYear = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-          const dayName = daysOfWeek[now.getDay()];
-          const dayNum = now.getDate();
-          const monthName = monthsOfYear[now.getMonth()];
-          const year = now.getFullYear();
-          let hours = now.getHours();
-          const minutes = now.getMinutes().toString().padStart(2, '0');
-          const ampm = hours >= 12 ? 'PM' : 'AM';
-          hours = hours % 12;
-          hours = hours ? hours : 12;
-          const formattedTimeCustom = `${hours}:${minutes}${ampm}`;
-          const customDateStr = `${dayName}/${dayNum}/${monthName}/${year}/${formattedTimeCustom}`;
-          const todayPrefix = `[${isoDate}] (${customDateStr})`;
+          const formattedDate = now.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+          const formattedTime = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
+          const todayPrefix = `[${formattedDate} ${formattedTime}]`;
 
           const newMemory = currentMemory.trim()
             ? `${currentMemory}\n${todayPrefix} ${cleanText}`
