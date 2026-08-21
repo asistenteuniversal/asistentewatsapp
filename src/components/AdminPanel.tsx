@@ -434,11 +434,11 @@ export const AdminPanel: React.FC = () => {
     try {
       const { error } = await supabase
         .from('asistente_config')
-        .update({ daily_memory: '' })
+        .update({ daily_memory: '', system_memory: '', sync_memory_to_device: true } as any)
         .eq('client_id', clientId);
       if (error) throw error;
-      setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, daily_memory: '' } : c));
-      showSaveStatus(clientId, '✓ Memoria borrada', false);
+      setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, daily_memory: '', system_memory: '' } : c));
+      showSaveStatus(clientId, '✓ Memoria borrada total', false);
     } catch (err: any) {
       console.warn('Error al borrar memoria:', err);
       showSaveStatus(clientId, '⚠ Error al borrar', true);
@@ -1227,7 +1227,8 @@ export const AdminPanel: React.FC = () => {
                             type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
-                            value={client.memory_days !== undefined && client.memory_days !== null ? client.memory_days : 2}
+                            disabled={client.memory_days === -1}
+                            value={client.memory_days === -1 ? 'Off' : (client.memory_days !== undefined && client.memory_days !== null ? client.memory_days : 2)}
                             onChange={(e) => {
                               const valStr = e.target.value;
                               if (valStr === '' || /^[0-9]+$/.test(valStr)) {
@@ -1236,9 +1237,9 @@ export const AdminPanel: React.FC = () => {
                               }
                             }}
                             placeholder="2"
-                            className="bg-[#121214] border border-[#BF953F]/40 rounded-xl px-3 py-1.5 text-cyan-400 font-bold text-center w-14 text-sm focus:outline-none focus:border-[#FCF6BA]"
+                            className="bg-[#121214] border border-[#BF953F]/40 rounded-xl px-3 py-1.5 text-cyan-400 font-bold text-center w-14 text-sm focus:outline-none focus:border-[#FCF6BA] disabled:opacity-50 disabled:text-red-400"
                           />
-                          {(() => {
+                          {client.memory_days !== -1 && (() => {
                             const btnState = savingStates[client.client_id] || 'idle';
                             let btnText = 'GUARDAR';
                             let btnColor = 'border-[#22c55e]/30 bg-emerald-950/10 text-[#22c55e] hover:bg-emerald-950/20';
@@ -1273,12 +1274,47 @@ export const AdminPanel: React.FC = () => {
                           })()}
                         </div>
 
+                        {/* Botón para Alternar Autónomo / Vinculado */}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const isAutonomous = client.memory_days === -1;
+                            const nextDays = isAutonomous ? 2 : -1;
+                            const confirmMsg = isAutonomous
+                              ? '¿Deseas VINCULAR la memoria del celular con Supabase de nuevo?'
+                              : '¿Deseas DESCONECTAR la memoria de este celular para que funcione de forma 100% AUTÓNOMA e independiente de la base de datos y de la página de administración?';
+                            if (!window.confirm(confirmMsg)) return;
+
+                            showSaveStatus(client.client_id, 'Guardando...', false);
+                            try {
+                              const { error } = await supabase
+                                .from('asistente_config')
+                                .update({ memory_days: nextDays } as any)
+                                .eq('client_id', client.client_id);
+                              if (error) throw error;
+                              setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: nextDays } : c));
+                              showSaveStatus(client.client_id, isAutonomous ? '✓ Celular Vinculado' : '✓ Celular Autónomo', false);
+                            } catch (err: any) {
+                              showSaveStatus(client.client_id, '⚠ Error', true);
+                            }
+                          }}
+                          className={`px-2.5 py-1 font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md border font-sans cursor-pointer ${
+                            client.memory_days === -1
+                              ? 'bg-red-950/20 text-red-400 hover:bg-red-950/30 border-red-500/30'
+                              : 'bg-green-950/20 text-green-400 hover:bg-green-950/30 border-green-500/30'
+                          }`}
+                          title={client.memory_days === -1 ? "El celular opera de forma 100% independiente. Haz clic para vincular." : "El celular sincroniza su memoria con este panel. Haz clic para desconectar."}
+                        >
+                          <span>{client.memory_days === -1 ? '🔴 CELULAR AUTÓNOMO' : '🟢 MEMORIA VINCULADA'}</span>
+                        </button>
+
                         {/* Botón para Sincronizar Memoria al Celular */}
                         <button
                           type="button"
                           onClick={() => syncMemoryToDevice(client.client_id)}
-                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-black font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-amber-500/20 border border-amber-400 font-sans cursor-pointer"
-                          title="Presiona este botón para enviar la memoria de este panel al celular del cliente"
+                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-black font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-amber-500/20 border border-amber-400 font-sans cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          disabled={client.memory_days === -1}
+                          title={client.memory_days === -1 ? "Deshabilitado en modo Autónomo" : "Presiona este botón para enviar la memoria de este panel al celular del cliente"}
                         >
                           <span>⚡ ENVIAR AL CELULAR</span>
                         </button>

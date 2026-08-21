@@ -325,8 +325,8 @@ export default function App() {
         const todayStr = new Date().toDateString();
         const maxDays = parsed.memoryDays !== undefined ? parsed.memoryDays : 2;
 
-        // Si la fecha guardada es diferente a hoy, realizar filtrado rotativo de días
-        if (parsed.memorySaveDate && parsed.memorySaveDate !== todayStr) {
+        // Si la fecha guardada es diferente a hoy y no estamos en modo autónomo (-1), filtrar días
+        if (maxDays !== -1 && parsed.memorySaveDate && parsed.memorySaveDate !== todayStr) {
           if (maxDays > 0 && parsed.systemMemory) {
             const lines = parsed.systemMemory.split('\n');
             const filteredLines = lines.filter((line: string) => {
@@ -411,13 +411,15 @@ export default function App() {
           console.log('[Supabase] Licencia y configuración validadas con éxito.');
 
           // Solo sobreescribir la memoria local si el administrador activó expresamente la orden de sincronización
-          const shouldSyncMemoryFromCloud = data.sync_memory_to_device === true;
+          const cloudMemoryDays = data.memory_days !== null && data.memory_days !== undefined ? data.memory_days : 2;
+          const isAutonomous = cloudMemoryDays === -1;
+          const shouldSyncMemoryFromCloud = !isAutonomous && data.sync_memory_to_device === true;
 
           setSettings((prev) => ({
             ...prev,
             systemInstructions: data.system_instructions,
             systemMemory: shouldSyncMemoryFromCloud ? (data.daily_memory || data.system_memory || '') : (prev.systemMemory || ''),
-            memoryDays: data.memory_days !== null && data.memory_days !== undefined ? data.memory_days : 2,
+            memoryDays: cloudMemoryDays,
           }));
 
           // Si se consumió la orden de sincronización forzada, apagarla de inmediato en Supabase (solo 1 uso)
@@ -503,10 +505,15 @@ export default function App() {
     };
   }, []);
 
-  // Sincronizar memoria de hoy (systemMemory) con Supabase en tiempo real
+  // Sincronizar memoria de hoy (systemMemory) con Supabase en tiempo real (si está en modo vinculado)
   useEffect(() => {
     const syncMemoryToNube = async () => {
       if (!clientId || clientId === 'cliente_maestro') return;
+      // Si el celular está en modo Autónomo (-1), no enviar nada a la nube
+      if (settings.memoryDays === -1) {
+        console.log('[Memoria] Modo Autónomo activo. Bloqueada sincronización de subida a Supabase.');
+        return;
+      }
       try {
         const memory = settings.systemMemory || '';
         await supabase
@@ -519,7 +526,7 @@ export default function App() {
     };
 
     syncMemoryToNube();
-  }, [settings.systemMemory, clientId]);
+  }, [settings.systemMemory, settings.memoryDays, clientId]);
 
   // Sincronizar el estado del puente (conectar/desconectar Página 1) con el celular
   useEffect(() => {
