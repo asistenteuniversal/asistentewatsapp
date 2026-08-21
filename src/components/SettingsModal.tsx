@@ -166,7 +166,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               DÍAS DE MEMORIA DE CONVERSACIÓN A GUARDAR:
             </label>
             <select
-              value={settings.memoryDays !== undefined && settings.memoryDays !== null ? settings.memoryDays : 2}
+              value={
+                settings.memoryDays !== undefined &&
+                settings.memoryDays !== null &&
+                settings.memoryDays >= 0 &&
+                settings.memoryDays <= 31
+                  ? settings.memoryDays
+                  : 2
+              }
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
                 setSettings((prev) => ({
