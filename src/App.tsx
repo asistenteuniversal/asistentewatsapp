@@ -237,7 +237,6 @@ export default function App() {
 
   // Estado de vinculación reactivo compartido globalmente
   const [isGoogleLinked, setIsGoogleLinked] = useState(localStorage.getItem('google_logged_in') === 'true');
-  const [connectionError, setConnectionError] = useState<boolean>(false);
 
   // Escuchar la llamada nativa de Android al presionar el botón Atrás o tocar la cabecera
   useEffect(() => {
@@ -252,26 +251,10 @@ export default function App() {
       localStorage.setItem('google_logged_in', 'false');
       setIsGoogleLinked(false); // Actualiza en caliente el modal del cliente
     };
-    (window as any).onGoogleLiveError = () => {
-      console.warn('[Google Live] Detectado fallo de conexión durante llamada.');
-      setConnectionError(true);
-    };
     return () => {
       delete (window as any).setAppModeNeon;
       delete (window as any).setAppModeStudio;
-      delete (window as any).onGoogleLiveError;
     };
-  }, [voiceEngine]);
-
-  const handleRetryConnection = useCallback(() => {
-    setConnectionError(false);
-    if ((window as any).AndroidInterface && (window as any).AndroidInterface.retryGoogleSession) {
-      try {
-        (window as any).AndroidInterface.retryGoogleSession();
-      } catch (e) {
-        console.error(e);
-      }
-    }
   }, []);
 
 
@@ -681,7 +664,6 @@ export default function App() {
 
   // Intercept call toggle to send commands to agent via WebSockets or native bridge
   const handleToggleCall = useCallback(async () => {
-    setConnectionError(false); // Quitar aviso de error de conexión automáticamente al intentar llamar
     // 1. Toggle call locally in UI
     await voiceEngine.toggleCall();
 
@@ -709,7 +691,6 @@ export default function App() {
   }, [voiceEngine]);
 
   const handleToggleAudioCall = useCallback(async () => {
-    setConnectionError(false); // Quitar aviso de error de conexión automáticamente al intentar llamar
     await voiceEngine.toggleCall();
     const willBeActive = !voiceEngine.isCallActive;
 
@@ -1005,8 +986,6 @@ export default function App() {
             onOpenSettings={() => setIsSettingsOpen(true)} // Engrane abre Administrador (original)
             onOpenClientSettings={() => setIsClientSettingsOpen(true)} // Sliders abre Cliente (nuevo)
             updateAvailable={updateAvailable}
-            connectionError={connectionError}
-            onRetryConnection={handleRetryConnection}
           />
         </div>
       </main>

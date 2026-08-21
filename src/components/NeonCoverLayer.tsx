@@ -37,8 +37,6 @@ interface NeonCoverLayerProps {
   onOpenSettings?: () => void; // Abre administrador (Engrane original)
   onOpenClientSettings?: () => void; // Abre cliente (Sliders nuevo)
   updateAvailable?: boolean;
-  connectionError?: boolean;
-  onRetryConnection?: () => void;
 }
 
 export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
@@ -57,8 +55,6 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   onOpenSettings,
   onOpenClientSettings,
   updateAvailable = false,
-  connectionError = false,
-  onRetryConnection,
 }) => {
 
   const [activeCallType, setActiveCallType] = useState<'video' | 'audio' | null>(null);
@@ -233,27 +229,6 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
             }}
           >
             ACTUALIZACIÓN DISPONIBLE
-          </button>
-        </div>
-      )}
-
-      {/* ── BOTÓN FLOTANTE: FALLÓ LA CONEXIÓN (Arriba del Cronómetro) ── */}
-      {connectionError && (
-        <div className="absolute bottom-[31%] left-1/2 -translate-x-1/2 z-30">
-          <button
-            type="button"
-            onClick={onRetryConnection}
-            className="py-2.5 px-6 rounded-full font-bold uppercase transition duration-300 flex flex-col items-center justify-center focus:outline-none active:scale-95 border animate-pulse cursor-pointer whitespace-nowrap"
-            style={{
-              backgroundColor: '#000000',
-              borderColor: '#d4af37',
-              color: '#d4af37',
-              boxShadow: '0 0 22px rgba(212, 175, 55, 0.45), inset 0 0 10px rgba(212, 175, 55, 0.2)',
-              fontFamily: "'Outfit', sans-serif"
-            }}
-          >
-            <span className="text-[11px] font-black tracking-widest leading-tight text-[#f0d060]">FALLÓ LA CONEXIÓN</span>
-            <span className="text-[9px] font-bold tracking-wider text-[#d4af37] leading-tight mt-0.5">INTENTE LLAMAR OTRA VEZ</span>
           </button>
         </div>
       )}
