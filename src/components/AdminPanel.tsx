@@ -375,15 +375,16 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
-  // Guardar memoria del asistente
+  // Guardar memoria del asistente (daily_memory)
   const saveMemory = async (clientId: string, text: string) => {
     showSaveStatus(clientId, 'Guardando...', false);
     try {
       const { error } = await supabase
         .from('asistente_config')
-        .update({ system_memory: text })
+        .update({ daily_memory: text })
         .eq('client_id', clientId);
       if (error) throw error;
+      setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, daily_memory: text } : c));
       showSaveStatus(clientId, '✓ Memoria guardada', false);
     } catch (err: any) {
       console.warn('Fallo de conexión. Cambios de memoria guardados localmente.');
@@ -1184,7 +1185,7 @@ export const AdminPanel: React.FC = () => {
                       id={`instructions-${client.client_id}`}
                       defaultValue={client.system_instructions}
                       placeholder="Escribe el comportamiento del asistente aquí..."
-                      rows={8}
+                      rows={12}
                       className="w-full bg-black border border-[#BF953F]/25 rounded-2xl p-4 text-xs text-white focus:outline-none focus:border-[#FCF6BA] transition duration-300 font-mono leading-relaxed shadow-inner"
                       onBlur={(e) => {
                         if (e.target.value !== client.system_instructions) {
@@ -1194,147 +1195,76 @@ export const AdminPanel: React.FC = () => {
                     />
                   </div>
 
-                  {/* Extraer/Modificar Memoria del Asistente */}
-                  <div className="space-y-2">
-                    <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
-                      Memoria de Conversación (Datos Extraídos del Cliente)
-                    </label>
-                    <textarea
-                      defaultValue={client.system_memory || ''}
-                      placeholder="Aquí se guardan los datos que el asistente aprende del cliente (dirección, detalles, etc.)..."
-                      rows={6}
-                      className="w-full bg-black border border-[#BF953F]/25 rounded-2xl p-4 text-xs text-white focus:outline-none focus:border-[#FCF6BA] transition duration-300 font-mono leading-relaxed shadow-inner"
-                      onBlur={(e) => {
-                        if (e.target.value !== client.system_memory) {
-                          saveMemory(client.client_id, e.target.value);
-                        }
-                      }}
-                    />
-                  </div>
-
-                  {/* Conversación de Hoy (Recuerdos Diarios) */}
+                  {/* Memoria de Conversación (Recuerdos del Cliente) */}
                   <div className="space-y-2">
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                       <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
-                        Conversación de Hoy (Recuerdos Diarios en Tiempo Real)
+                        Memoria de Conversación
                       </label>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {/* Cuadro de entrada de texto para días */}
-                        <div className="flex items-center gap-1">
-                          <span className="text-[8px] text-[#FCF6BA] uppercase font-black tracking-wider mr-1">Días:</span>
-                          <input
-                            id={`days-input-${client.client_id}`}
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            disabled={client.memory_days === -1}
-                            value={client.memory_days === -1 ? 'Off' : (client.memory_days !== undefined && client.memory_days !== null ? client.memory_days : 2)}
-                            onChange={(e) => {
-                              const valStr = e.target.value;
-                              if (valStr === '' || /^[0-9]+$/.test(valStr)) {
-                                const val = valStr === '' ? 0 : parseInt(valStr, 10);
-                                setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: val } : c));
-                              }
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Selector de Días (Dropdown 0 a 31) */}
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[8px] text-[#FCF6BA] uppercase font-black tracking-wider">Días:</span>
+                          <select
+                            value={client.memory_days === -1 ? 2 : (client.memory_days !== undefined && client.memory_days !== null ? client.memory_days : 2)}
+                            onChange={async (e) => {
+                              const val = parseInt(e.target.value, 10);
+                              setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: val } : c));
+                              await saveMemoryDays(client.client_id, val);
                             }}
-                            placeholder="2"
-                            className="bg-[#121214] border border-[#BF953F]/40 rounded-xl px-3 py-1.5 text-cyan-400 font-bold text-center w-14 text-sm focus:outline-none focus:border-[#FCF6BA] disabled:opacity-50 disabled:text-red-400"
-                          />
-                          {client.memory_days !== -1 && (() => {
-                            const btnState = savingStates[client.client_id] || 'idle';
-                            let btnText = 'GUARDAR';
-                            let btnColor = 'border-[#22c55e]/30 bg-emerald-950/10 text-[#22c55e] hover:bg-emerald-950/20';
-
-                            if (btnState === 'saving') {
-                              btnText = 'GUARDANDO...';
-                              btnColor = 'border-[#BF953F]/40 bg-[#BF953F]/10 text-[#FCF6BA]';
-                            } else if (btnState === 'saved') {
-                              btnText = '✓ GUARDADO';
-                              btnColor = 'border-emerald-500/40 bg-emerald-950/30 text-emerald-400';
-                            }
-
-                            return (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const input = document.getElementById(`days-input-${client.client_id}`) as HTMLInputElement;
-                                  if (input) {
-                                    const val = parseInt(input.value, 10);
-                                    if (!isNaN(val) && val >= 0) {
-                                      saveMemoryDays(client.client_id, val);
-                                    } else {
-                                      alert('Por favor escribe un número válido de días (0 o más).');
-                                    }
-                                  }
-                                }}
-                                className={`ml-1 px-4 py-1.5 border rounded-xl text-xs font-bold uppercase tracking-wider hover:brightness-115 active:brightness-90 active:scale-95 transition duration-300 cursor-pointer font-sans shadow-md ${btnColor}`}
-                              >
-                                {btnText}
-                              </button>
-                            );
-                          })()}
+                            className="bg-[#121214] border border-[#BF953F]/40 rounded-xl px-2 py-1 text-cyan-400 font-bold text-[10px] focus:outline-none focus:border-[#FCF6BA] cursor-pointer"
+                          >
+                            <option value="0" className="bg-[#0b0b0e] text-cyan-200">0 (Infinito)</option>
+                            {Array.from({ length: 31 }, (_, i) => i + 1).map((num) => (
+                              <option key={num} value={num} className="bg-[#0b0b0e] text-cyan-200">
+                                {num === 2 ? `${num} días (Predeterminado)` : `${num} días`}
+                              </option>
+                            ))}
+                          </select>
                         </div>
 
-                        {/* Botón para Alternar Autónomo / Vinculado */}
+                        {/* Botón de Sincronización de Memoria (Rojo/Verde Toggle) */}
                         <button
                           type="button"
                           onClick={async () => {
                             const isAutonomous = client.memory_days === -1;
                             const nextDays = isAutonomous ? 2 : -1;
-                            const confirmMsg = isAutonomous
-                              ? '¿Deseas VINCULAR la memoria del celular con Supabase de nuevo?'
-                              : '¿Deseas DESCONECTAR la memoria de este celular para que funcione de forma 100% AUTÓNOMA e independiente de la base de datos y de la página de administración?';
-                            if (!window.confirm(confirmMsg)) return;
-
-                            showSaveStatus(client.client_id, 'Guardando...', false);
-                            try {
-                              const { error } = await supabase
-                                .from('asistente_config')
-                                .update({ memory_days: nextDays } as any)
-                                .eq('client_id', client.client_id);
-                              if (error) throw error;
-                              setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: nextDays } : c));
-                              showSaveStatus(client.client_id, isAutonomous ? '✓ Celular Vinculado' : '✓ Celular Autónomo', false);
-                            } catch (err: any) {
-                              showSaveStatus(client.client_id, '⚠ Error', true);
-                            }
+                            setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: nextDays } : c));
+                            await saveMemoryDays(client.client_id, nextDays);
                           }}
-                          className={`px-2.5 py-1 font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md border font-sans cursor-pointer ${
+                          className={`px-2 py-1 font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow-md ${
                             client.memory_days === -1
-                              ? 'bg-red-950/20 text-red-400 hover:bg-red-950/30 border-red-500/30'
-                              : 'bg-green-950/20 text-green-400 hover:bg-green-950/30 border-green-500/30'
+                              ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/30'
+                              : 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
                           }`}
-                          title={client.memory_days === -1 ? "El celular opera de forma 100% independiente. Haz clic para vincular." : "El celular sincroniza su memoria con este panel. Haz clic para desconectar."}
                         >
-                          <span>{client.memory_days === -1 ? '🔴 CELULAR AUTÓNOMO' : '🟢 MEMORIA VINCULADA'}</span>
+                          {client.memory_days === -1 ? '🔴 DESCONECTADO (AUTÓNOMO)' : '🟢 CONECTADO (VINCULADO)'}
                         </button>
 
-                        {/* Botón para Sincronizar Memoria al Celular */}
-                        <button
-                          type="button"
-                          onClick={() => syncMemoryToDevice(client.client_id)}
-                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-black font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-amber-500/20 border border-amber-400 font-sans cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                          disabled={client.memory_days === -1}
-                          title={client.memory_days === -1 ? "Deshabilitado en modo Autónomo" : "Presiona este botón para enviar la memoria de este panel al celular del cliente"}
-                        >
-                          <span>⚡ ENVIAR AL CELULAR</span>
-                        </button>
-
-                        {/* Botón de Borrado de Memoria (Rojo estilo idéntico) */}
+                        {/* Botón de Borrado de Memoria (Rojo Estilo Celular) */}
                         <button
                           type="button"
                           onClick={() => clearClientMemory(client.client_id)}
-                          className="px-2 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-red-900/20 border border-red-500/30 font-sans cursor-pointer"
+                          className="px-2 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 border border-red-500/30 font-sans cursor-pointer shadow-md"
                         >
-                          <span>BORRAR MEMORIA</span>
+                          BORRADO DE MEMORIA DE CONVERSACION
                         </button>
                       </div>
                     </div>
                     <textarea
-                      readOnly
-                      value={client.daily_memory || 'Sin conversación registrada el día de hoy.'}
-                      placeholder="Aquí se mostrará en tiempo real lo que el usuario habla con la IA hoy..."
-                      rows={6}
-                      className="w-full bg-black/60 border border-zinc-800 rounded-2xl p-4 text-xs text-white focus:outline-none font-mono leading-relaxed select-text cursor-default"
+                      value={client.daily_memory || ''}
+                      placeholder="Aquí se guardarán los datos que el asistente aprende del cliente y su historial de conversación..."
+                      rows={12}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, daily_memory: val } : c));
+                      }}
+                      onBlur={(e) => {
+                        if (e.target.value !== client.daily_memory) {
+                          saveMemory(client.client_id, e.target.value);
+                        }
+                      }}
+                      className="w-full bg-black border border-[#BF953F]/25 rounded-2xl p-4 text-xs text-white focus:outline-none focus:border-[#FCF6BA] transition duration-300 font-mono leading-relaxed shadow-inner"
                     />
                   </div>
                 </div>
