@@ -441,6 +441,15 @@ export default function App() {
               .update({ sync_memory_to_device: false })
               .eq('client_id', clientId);
             console.log('[Memoria] Orden de sincronización consumida y reseteada a false.');
+            
+            // Forzar recarga nativa de Google Studio para inyectar nueva memoria / limpiar
+            if ((window as any).AndroidInterface && (window as any).AndroidInterface.reloadStudio) {
+              try {
+                (window as any).AndroidInterface.reloadStudio();
+              } catch (e) {
+                console.error('Error reloading Studio:', e);
+              }
+            }
           }
           // Inyectar en Android de inmediato si la interfaz nativa está activa
           if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
