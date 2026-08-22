@@ -40,4 +40,5 @@ export interface AppSettings {
   memoryDays?: number;
   memorySaveTimestamp?: number;
   syncMemoryEnabled?: boolean;
+  voiceMaleEnabled?: boolean;
 }

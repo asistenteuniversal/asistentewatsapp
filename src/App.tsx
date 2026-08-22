@@ -317,7 +317,8 @@ export default function App() {
       systemMemory: '',
       memorySaveDate: new Date().toDateString(),
       memoryDays: 2,
-      syncMemoryEnabled: true
+      syncMemoryEnabled: true,
+      voiceMaleEnabled: false
     };
 
     if (saved) {
@@ -509,6 +510,17 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('neonSettings', JSON.stringify(settings));
   }, [settings]);
+
+  // Sincronizar el estado del botón de voz de hombre con Android
+  useEffect(() => {
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateVoiceOption) {
+      try {
+        (window as any).AndroidInterface.updateVoiceOption(!!settings.voiceMaleEnabled);
+      } catch (e) {
+        console.error('Error al sincronizar opción de voz:', e);
+      }
+    }
+  }, [settings.voiceMaleEnabled]);
 
   // Escuchar transcripciones extraídas de Google y guardarlas en la memoria diaria
   useEffect(() => {

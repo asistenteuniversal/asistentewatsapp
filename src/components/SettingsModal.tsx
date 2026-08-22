@@ -159,6 +159,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </p>
           </div>
 
+          {/* Voz del Asistente (Hombre/Mujer Toggle) */}
+          <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-2 backdrop-blur-md font-sans">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-zinc-300 flex items-center gap-1.5 font-sans">
+                <span className="text-sm">🗣️</span>
+                Voz del Asistente:
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSettings((prev) => ({
+                    ...prev,
+                    voiceMaleEnabled: !prev.voiceMaleEnabled
+                  }));
+                }}
+                className={`px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer ${
+                  settings.voiceMaleEnabled
+                    ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
+                    : 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/30'
+                }`}
+              >
+                {settings.voiceMaleEnabled ? '🟢 VOZ DE HOMBRE (ALGIEBA)' : '🔴 VOZ DE MUJER (ZEPHYR)'}
+              </button>
+            </div>
+            <p className="text-[9px] text-zinc-400 leading-normal font-sans">
+              {settings.voiceMaleEnabled
+                ? 'El asistente utilizará la voz masculina Algieba.'
+                : 'El asistente utilizará la voz predeterminada Zephyr.'}
+            </p>
+          </div>
+
           {/* Días de Memoria a Conservar */}
           <div className="space-y-1.5">
             <label className="text-zinc-300 font-semibold flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-wider">
