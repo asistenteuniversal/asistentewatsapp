@@ -916,6 +916,25 @@ export const AdminPanel: React.FC = () => {
                         </button>
                       </div>
 
+                      {/* Botón Máster de Desconexión Total Web <-> APK */}
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const isAutonomous = client.memory_days === -1;
+                          const nextDays = isAutonomous ? 2 : -1;
+                          setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: nextDays } : c));
+                          await saveMemoryDays(client.client_id, nextDays);
+                        }}
+                        className={`px-3 py-1.5 font-black rounded-xl text-[9px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow-md ${
+                          client.memory_days === -1
+                            ? 'bg-red-950/40 text-red-400 border-red-500/50 hover:bg-red-950/60 shadow-[0_0_12px_rgba(239,68,68,0.3)] animate-pulse'
+                            : 'bg-green-950/40 text-green-400 border-green-500/50 hover:bg-green-950/60 shadow-[0_0_12px_rgba(34,197,94,0.3)]'
+                        }`}
+                        title="Conectar o desconectar totalmente la página web de la APK del celular"
+                      >
+                        {client.memory_days === -1 ? '🔴 APP desconectada de nube apagada' : '🟢 APP conectada a nube en vivo'}
+                      </button>
+
                       {/* Botón de Borrado en la esquina extrema derecha */}
                       <button
                         onClick={() => {
@@ -1251,23 +1270,7 @@ export const AdminPanel: React.FC = () => {
                           </select>
                         </div>
 
-                        {/* Botón de Sincronización de Memoria (Rojo/Verde Toggle) */}
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            const isAutonomous = client.memory_days === -1;
-                            const nextDays = isAutonomous ? 2 : -1;
-                            setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: nextDays } : c));
-                            await saveMemoryDays(client.client_id, nextDays);
-                          }}
-                          className={`px-2 py-1 font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow-md ${
-                            client.memory_days === -1
-                              ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/30'
-                              : 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
-                          }`}
-                        >
-                          {client.memory_days === -1 ? '🔴 APP desconectada de nube apagada' : '🟢 APP conectada a nube en vivo'}
-                        </button>
+
 
                         {/* Botón de Borrado de Memoria (Rojo Estilo Celular) */}
                         <button
