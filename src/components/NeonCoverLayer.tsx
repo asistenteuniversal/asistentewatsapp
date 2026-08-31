@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Video, Phone, Eye, MicOff, Sliders } from 'lucide-react';
+import { Settings, Video, Phone, Eye, MicOff, Sliders, Headphones } from 'lucide-react';
 import avaLogo from '../assets/images/ava_logo.png';
 
 // ============================================================
@@ -59,6 +59,20 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
 
   const [activeCallType, setActiveCallType] = useState<'video' | 'audio' | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isEarpieceMode, setIsEarpieceMode] = useState(false);
+
+  // Manejar la conmutación entre Altavoz por defecto (false) y Auricular de oído (true)
+  const handleToggleEarpiece = () => {
+    const nextState = !isEarpieceMode;
+    setIsEarpieceMode(nextState);
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.setAudioEarpiece) {
+      try {
+        (window as any).AndroidInterface.setAudioEarpiece(nextState);
+      } catch (e) {
+        console.error("Error al conmutar audio a auricular:", e);
+      }
+    }
+  };
 
   // Sincronizar estado de luz local cuando termine la llamada
   useEffect(() => {
@@ -236,7 +250,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
 
 
       {/* ── CRONÓMETRO: escala con vw para cualquier Android ── */}
-      <div className="absolute bottom-[24%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+      <div className="absolute bottom-[28%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
         <span
           className={`font-bold font-mono transition-all duration-300 ${
             isCallActive ? 'opacity-100 animate-pulse' : 'opacity-35'
@@ -253,7 +267,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
 
       {/* ── FILA DE BOTONES DE LLAMADA: escala con vw para cualquier Android ── */}
       <div
-        className="absolute bottom-[9%] left-1/2 -translate-x-1/2 z-30 flex items-center"
+        className="absolute bottom-[7%] left-1/2 -translate-x-1/2 z-30 flex items-center"
         style={{ 
           gap: 'clamp(16px, 5vw, 32px)',
           opacity: isSystemLoading ? 0.2 : 1,
@@ -294,21 +308,39 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
           </button>
         </div>
 
-        {/* BOTÓN CENTRO: Silencio (Mute) */}
+        {/* BOTÓN CENTRO COLUMNA: Audífonos Arriba + Silencio Abajo */}
         {SHOW_MUTE_BUTTON && (
-          <button
-            type="button"
-            onClick={handleToggleMute}
-            className={`rounded-full border-2 flex items-center justify-center transition-all duration-150 ease-out focus:outline-none active:scale-90
-                       ${isMuted
-                         ? 'border-red-500 text-red-500 bg-black shadow-[0_0_22px_rgba(239,68,68,0.45)]'
-                         : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
-                       }`}
-            style={{ width: 'clamp(68px, 19vw, 88px)', height: 'clamp(68px, 19vw, 88px)' }}
-            title={isMuted ? "Activar micrófono" : "Silenciar micrófono"}
-          >
-            <MicOff style={{ width: 'clamp(26px, 7.2vw, 37px)', height: 'clamp(26px, 7.2vw, 37px)' }} />
-          </button>
+          <div className="flex flex-col items-center gap-3">
+            {/* BOTÓN ARRIBA: Audífonos / Auricular Privado */}
+            <button
+              type="button"
+              onClick={handleToggleEarpiece}
+              className={`rounded-full border-2 flex items-center justify-center transition-all duration-150 ease-out focus:outline-none active:scale-90
+                         ${isEarpieceMode
+                           ? 'border-emerald-400 text-emerald-400 bg-black shadow-[0_0_22px_rgba(52,211,153,0.45)]'
+                           : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
+                         }`}
+              style={{ width: 'clamp(68px, 19vw, 88px)', height: 'clamp(68px, 19vw, 88px)' }}
+              title={isEarpieceMode ? "Cambiar a Altavoz" : "Cambiar a Auricular Privado de Oído"}
+            >
+              <Headphones style={{ width: 'clamp(26px, 7.2vw, 37px)', height: 'clamp(26px, 7.2vw, 37px)' }} />
+            </button>
+
+            {/* BOTÓN ABAJO: Silencio (Mute) */}
+            <button
+              type="button"
+              onClick={handleToggleMute}
+              className={`rounded-full border-2 flex items-center justify-center transition-all duration-150 ease-out focus:outline-none active:scale-90
+                         ${isMuted
+                           ? 'border-red-500 text-red-500 bg-black shadow-[0_0_22px_rgba(239,68,68,0.45)]'
+                           : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
+                         }`}
+              style={{ width: 'clamp(68px, 19vw, 88px)', height: 'clamp(68px, 19vw, 88px)' }}
+              title={isMuted ? "Activar micrófono" : "Silenciar micrófono"}
+            >
+              <MicOff style={{ width: 'clamp(26px, 7.2vw, 37px)', height: 'clamp(26px, 7.2vw, 37px)' }} />
+            </button>
+          </div>
         )}
 
         {/* BOTÓN DERECHA: Teléfono (activo para llamadas de audio) */}
