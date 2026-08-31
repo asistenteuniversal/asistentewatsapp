@@ -448,34 +448,53 @@ export default function App() {
             };
           });
 
-          // Consumir la orden de sincronización (limpiar la bandera en Supabase y reiniciar Studio)
-          const shouldTriggerSync = isClearOrder || isUpdateOrder;
-          if (shouldTriggerSync && clientId) {
-            await supabase
-              .from('asistente_config')
-              .update({ system_memory: '' })
-              .eq('client_id', clientId);
-            console.log('[Sincronización] Orden consumida y bandera system_memory reseteada.');
+          // 1. Inyectar primero en Android las instrucciones limpias/actualizadas para que Java lo guarde en memoria
+          const defaultPrompt = 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.';
+          const currentInstructions = isUpdateOrder ? (data.system_instructions || defaultPrompt) : (settings.systemInstructions || defaultPrompt);
+          const currentMemory = isClearOrder ? '' : (settings.systemMemory || '');
+          const cleanMemory = currentMemory.replace(/^\[[^\]]+\]\s*/gm, '');
+          const mergedText = cleanMemory.trim()
+            ? `${currentInstructions}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO (Esta es tu memoria de lo que platicaste anteriormente con la persona con la que estás hablando. No repitas nada de lo que está aquí, son solo tus recuerdos de hoy. Es información confidencial de tu pasado inmediato, úsala solo como referencia para responder)]: \n${cleanMemory}`
+            : currentInstructions;
 
-            // Forzar recarga nativa de Google Studio para inyectar limpia o nueva configuración
-            if ((window as any).AndroidInterface && (window as any).AndroidInterface.reloadStudio) {
-              try {
-                (window as any).AndroidInterface.reloadStudio();
-              } catch (e) {
-                console.error('Error reloading Studio:', e);
-              }
-            }
-          }
-          // Inyectar en Android de inmediato si la interfaz nativa está activa
           if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
             try {
-              // Si fue una orden de actualización, enviar las nuevas instrucciones, de lo contrario enviar las locales
-              const defaultPrompt = 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.';
-              const currentInstructions = isUpdateOrder ? data.system_instructions : (settings.systemInstructions || defaultPrompt);
-              (window as any).AndroidInterface.updateSystemInstructions(currentInstructions);
+              (window as any).AndroidInterface.updateSystemInstructions(mergedText);
+              console.log('[Sincronización] Instrucciones y memoria limpia enviadas a Java exitosamente.');
             } catch (e) {
-              console.error(e);
+              console.error('Error inyectando instrucciones a Java:', e);
             }
+          }
+
+          // 2. Si hubo orden de sincronización o borrado, recargar Google Studio y luego confirmar a Supabase
+          const shouldTriggerSync = isClearOrder || isUpdateOrder;
+          if (shouldTriggerSync && clientId) {
+            // Dar un margen seguro de 300ms para asegurar que Java asignó la variable en memoria
+            setTimeout(async () => {
+              if ((window as any).AndroidInterface && (window as any).AndroidInterface.reloadStudio) {
+                try {
+                  (window as any).AndroidInterface.reloadStudio();
+                  console.log('[Sincronización] Google AI Studio recargado con la nueva configuración.');
+                } catch (e) {
+                  console.error('Error reloading Studio:', e);
+                }
+              }
+
+              // 3. Confirmar a Supabase que la orden fue consumida e instalada en el dispositivo
+              try {
+                const updatePayload: any = { system_memory: '' };
+                if (isClearOrder) {
+                  updatePayload.daily_memory = '';
+                }
+                await supabase
+                  .from('asistente_config')
+                  .update(updatePayload)
+                  .eq('client_id', clientId);
+                console.log('[Sincronización] Orden consumida y bandera reseteada en Supabase (Foquito verde confirmado al 100%).');
+              } catch (errSupabase) {
+                console.error('Error confirmando orden en Supabase:', errSupabase);
+              }
+            }, 300);
           }
           return; // Salir con éxito
         }
@@ -483,19 +502,22 @@ export default function App() {
         console.warn('[Supabase] Falló validación remota. Manteniendo sesión offline para evitar bloqueos por red:', err);
       }
 
-      // Fallback: Intentar leer el archivo local config si hay problemas de red
+      // Fallback: Si no hay instrucciones previas en el teléfono, cargar configuración base
       try {
         const res = await fetch(`/asistente_config.json?v=${new Date().getTime()}`);
         if (res.ok) {
           const localData = await res.json();
           if (localData && localData.systemInstructions) {
-            setSettings((prev) => ({
-              ...prev,
-              systemInstructions: localData.systemInstructions,
-            }));
-            if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
-              (window as any).AndroidInterface.updateSystemInstructions(localData.systemInstructions);
-            }
+            setSettings((prev) => {
+              if (prev.systemInstructions && prev.systemInstructions.trim().length > 0) return prev;
+              if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
+                (window as any).AndroidInterface.updateSystemInstructions(localData.systemInstructions);
+              }
+              return {
+                ...prev,
+                systemInstructions: localData.systemInstructions,
+              };
+            });
           }
         }
       } catch (err) {
@@ -745,6 +767,7 @@ export default function App() {
           }
           (window as any).AndroidInterface.startVoiceCall();
         } else {
+          setIsSystemLoading(true); // <── ¡Activa la línea de protección al instante!
           (window as any).AndroidInterface.endVoiceCall();
         }
       } catch (e) {
@@ -783,6 +806,7 @@ export default function App() {
           }
           (window as any).AndroidInterface.startVoiceCall(false); // Llamada de audio (con el flag false)
         } else {
+          setIsSystemLoading(true); // <── ¡Activa la línea de protección al instante!
           (window as any).AndroidInterface.endVoiceCall(); // Colgar idéntico
         }
       } catch (e) {

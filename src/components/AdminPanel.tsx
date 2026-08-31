@@ -362,6 +362,7 @@ export const AdminPanel: React.FC = () => {
   // Guardar instrucciones del asistente
   const saveInstructions = async (clientId: string, text: string) => {
     showSaveStatus(clientId, 'Guardando...', false);
+    setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, system_instructions: text, system_memory: 'UPDATE_INSTRUCTIONS' } : c));
     try {
       const { error } = await supabase
         .from('asistente_config')
@@ -430,15 +431,14 @@ export const AdminPanel: React.FC = () => {
 
   // Borrar memoria del cliente
   const clearClientMemory = async (clientId: string) => {
-    if (!window.confirm('¿Estás seguro de que deseas borrar toda la memoria de conversación de este cliente en la nube y en su celular?')) return;
     showSaveStatus(clientId, 'Borrando...', false);
+    setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, daily_memory: '', system_memory: 'CLEAR' } : c));
     try {
       const { error } = await supabase
         .from('asistente_config')
         .update({ daily_memory: '', system_memory: 'CLEAR' })
         .eq('client_id', clientId);
       if (error) throw error;
-      setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, daily_memory: '', system_memory: '' } : c));
       showSaveStatus(clientId, '✓ Memoria borrada total', false);
     } catch (err: any) {
       console.warn('Error al borrar memoria:', err);
@@ -1164,9 +1164,23 @@ export const AdminPanel: React.FC = () => {
                   {/* Modificar Comportamiento */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
-                        COMPORTAMIENTO ASISTENTE
-                      </label>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
+                          COMPORTAMIENTO ASISTENTE
+                        </label>
+                        {/* Foquito de Estado de Actualización en el Celular */}
+                        {client.system_memory === 'UPDATE_INSTRUCTIONS' ? (
+                          <span className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.25)]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                            <span>🟠 ACTUALIZACIÓN EN CURSO</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.25)]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            <span>🟢 ACTUALIZADO</span>
+                          </span>
+                        )}
+                      </div>
                       <button
                         type="button"
                         onClick={() => {
@@ -1198,9 +1212,23 @@ export const AdminPanel: React.FC = () => {
                   {/* Memoria de Conversación (Recuerdos del Cliente) */}
                   <div className="space-y-2">
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                      <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
-                        Memoria de Conversación
-                      </label>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
+                          Memoria de Conversación
+                        </label>
+                        {/* Foquito de Estado de Borrado de Memoria en el Celular */}
+                        {client.system_memory === 'CLEAR' ? (
+                          <span className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.25)]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                            <span>🟠 BORRADO PENDIENTE</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.25)]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            <span>🟢 BORRADO COMPLETADO</span>
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Selector de Días (Dropdown 0 a 31) */}
                         <div className="flex items-center gap-1.5">
