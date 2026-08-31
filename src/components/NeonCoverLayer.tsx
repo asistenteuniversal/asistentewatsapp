@@ -218,7 +218,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
 
       {/* ── BOTÓN FLOTANTE: ACTUALIZACIÓN DISPONIBLE (Oro metálico y fondo negro) ── */}
       {updateAvailable && (
-        <div className="absolute bottom-[35%] left-1/2 -translate-x-1/2 z-30">
+        <div className="absolute bottom-[40%] left-1/2 -translate-x-1/2 z-30">
           <button
             type="button"
             onClick={() => {
@@ -248,7 +248,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
       )}
 
       {/* ── CRONÓMETRO: escala con vw para cualquier Android ── */}
-      <div className="absolute bottom-[25%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+      <div className="absolute bottom-[31%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
         <span
           className={`font-bold font-mono transition-all duration-300 ${
             isCallActive ? 'opacity-100 animate-pulse' : 'opacity-35'
