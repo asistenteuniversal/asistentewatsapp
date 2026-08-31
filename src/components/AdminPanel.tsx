@@ -1266,7 +1266,7 @@ export const AdminPanel: React.FC = () => {
                               : 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
                           }`}
                         >
-                          {client.memory_days === -1 ? '🔴 DESCONECTADO (AUTÓNOMO)' : '🟢 CONECTADO (VINCULADO)'}
+                          {client.memory_days === -1 ? '🔴 APP desconectada de nube apagada' : '🟢 APP conectada a nube en vivo'}
                         </button>
 
                         {/* Botón de Borrado de Memoria (Rojo Estilo Celular) */}
