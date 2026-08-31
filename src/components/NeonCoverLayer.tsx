@@ -218,7 +218,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
 
       {/* ── BOTÓN FLOTANTE: ACTUALIZACIÓN DISPONIBLE (Oro metálico y fondo negro) ── */}
       {updateAvailable && (
-        <div className="absolute bottom-[31%] left-1/2 -translate-x-1/2 z-30">
+        <div className="absolute bottom-[35%] left-1/2 -translate-x-1/2 z-30">
           <button
             type="button"
             onClick={() => {
@@ -247,10 +247,8 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
         </div>
       )}
 
-
-
       {/* ── CRONÓMETRO: escala con vw para cualquier Android ── */}
-      <div className="absolute bottom-[28%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+      <div className="absolute bottom-[25%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
         <span
           className={`font-bold font-mono transition-all duration-300 ${
             isCallActive ? 'opacity-100 animate-pulse' : 'opacity-35'
@@ -267,7 +265,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
 
       {/* ── FILA DE BOTONES DE LLAMADA: escala con vw para cualquier Android ── */}
       <div
-        className="absolute bottom-[7%] left-1/2 -translate-x-1/2 z-30 flex items-center"
+        className="absolute bottom-[9%] left-1/2 -translate-x-1/2 z-30 flex items-center"
         style={{ 
           gap: 'clamp(16px, 5vw, 32px)',
           opacity: isSystemLoading ? 0.2 : 1,
@@ -308,25 +306,27 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
           </button>
         </div>
 
-        {/* BOTÓN CENTRO COLUMNA: Audífonos Arriba + Silencio Abajo */}
+        {/* BOTÓN CENTRO: Silencio (Mute) + Audífonos Arriba Posicionado Absoluto */}
         {SHOW_MUTE_BUTTON && (
-          <div className="flex flex-col items-center gap-3">
-            {/* BOTÓN ARRIBA: Audífonos / Auricular Privado */}
-            <button
-              type="button"
-              onClick={handleToggleEarpiece}
-              className={`rounded-full border-2 flex items-center justify-center transition-all duration-150 ease-out focus:outline-none active:scale-90
-                         ${isEarpieceMode
-                           ? 'border-emerald-400 text-emerald-400 bg-black shadow-[0_0_22px_rgba(52,211,153,0.45)]'
-                           : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
-                         }`}
-              style={{ width: 'clamp(68px, 19vw, 88px)', height: 'clamp(68px, 19vw, 88px)' }}
-              title={isEarpieceMode ? "Cambiar a Altavoz" : "Cambiar a Auricular Privado de Oído"}
-            >
-              <Headphones style={{ width: 'clamp(26px, 7.2vw, 37px)', height: 'clamp(26px, 7.2vw, 37px)' }} />
-            </button>
+          <div className="relative flex items-center justify-center">
+            {/* BOTÓN ARRIBA: Audífonos / Auricular Privado (Flota limpiamente arriba de Silenciar) */}
+            <div className="absolute top-[-96px] left-1/2 -translate-x-1/2">
+              <button
+                type="button"
+                onClick={handleToggleEarpiece}
+                className={`rounded-full border-2 flex items-center justify-center transition-all duration-150 ease-out focus:outline-none active:scale-90
+                           ${isEarpieceMode
+                             ? 'border-emerald-400 text-emerald-400 bg-black shadow-[0_0_22px_rgba(52,211,153,0.45)]'
+                             : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
+                           }`}
+                style={{ width: 'clamp(68px, 19vw, 88px)', height: 'clamp(68px, 19vw, 88px)' }}
+                title={isEarpieceMode ? "Cambiar a Altavoz" : "Cambiar a Auricular Privado de Oído"}
+              >
+                <Headphones style={{ width: 'clamp(26px, 7.2vw, 37px)', height: 'clamp(26px, 7.2vw, 37px)' }} />
+              </button>
+            </div>
 
-            {/* BOTÓN ABAJO: Silencio (Mute) */}
+            {/* BOTÓN CENTRO HORIZONAL PERFECTO: Silencio (Mute) */}
             <button
               type="button"
               onClick={handleToggleMute}
