@@ -218,7 +218,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
 
       {/* ── BOTÓN FLOTANTE: ACTUALIZACIÓN DISPONIBLE (Oro metálico y fondo negro) ── */}
       {updateAvailable && (
-        <div className="absolute bottom-[40%] left-1/2 -translate-x-1/2 z-30">
+        <div className="absolute bottom-[31%] left-1/2 -translate-x-1/2 z-30">
           <button
             type="button"
             onClick={() => {
@@ -248,7 +248,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
       )}
 
       {/* ── CRONÓMETRO: escala con vw para cualquier Android ── */}
-      <div className="absolute bottom-[31%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+      <div className="absolute bottom-[24%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
         <span
           className={`font-bold font-mono transition-all duration-300 ${
             isCallActive ? 'opacity-100 animate-pulse' : 'opacity-35'
@@ -306,41 +306,21 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
           </button>
         </div>
 
-        {/* BOTÓN CENTRO: Silencio (Mute) + Audífonos Arriba Posicionado Absoluto */}
+        {/* BOTÓN CENTRO: Silencio (Mute) */}
         {SHOW_MUTE_BUTTON && (
-          <div className="relative flex items-center justify-center">
-            {/* BOTÓN ARRIBA: Audífonos / Auricular Privado (Flota limpiamente arriba de Silenciar) */}
-            <div className="absolute top-[-96px] left-1/2 -translate-x-1/2">
-              <button
-                type="button"
-                onClick={handleToggleEarpiece}
-                className={`rounded-full border-2 flex items-center justify-center transition-all duration-150 ease-out focus:outline-none active:scale-90
-                           ${isEarpieceMode
-                             ? 'border-emerald-400 text-emerald-400 bg-black shadow-[0_0_22px_rgba(52,211,153,0.45)]'
-                             : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
-                           }`}
-                style={{ width: 'clamp(68px, 19vw, 88px)', height: 'clamp(68px, 19vw, 88px)' }}
-                title={isEarpieceMode ? "Cambiar a Altavoz" : "Cambiar a Auricular Privado de Oído"}
-              >
-                <Headphones style={{ width: 'clamp(26px, 7.2vw, 37px)', height: 'clamp(26px, 7.2vw, 37px)' }} />
-              </button>
-            </div>
-
-            {/* BOTÓN CENTRO HORIZONAL PERFECTO: Silencio (Mute) */}
-            <button
-              type="button"
-              onClick={handleToggleMute}
-              className={`rounded-full border-2 flex items-center justify-center transition-all duration-150 ease-out focus:outline-none active:scale-90
-                         ${isMuted
-                           ? 'border-red-500 text-red-500 bg-black shadow-[0_0_22px_rgba(239,68,68,0.45)]'
-                           : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
-                         }`}
-              style={{ width: 'clamp(68px, 19vw, 88px)', height: 'clamp(68px, 19vw, 88px)' }}
-              title={isMuted ? "Activar micrófono" : "Silenciar micrófono"}
-            >
-              <MicOff style={{ width: 'clamp(26px, 7.2vw, 37px)', height: 'clamp(26px, 7.2vw, 37px)' }} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleToggleMute}
+            className={`rounded-full border-2 flex items-center justify-center transition-all duration-150 ease-out focus:outline-none active:scale-90
+                       ${isMuted
+                         ? 'border-red-500 text-red-500 bg-black shadow-[0_0_22px_rgba(239,68,68,0.45)]'
+                         : 'border-[#d4af37] text-[#d4af37] bg-black shadow-[0_0_22px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]'
+                       }`}
+            style={{ width: 'clamp(68px, 19vw, 88px)', height: 'clamp(68px, 19vw, 88px)' }}
+            title={isMuted ? "Activar micrófono" : "Silenciar micrófono"}
+          >
+            <MicOff style={{ width: 'clamp(26px, 7.2vw, 37px)', height: 'clamp(26px, 7.2vw, 37px)' }} />
+          </button>
         )}
 
         {/* BOTÓN DERECHA: Teléfono (activo para llamadas de audio) */}
