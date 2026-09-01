@@ -158,7 +158,11 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
                 }
               }
             }}
-            className={w-full py-2.5 px-4 rounded-2xl transition duration-200 flex flex-col items-center justify-center border shadow-lg cursor-pointer leading-tight active:scale-98 }
+            className={`w-full py-2.5 px-4 rounded-2xl transition duration-200 flex flex-col items-center justify-center border shadow-lg cursor-pointer leading-tight active:scale-98 ${
+              settings.voiceMaleEnabled
+                ? 'bg-green-950/30 text-green-400 border-green-500/40 hover:bg-green-950/50 shadow-green-950/20'
+                : 'bg-pink-950/30 text-pink-300 border-pink-400/50 hover:bg-pink-950/50 shadow-pink-950/20'
+            }`}
           >
             <span className="font-black text-xs sm:text-[13px] uppercase tracking-wider">
               {settings.voiceMaleEnabled ? '🟢 VOZ DE HOMBRE' : '🌸 VOZ DE MUJER'}
