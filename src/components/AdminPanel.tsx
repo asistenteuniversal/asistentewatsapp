@@ -1190,37 +1190,36 @@ export const AdminPanel: React.FC = () => {
 
                   {/* Modificar Comportamiento */}
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
-                          COMPORTAMIENTO ASISTENTE
-                        </label>
+                    <div className="flex justify-between items-center flex-wrap gap-2">
+                      <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
+                        COMPORTAMIENTO ASISTENTE
+                      </label>
+                      <div className="flex items-center gap-2.5 flex-wrap">
                         {/* Foquito de Estado de Actualización en el Celular */}
                         {client.system_memory === 'UPDATE_INSTRUCTIONS' || client.system_memory === 'UPDATE_AND_CLEAR' ? (
-                          <span className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.25)]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                          <span className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.25)]">
+                            <span className="w-2 h-2 rounded-full bg-amber-400" />
                             <span>🟠 ACTUALIZACIÓN EN CURSO</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.25)]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.25)]">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400" />
                             <span>🟢 ACTUALIZADO</span>
                           </span>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const textarea = document.getElementById(`instructions-${client.client_id}`) as HTMLTextAreaElement;
+                            if (textarea) {
+                              saveInstructions(client.client_id, textarea.value);
+                            }
+                          }}
+                          className="px-4 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-[11px] font-black rounded-xl uppercase tracking-wider transition duration-300 border border-red-500/30 font-sans cursor-pointer shadow-lg flex items-center gap-1.5"
+                        >
+                          <span>💾 GUARDAR</span>
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const textarea = document.getElementById(`instructions-${client.client_id}`) as HTMLTextAreaElement;
-                          if (textarea) {
-                            saveInstructions(client.client_id, textarea.value);
-                          }
-                        }}
-                        style={{ backgroundColor: '#22c55e', color: '#ffffff' }}
-                        className="px-3 py-1 text-[9px] font-black rounded-lg uppercase tracking-wider hover:brightness-110 active:scale-95 transition duration-300 shadow-md cursor-pointer flex items-center gap-1"
-                      >
-                        <span>💾 Guardar</span>
-                      </button>
                     </div>
                     <textarea
                       id={`instructions-${client.client_id}`}
@@ -1243,21 +1242,7 @@ export const AdminPanel: React.FC = () => {
                         <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
                           Memoria de Conversación
                         </label>
-                        {/* Foquito de Estado de Borrado de Memoria en el Celular */}
-                        {client.system_memory === 'CLEAR' || client.system_memory === 'UPDATE_AND_CLEAR' ? (
-                          <span className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.25)]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                            <span>🟠 BORRADO PENDIENTE</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.25)]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                            <span>🟢 BORRADO COMPLETADO</span>
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {/* Selector de Días (Dropdown 0 a 31) */}
+                        {/* Selector de Días (Dropdown 0 a 31) pegado al título */}
                         <div className="flex items-center gap-1.5">
                           <span className="text-[8px] text-[#FCF6BA] uppercase font-black tracking-wider">Días:</span>
                           <select
@@ -1277,14 +1262,26 @@ export const AdminPanel: React.FC = () => {
                             ))}
                           </select>
                         </div>
-
-
+                      </div>
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        {/* Foquito de Estado de Borrado de Memoria en el Celular al lado del botón */}
+                        {client.system_memory === 'CLEAR' || client.system_memory === 'UPDATE_AND_CLEAR' ? (
+                          <span className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.25)]">
+                            <span className="w-2 h-2 rounded-full bg-amber-400" />
+                            <span>🟠 BORRADO PENDIENTE</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.25)]">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                            <span>🟢 BORRADO COMPLETADO</span>
+                          </span>
+                        )}
 
                         {/* Botón de Borrado de Memoria (Rojo Estilo Celular) */}
                         <button
                           type="button"
                           onClick={() => clearClientMemory(client.client_id)}
-                          className="px-2 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 border border-red-500/30 font-sans cursor-pointer shadow-md"
+                          className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border border-red-500/30 font-sans cursor-pointer shadow-lg"
                         >
                           BORRADO DE MEMORIA DE CONVERSACION
                         </button>
