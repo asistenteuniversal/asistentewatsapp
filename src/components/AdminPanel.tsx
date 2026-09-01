@@ -1137,7 +1137,7 @@ export const AdminPanel: React.FC = () => {
                       </div>
                     </div>
 
-                    <div>
+                    <div className="sm:col-span-2">
                       <p className="text-[9px] text-white uppercase tracking-widest font-black">ESTADO CELULAR/ID</p>
                       {client.hardware_id ? (
                         <div className="space-y-1.5 mt-1.5">
@@ -1150,15 +1150,15 @@ export const AdminPanel: React.FC = () => {
                               Liberar
                             </button>
                           </div>
-                          <div className="flex items-center gap-1.5 mt-2">
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">ID:</span>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-[11px] text-[#FCF6BA] font-black uppercase tracking-wider">ID:</span>
                             <input
                               type="text"
                               readOnly
                               value={client.hardware_id}
                               title="Haz clic para seleccionar todo"
                               onClick={(e) => (e.target as HTMLInputElement).select()}
-                              className="w-full bg-black/80 border border-[#BF953F]/40 rounded-lg px-2 py-1 text-xs font-mono font-bold text-white focus:outline-none focus:border-[#FCF6BA] cursor-text text-center tracking-wider shadow-inner"
+                              className="w-full bg-black/90 border border-[#BF953F]/40 rounded-lg px-2 py-1 text-xs font-mono font-bold text-white focus:outline-none focus:border-[#FCF6BA] cursor-text text-center tracking-widest shadow-inner"
                             />
                           </div>
                         </div>
@@ -1172,7 +1172,7 @@ export const AdminPanel: React.FC = () => {
                             readOnly
                             value="Sin enlazar"
                             disabled
-                            className="w-full max-w-[130px] bg-black/30 border border-zinc-800 rounded-lg px-2 py-1 text-[9px] font-mono text-zinc-600 focus:outline-none text-center"
+                            className="w-full bg-black/30 border border-zinc-800 rounded-lg px-2 py-1 text-[10px] font-mono text-zinc-600 focus:outline-none text-center"
                           />
                         </div>
                       )}
