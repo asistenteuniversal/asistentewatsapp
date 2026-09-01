@@ -5,8 +5,7 @@ interface DestroyedScreenProps {
 }
 
 export const DestroyedScreen: React.FC<DestroyedScreenProps> = () => {
-  const supportPhone = '527712070378';
-  const displayPhone = '+52 771 207 0378';
+  const supportPhone = '525575165733';
 
   const handleWhatsAppRedirect = () => {
     const text = encodeURIComponent('Hola, deseo volver a contratar el servicio de Asistente Universal y solicitar una nueva clave de activación.');
@@ -43,7 +42,7 @@ export const DestroyedScreen: React.FC<DestroyedScreenProps> = () => {
         </div>
 
         {/* Botón de WhatsApp Estilo Llamada (Negro, Borde Oro, Letras Oro/Blancas) */}
-        <div className="w-full pt-2 space-y-3">
+        <div className="w-full pt-2">
           <button
             type="button"
             onClick={handleWhatsAppRedirect}
@@ -51,16 +50,12 @@ export const DestroyedScreen: React.FC<DestroyedScreenProps> = () => {
           >
             <span className="text-[#FCF6BA]">SOLICITAR POR WHATSAPP</span>
           </button>
-
-          <p className="text-xs font-mono font-bold text-[#FCF6BA] tracking-widest">
-            {displayPhone}
-          </p>
         </div>
 
         {/* Pie de Página */}
         <div className="pt-2 border-t border-zinc-900 w-full">
           <p className="text-[9px] text-zinc-600 uppercase tracking-widest font-mono font-bold">
-            Avantar Corporativo © 2026
+            © 2026
           </p>
         </div>
 
