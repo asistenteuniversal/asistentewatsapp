@@ -195,7 +195,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <option value="0" className="bg-[#0a0a0f] text-cyan-200">0 (Infinito)</option>
               {Array.from({ length: 31 }, (_, i) => i + 1).map((num) => (
                 <option key={num} value={num} className="bg-[#0a0a0f] text-cyan-200">
-                  {num === 2 ? ${num} días (Predeterminado) : ${num} días}
+                  {num === 2 ? `${num} días (Predeterminado)` : `${num} días`}
                 </option>
               ))}
             </select>
