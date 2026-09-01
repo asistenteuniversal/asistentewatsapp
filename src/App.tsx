@@ -8,8 +8,10 @@ import { ClientSettingsModal } from './components/ClientSettingsModal'; // Impor
 import { useVoiceEngine } from './hooks/useVoiceEngine';
 import { supabase } from './supabaseClient';
 import { AdminPanel } from './components/AdminPanel';
+import { DestroyedScreen } from './components/DestroyedScreen';
 
 export default function App() {
+  const [isAppDestroyed, setIsAppDestroyed] = useState<boolean>(() => localStorage.getItem('ava_destroyed') === 'true');
   const [mode, setMode] = useState<AppMode>(() => {
     // Detectar si el usuario quiere entrar al panel de administración con la ruta oculta
     if (window.location.pathname === '/panel-26' || window.location.search.includes('panel-26')) {
@@ -410,36 +412,40 @@ export default function App() {
           .eq('client_id', clientId)
           .single();
 
-        // Si el registro fue eliminado (PGRST116 = no rows returned) -> VACIADO TOTAL Y DESVINCULACIÓN LIMPIA
+        // Si el registro fue eliminado (PGRST116 = no rows returned) -> DESTRUCCIÓN Y VACIADO TOTAL
         if (error && error.code === 'PGRST116') {
-          console.warn('[Licencia] El cliente ha sido borrado del servidor. Vaciando datos, memoria y sesión de Google...');
+          console.warn('[Seguridad] El cliente ha sido eliminado permanentemente del servidor. Ejecutando sanitización total...');
           
-          // 1. Limpiar ajustes en memoria React
+          // 1. Limpiar memoria React
           setSettings((prev) => ({
             ...prev,
             systemInstructions: '',
             systemMemory: '',
           }));
 
-          // 2. Limpiar baúl local del celular
+          // 2. Destruir baúl local y activar sello permanente de despedida
           localStorage.removeItem('ava_client_id');
           localStorage.removeItem('ava_client_name');
           localStorage.removeItem('neonSettings');
           localStorage.setItem('google_logged_in', 'false');
+          localStorage.setItem('ava_destroyed', 'true');
           setClientId(null);
           setIsGoogleLinked(false);
+          setIsAppDestroyed(true);
 
-          // 3. Cerrar y destruir cookies de Google AI Studio en el WebView de Android
+          // 3. Ejecutar sanitización nativa oficial de Google en Android
           if ((window as any).AndroidInterface) {
             try {
-              if ((window as any).AndroidInterface.logoutGoogle) {
+              if ((window as any).AndroidInterface.purgeUserSessionAndReset) {
+                (window as any).AndroidInterface.purgeUserSessionAndReset();
+              } else if ((window as any).AndroidInterface.logoutGoogle) {
                 (window as any).AndroidInterface.logoutGoogle();
               }
               if ((window as any).AndroidInterface.updateSystemInstructions) {
                 (window as any).AndroidInterface.updateSystemInstructions('');
               }
             } catch (e) {
-              console.error('Error al limpiar sesión nativa de Google:', e);
+              console.error('Error al ejecutar sanitización nativa:', e);
             }
           }
           return;
@@ -926,6 +932,15 @@ export default function App() {
     }
   }, [clientId]);
 
+  if (mode === 'admin') {
+    return <AdminPanel />;
+  }
+
+  // Si la aplicación fue destruida/finalizada por el administrador
+  if (isAppDestroyed) {
+    return <DestroyedScreen />;
+  }
+
   // Si la licencia está temporalmente pausada
   if (isLicensePaused) {
     const displayPhone = formatPhoneForDisplay(supportPhone);
@@ -976,10 +991,6 @@ export default function App() {
         </div>
       </div>
     );
-  }
-
-  if (mode === 'admin') {
-    return <AdminPanel />;
   }
 
   // Si no está licenciado y no es administrador, mostrar pantalla de activación
