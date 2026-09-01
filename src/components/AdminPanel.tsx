@@ -1188,6 +1188,14 @@ export const AdminPanel: React.FC = () => {
                     else if (instructions.includes('rudo, agresivo, retador, peleonero')) detectedPersonality = 'AGRESIVO Y PELEONERO';
                     else if (instructions.includes('productividad, finanzas, eficiencia ejecutiva')) detectedPersonality = 'EJECUTIVO DE NEGOCIOS';
 
+                    // Detectar voz activa (Hombre o Mujer) directamente de las instrucciones
+                    let detectedVoice: 'male' | 'female' = (client.voice_selection as 'male' | 'female') || 'male';
+                    if (instructions.includes('asistente femenina (mujer)')) {
+                      detectedVoice = 'female';
+                    } else if (instructions.includes('asistente masculino (hombre)')) {
+                      detectedVoice = 'male';
+                    }
+
                     return (
                       <div className="bg-black/80 rounded-2xl p-4 border border-[#d4af37]/30 shadow-[0_0_25px_rgba(212,175,55,0.1)] space-y-3">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#d4af37]/20 pb-3">
@@ -1224,29 +1232,43 @@ export const AdminPanel: React.FC = () => {
                       <button
                         type="button"
                         onClick={async () => {
-                          const currentVoice = client.voice_selection || 'male';
-                          const nextVoice = currentVoice === 'male' ? 'female' : 'male';
-                          setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, voice_selection: nextVoice } : c));
+                          const nextVoice = detectedVoice === 'male' ? 'female' : 'male';
+                          
+                          // Actualizar también la directiva de género en system_instructions
+                          const genderDirective = nextVoice === 'male'
+                            ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
+                            : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
+
+                          let updatedInstructions = client.system_instructions || '';
+                          if (updatedInstructions.includes('GÉNERO E IDENTIDAD:')) {
+                            updatedInstructions = updatedInstructions.replace(/GÉNERO E IDENTIDAD:.*$/m, genderDirective);
+                          } else {
+                            updatedInstructions = `${genderDirective}\n\n${updatedInstructions}`;
+                          }
+
+                          setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, voice_selection: nextVoice, system_instructions: updatedInstructions } : c));
                           showSaveStatus(client.client_id, 'Cambiando voz...', false);
                           try {
                             const { error } = await supabase
                               .from('asistente_config')
-                              .update({ voice_selection: nextVoice } as any)
+                              .update({ 
+                                system_instructions: updatedInstructions 
+                              } as any)
                               .eq('client_id', client.client_id);
                             if (error) throw error;
-                            showSaveStatus(client.client_id, '✓ Voz actualizada', false);
+                            showSaveStatus(client.client_id, '✓ Voz y género actualizados', false);
                           } catch (err: any) {
                             console.error('Error al actualizar voz:', err);
                             showSaveStatus(client.client_id, '⚠ Error al guardar voz', true);
                           }
                         }}
                         className={`px-4 py-2.5 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all duration-300 border shadow-lg cursor-pointer flex items-center justify-center gap-2 active:scale-95 ${
-                          (client.voice_selection || 'male') === 'male'
+                          detectedVoice === 'male'
                             ? 'bg-green-950/40 text-green-300 border-green-500/60 hover:bg-green-900/50 shadow-green-950/30'
                             : 'bg-pink-950/40 text-pink-300 border-pink-400/60 hover:bg-pink-900/50 shadow-pink-950/30'
                         }`}
                       >
-                        {(client.voice_selection || 'male') === 'male' ? (
+                        {detectedVoice === 'male' ? (
                           <>
                             <span>🟢 VOZ DE HOMBRE</span>
                             <span className="text-[9px] text-green-200 font-mono bg-green-900/60 px-2 py-0.5 rounded-md border border-green-400/40">
