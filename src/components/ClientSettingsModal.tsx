@@ -138,6 +138,20 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
     const fullInstructionsWithIdentity = `${identityHeader}${rawBaseInstructions}`;
 
+    // Inyectar en caliente a Google Studio / Android sin reiniciar
+    const cleanMemory = (settings.systemMemory || '').replace(/^\[[^\]]+\]\s*/gm, '');
+    const mergedText = cleanMemory.trim()
+      ? `${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n${cleanMemory}`
+      : fullInstructionsWithIdentity;
+
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
+      try {
+        (window as any).AndroidInterface.updateSystemInstructions(mergedText);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     try {
       await supabase
         .from('asistente_config')
