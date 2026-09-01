@@ -130,11 +130,11 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
 
     // Inyectar en Android / Google Studio en caliente
-    const identityHeader = [IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\nESTILO DE COMUNICACIÓN: \n\n;
+    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
     
     // Limpiar cualquier encabezado previo para no duplicarlo en la base de datos
     const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
-    const fullInstructionsWithIdentity = ${identityHeader};
+    const fullInstructionsWithIdentity = `${identityHeader}${rawBaseInstructions}`;
 
     // 1. Sincronizar inmediatamente con Supabase inyectando al inicio de system_instructions
     try {
