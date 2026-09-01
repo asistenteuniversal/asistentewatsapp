@@ -1150,25 +1150,16 @@ export const AdminPanel: React.FC = () => {
                               Liberar
                             </button>
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">ID:</span>
                             <input
                               type="text"
                               readOnly
                               value={client.hardware_id}
                               title="Haz clic para seleccionar todo"
                               onClick={(e) => (e.target as HTMLInputElement).select()}
-                              className="w-full max-w-[110px] bg-black/60 border border-[#BF953F]/20 rounded-lg px-2 py-1 text-[9px] font-mono text-gray-300 focus:outline-none focus:border-[#FCF6BA] cursor-text text-center"
+                              className="w-full max-w-[145px] bg-black/70 border border-[#BF953F]/30 rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-white focus:outline-none focus:border-[#FCF6BA] cursor-text text-center shadow-inner"
                             />
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(client.hardware_id || '');
-                                alert('¡Clave ID copiada al portapapeles!');
-                              }}
-                              className="text-xs hover:scale-120 active:scale-90 transition duration-150 cursor-pointer"
-                              title="Copiar Clave ID"
-                            >
-                              📋
-                            </button>
                           </div>
                         </div>
                       ) : (
