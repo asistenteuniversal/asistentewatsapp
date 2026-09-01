@@ -257,7 +257,11 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
                   key={preset.id}
                   type="button"
                   onClick={() => handleSelectPersonality(preset)}
-                  className={py-2.5 px-2 rounded-xl font-black text-[10px] sm:text-[11px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 }
+                  className={`py-2.5 px-2 rounded-xl font-black text-[10px] sm:text-[11px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-[#d4af37]/30 via-[#f0d060]/20 to-[#d4af37]/30 text-white border-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.4)] scale-[1.02]'
+                      : 'bg-black/60 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
+                  }`}
                 >
                   {preset.label}
                 </button>
