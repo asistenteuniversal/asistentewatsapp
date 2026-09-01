@@ -31,7 +31,7 @@ export const PERSONALITY_PRESETS = [
   {
     id: 'barrio',
     label: 'ESTILO DE BARRIO',
-    prompt: 'Habla con la chispa, caló y jerga mexicana del meritito barrio popular. IMPORTANTE: Sé simpático pero NUNCA uses groserías, vulgaridades ni albures ofensivos.'
+    prompt: 'Habla con el estilo y el acento del barrio de Tepito y compórtate como una persona de barrio. IMPORTANTE: Sé simpático pero NUNCA uses groserías, vulgaridades ni albures ofensivos.'
   },
   {
     id: 'agresivo',
@@ -44,6 +44,16 @@ export const PERSONALITY_PRESETS = [
     prompt: 'Enfócate en resultados, productividad, finanzas, eficiencia ejecutiva y toma de decisiones corporativas.'
   }
 ];
+
+interface ClientSettingsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  isGoogleLinked: boolean;
+  setIsGoogleLinked: (value: boolean) => void;
+  settings: AppSettings;
+  setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
+  onTriggerSecurityLoading?: () => void;
+}
 
 export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
   isOpen,
@@ -237,8 +247,11 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
       setApplySuccess(true);
       setTimeout(() => {
         onClose();
-      }, 1000);
-    }, 700);
+        if (onTriggerSecurityLoading) {
+          onTriggerSecurityLoading();
+        }
+      }, 700);
+    }, 600);
   };
 
   const handleSendSupport = (e: React.FormEvent) => {

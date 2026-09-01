@@ -1188,11 +1188,15 @@ export default function App() {
       {/* Modal de Ajustes del Cliente (Público) */}
       <ClientSettingsModal
         isOpen={isClientSettingsOpen}
-        onClose={() => setIsClientSettingsOpen(false)}
+        onClose={() => {
+          setIsClientSettingsOpen(false);
+          setIsSystemLoading(true); // Activar línea de carga de seguridad de 4s
+        }}
         isGoogleLinked={isGoogleLinked}
         setIsGoogleLinked={setIsGoogleLinked}
         settings={settings}
         setSettings={setSettings}
+        onTriggerSecurityLoading={() => setIsSystemLoading(true)}
       />
 
       {/* Settings Modal (Administrador) */}

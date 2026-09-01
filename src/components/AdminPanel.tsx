@@ -1184,7 +1184,7 @@ export const AdminPanel: React.FC = () => {
                     if (instructions.includes('culta, distinguida, educada')) detectedPersonality = 'ELEGANTE Y FORMAL';
                     else if (instructions.includes('alegre, amigable, optimista')) detectedPersonality = 'ALEGRE Y AMIGABLE';
                     else if (instructions.includes('directo, conciso y sabio')) detectedPersonality = 'SABIO Y CONCISO';
-                    else if (instructions.includes('barrio popular')) detectedPersonality = 'ESTILO DE BARRIO';
+                    else if (instructions.includes('barrio de Tepito') || instructions.includes('barrio popular')) detectedPersonality = 'ESTILO DE BARRIO';
                     else if (instructions.includes('rudo, agresivo, retador, peleonero')) detectedPersonality = 'AGRESIVO Y PELEONERO';
                     else if (instructions.includes('productividad, finanzas, eficiencia ejecutiva')) detectedPersonality = 'EJECUTIVO DE NEGOCIOS';
 
