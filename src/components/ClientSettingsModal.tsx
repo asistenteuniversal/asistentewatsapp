@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { X, Sliders, CheckCircle2, LogOut, MessageCircle } from 'lucide-react';
 import { AppSettings } from '../types';
 
@@ -70,12 +70,12 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     }
 
     // Fallback estándar en caso de navegador web
-    window.open(https://api.whatsapp.com/send?phone=&text=, '_blank');
+    window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-[#020205]/95 backdrop-blur-2xl flex items-center justify-center p-4 font-sans text-white">
-      <style>{@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');`}</style>
       
       <div 
         className="w-full max-w-sm bg-[#0a0a0f] border border-[#d4af37]/35 rounded-3xl p-6 shadow-[0_0_40px_rgba(212,175,55,0.15)] space-y-5 relative"
