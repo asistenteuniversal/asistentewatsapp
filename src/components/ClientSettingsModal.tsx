@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, LogOut, Send } from 'lucide-react';
+import { X, CheckCircle2, LogOut, Send, Check, Save } from 'lucide-react';
 import { AppSettings } from '../types';
 
 interface ClientSettingsModalProps {
@@ -58,6 +58,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
   const [selectedPersonality, setSelectedPersonality] = useState(() => {
     return localStorage.getItem('ava_custom_personality_id') || 'elegante';
   });
+  const [isNameSaved, setIsNameSaved] = useState(true);
   const [supportMessage, setSupportMessage] = useState('');
   const [isSent, setIsSent] = useState(false);
 
@@ -66,6 +67,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const savedId = localStorage.getItem('ava_custom_personality_id') || 'elegante';
     setAssistantName(savedName);
     setSelectedPersonality(savedId);
+    setIsNameSaved(true);
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -111,9 +113,16 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     localStorage.setItem('ava_custom_personality_prompt', preset.prompt);
   };
 
-  const handleNameChange = (name: string) => {
-    setAssistantName(name);
-    localStorage.setItem('ava_custom_assistant_name', name.trim());
+  const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAssistantName(e.target.value);
+    setIsNameSaved(false); // Cambia a naranja pendiente
+  };
+
+  const handleSaveName = () => {
+    const finalName = assistantName.trim() || 'Asistente';
+    localStorage.setItem('ava_custom_assistant_name', finalName);
+    setAssistantName(assistantName.trim());
+    setIsNameSaved(true); // Cambia a verde guardado
   };
 
   const handleSendSupport = (e: React.FormEvent) => {
@@ -230,18 +239,43 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           </button>
         </div>
 
-        {/* ── SECCIÓN 1: NOMBRE DEL ASISTENTE ── */}
+        {/* ── SECCIÓN 1: NOMBRE DEL ASISTENTE (DIVIDIDO A LA MITAD CON BOTÓN GUARDAR DINÁMICO) ── */}
         <div className="space-y-1 pt-1">
           <label className="text-[11px] font-black tracking-wider text-[#d4af37] uppercase block">
             NOMBRE DE TU ASISTENTE:
           </label>
-          <input
-            type="text"
-            value={assistantName}
-            onChange={(e) => handleNameChange(e.target.value)}
-            placeholder="Escribe aquí el nombre... (Ej: Asistente)"
-            className="w-full bg-[#14141a] border border-[#d4af37]/40 rounded-xl px-3.5 py-2 text-white placeholder-zinc-500 text-xs sm:text-[13px] outline-none focus:border-[#d4af37] font-semibold transition"
-          />
+          <div className="flex items-center gap-2">
+            {/* Mitad 1: Input para escribir el nombre */}
+            <input
+              type="text"
+              value={assistantName}
+              onChange={handleNameInputChange}
+              placeholder="Escribe el nombre aquí..."
+              className="flex-1 bg-[#14141a] border border-[#d4af37]/50 rounded-2xl px-3.5 py-2.5 text-white placeholder-zinc-500 text-xs sm:text-[13px] outline-none focus:border-[#d4af37] font-semibold transition"
+            />
+            {/* Mitad 2: Botón Dinámico Naranja/Verde */}
+            <button
+              type="button"
+              onClick={handleSaveName}
+              className={`px-3.5 py-2.5 rounded-2xl font-black text-[10px] sm:text-[11px] uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95 whitespace-nowrap ${
+                isNameSaved
+                  ? 'bg-emerald-600 border border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]'
+                  : 'bg-orange-500 hover:bg-orange-400 border border-orange-300 text-black font-black animate-pulse shadow-[0_0_15px_rgba(249,115,22,0.5)]'
+              }`}
+            >
+              {isNameSaved ? (
+                <>
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>GUARDADO</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5" />
+                  <span>PRESIONA PARA GUARDAR</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* ── SECCIÓN 2: PERSONALIDADES (6 BOTONES DORADOS ELEGANTES) ── */}
