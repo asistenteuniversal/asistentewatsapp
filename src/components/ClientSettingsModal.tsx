@@ -133,10 +133,10 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
       ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
       : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
-    const identityHeader = [IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n\nESTILO DE COMUNICACIÓN: \n\n;
+    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${genderDirective}\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
     
     const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
-    const fullInstructionsWithIdentity = ${identityHeader};
+    const fullInstructionsWithIdentity = `${identityHeader}${rawBaseInstructions}`;
 
     try {
       await supabase
@@ -175,10 +175,10 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
       ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
       : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
-    const identityHeader = [IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n\nESTILO DE COMUNICACIÓN: \n\n;
+    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${genderDirective}\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
     
     const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
-    const fullInstructionsWithIdentity = ${identityHeader};
+    const fullInstructionsWithIdentity = `${identityHeader}${rawBaseInstructions}`;
 
     try {
       await supabase
