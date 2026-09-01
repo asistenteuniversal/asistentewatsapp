@@ -515,17 +515,26 @@ export default function App() {
           });
 
           // 1. Inyectar primero en Android las instrucciones limpias/actualizadas para que Java lo guarde en memoria
-          const currentInstructions = isUpdateOrder ? (data.system_instructions || '') : (settings.systemInstructions || '');
+          const baseInstructions = isUpdateOrder ? (data.system_instructions || '') : (settings.systemInstructions || '');
           const currentMemory = isClearOrder ? '' : (settings.systemMemory || '');
           const cleanMemory = currentMemory.replace(/^\[[^\]]+\]\s*/gm, '');
+
+          // Extraer personalización elegida por el cliente (Nombre y Personalidad)
+          const customName = localStorage.getItem('ava_custom_assistant_name') || (data as any)?.assistant_name || 'Asistente';
+          const customPersonalityPrompt = localStorage.getItem('ava_custom_personality_prompt') || 'Habla de forma muy culta, distinguida, educada y profesional. Usa un vocabulario refinado y respetuoso.';
+
+          const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${customName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\nESTILO DE COMUNICACIÓN: ${customPersonalityPrompt}\n\n`;
+
+          const fullInstructionsWithIdentity = `${identityHeader}${baseInstructions}`;
+
           const mergedText = cleanMemory.trim()
-            ? `${currentInstructions}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO (Esta es tu memoria de lo que platicaste anteriormente con la persona con la que estás hablando. No repitas nada de lo que está aquí, son solo tus recuerdos de hoy. Es información confidencial de tu pasado inmediato, úsala solo como referencia para responder)]: \n${cleanMemory}`
-            : currentInstructions;
+            ? `${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO (Esta es tu memoria de lo que platicaste anteriormente con la persona con la que estás hablando. No repitas nada de lo que está aquí, son solo tus recuerdos de hoy. Es información confidencial de tu pasado inmediato, úsala solo como referencia para responder)]: \n${cleanMemory}`
+            : fullInstructionsWithIdentity;
 
           if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
             try {
               (window as any).AndroidInterface.updateSystemInstructions(mergedText);
-              console.log('[Sincronización] Instrucciones y memoria limpia enviadas a Java exitosamente.');
+              console.log('[Sincronización] Instrucciones con identidad y memoria limpia enviadas a Java exitosamente.');
             } catch (e) {
               console.error('Error inyectando instrucciones a Java:', e);
             }
