@@ -453,8 +453,8 @@ export default function App() {
           const isAutonomous = cloudMemoryDays === -1;
 
           // Órdenes específicas de sincronización
-          const isClearOrder = data.system_memory === 'CLEAR';
-          const isUpdateOrder = data.system_memory === 'UPDATE_INSTRUCTIONS';
+          const isClearOrder = data.system_memory === 'CLEAR' || data.system_memory === 'UPDATE_AND_CLEAR';
+          const isUpdateOrder = data.system_memory === 'UPDATE_INSTRUCTIONS' || data.system_memory === 'UPDATE_AND_CLEAR';
 
           setSettings((prev) => {
             const nextDays = cloudMemoryDays;

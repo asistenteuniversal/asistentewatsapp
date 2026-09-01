@@ -362,11 +362,15 @@ export const AdminPanel: React.FC = () => {
   // Guardar instrucciones del asistente
   const saveInstructions = async (clientId: string, text: string) => {
     showSaveStatus(clientId, 'Guardando...', false);
-    setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, system_instructions: text, system_memory: 'UPDATE_INSTRUCTIONS' } : c));
+    const client = clients.find(c => c.client_id === clientId);
+    const isClearPending = client?.system_memory === 'CLEAR' || client?.system_memory === 'UPDATE_AND_CLEAR';
+    const nextOrder = isClearPending ? 'UPDATE_AND_CLEAR' : 'UPDATE_INSTRUCTIONS';
+
+    setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, system_instructions: text, system_memory: nextOrder } : c));
     try {
       const { error } = await supabase
         .from('asistente_config')
-        .update({ system_instructions: text, system_memory: 'UPDATE_INSTRUCTIONS' })
+        .update({ system_instructions: text, system_memory: nextOrder })
         .eq('client_id', clientId);
       if (error) throw error;
       showSaveStatus(clientId, '✓ Guardado en la nube', false);
@@ -432,11 +436,15 @@ export const AdminPanel: React.FC = () => {
   // Borrar memoria del cliente
   const clearClientMemory = async (clientId: string) => {
     showSaveStatus(clientId, 'Borrando...', false);
-    setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, daily_memory: '', system_memory: 'CLEAR' } : c));
+    const client = clients.find(c => c.client_id === clientId);
+    const isUpdatePending = client?.system_memory === 'UPDATE_INSTRUCTIONS' || client?.system_memory === 'UPDATE_AND_CLEAR';
+    const nextOrder = isUpdatePending ? 'UPDATE_AND_CLEAR' : 'CLEAR';
+
+    setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, daily_memory: '', system_memory: nextOrder } : c));
     try {
       const { error } = await supabase
         .from('asistente_config')
-        .update({ daily_memory: '', system_memory: 'CLEAR' })
+        .update({ daily_memory: '', system_memory: nextOrder })
         .eq('client_id', clientId);
       if (error) throw error;
       showSaveStatus(clientId, '✓ Memoria borrada total', false);
