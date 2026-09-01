@@ -217,11 +217,13 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
       )}
 
       {/* ── BOTÓN FLOTANTE: ACTUALIZACIÓN DISPONIBLE (Oro metálico y fondo negro) ── */}
-      {updateAvailable && (
+      {updateAvailable && !isSystemLoading && (
         <div className="absolute bottom-[31%] left-1/2 -translate-x-1/2 z-30">
           <button
             type="button"
+            disabled={isSystemLoading}
             onClick={() => {
+              if (isSystemLoading) return;
               if ((window as any).AndroidInterface && (window as any).AndroidInterface.triggerApkUpdate) {
                 try {
                   (window as any).AndroidInterface.triggerApkUpdate();
