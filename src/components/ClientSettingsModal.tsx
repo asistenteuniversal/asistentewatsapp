@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, LogOut, Send } from 'lucide-react';
 import { AppSettings } from '../types';
 
@@ -11,6 +11,39 @@ interface ClientSettingsModalProps {
   setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
 }
 
+export const PERSONALITY_PRESETS = [
+  {
+    id: 'elegante',
+    label: 'ELEGANTE Y FORMAL',
+    prompt: 'Habla de forma muy culta, distinguida, educada y profesional. Usa un vocabulario refinado y respetuoso.'
+  },
+  {
+    id: 'alegre',
+    label: 'ALEGRE Y AMIGABLE',
+    prompt: 'Sé sumamente entusiasta, alegre, amigable, optimista y cercano en cada una de tus respuestas.'
+  },
+  {
+    id: 'conciso',
+    label: 'SABIO Y CONCISO',
+    prompt: 'Sé directo, conciso y sabio. Responde sin rodeos, con claridad absoluta y al grano.'
+  },
+  {
+    id: 'barrio',
+    label: 'ESTILO DE BARRIO',
+    prompt: 'Habla con la chispa, caló y jerga mexicana del meritito barrio popular. IMPORTANTE: Sé simpático pero NUNCA uses groserías, vulgaridades ni albures ofensivos.'
+  },
+  {
+    id: 'tranquilo',
+    label: 'CALMADO Y TRANQUILO',
+    prompt: 'Habla de forma serena, paciente, relajante y tranquila, transmitiendo paz y calma en todo momento.'
+  },
+  {
+    id: 'ejecutivo',
+    label: 'EJECUTIVO DE NEGOCIOS',
+    prompt: 'Enfócate en resultados, productividad, finanzas, eficiencia ejecutiva y toma de decisiones corporativas.'
+  }
+];
+
 export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
   isOpen,
   onClose,
@@ -19,12 +52,24 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
   settings,
   setSettings,
 }) => {
+  const [assistantName, setAssistantName] = useState(() => {
+    return localStorage.getItem('ava_custom_assistant_name') || '';
+  });
+  const [selectedPersonality, setSelectedPersonality] = useState(() => {
+    return localStorage.getItem('ava_custom_personality_id') || 'elegante';
+  });
   const [supportMessage, setSupportMessage] = useState('');
   const [isSent, setIsSent] = useState(false);
 
+  useEffect(() => {
+    const savedName = localStorage.getItem('ava_custom_assistant_name') || '';
+    const savedId = localStorage.getItem('ava_custom_personality_id') || 'elegante';
+    setAssistantName(savedName);
+    setSelectedPersonality(savedId);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  // Consultar directamente a las cookies reales de la APK de Java en caliente al abrir el modal
   const activeLinkedState = (window as any).AndroidInterface && (window as any).AndroidInterface.isGoogleSessionActive
     ? (window as any).AndroidInterface.isGoogleSessionActive()
     : isGoogleLinked;
@@ -59,6 +104,18 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     }
   };
 
+  const handleSelectPersonality = (preset: typeof PERSONALITY_PRESETS[0]) => {
+    setSelectedPersonality(preset.id);
+    localStorage.setItem('ava_custom_personality_id', preset.id);
+    localStorage.setItem('ava_custom_personality_label', preset.label);
+    localStorage.setItem('ava_custom_personality_prompt', preset.prompt);
+  };
+
+  const handleNameChange = (name: string) => {
+    setAssistantName(name);
+    localStorage.setItem('ava_custom_assistant_name', name.trim());
+  };
+
   const handleSendSupport = (e: React.FormEvent) => {
     e.preventDefault();
     if (!supportMessage.trim()) return;
@@ -82,14 +139,14 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#020205]/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-4 font-sans text-white">
+    <div className="fixed inset-0 z-50 bg-[#020205]/95 backdrop-blur-2xl flex items-center justify-center p-2 sm:p-4 font-sans text-white">
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');`}</style>
       
       <div 
-        className="w-full max-w-md bg-[#0a0a0f] border border-[#d4af37]/40 rounded-3xl p-4 sm:p-5 shadow-[0_0_50px_rgba(212,175,55,0.2)] space-y-3.5 relative max-h-[96vh] overflow-y-auto"
+        className="w-full max-w-md bg-[#0a0a0f] border border-[#d4af37]/40 rounded-3xl p-4 sm:p-5 shadow-[0_0_50px_rgba(212,175,55,0.2)] space-y-3.5 relative max-h-[96vh] overflow-y-auto select-none"
         style={{ fontFamily: "'Outfit', sans-serif" }}
       >
-        {/* Header - Título limpio en oro */}
+        {/* Header */}
         <div className="flex items-center justify-between border-b border-[#d4af37]/25 pb-2.5">
           <h2 className="font-extrabold text-sm sm:text-base tracking-widest uppercase text-[#d4af37]">
             Ajustes y Asistencia
@@ -102,13 +159,13 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           </button>
         </div>
 
-        {/* Buttons List */}
+        {/* Bloque Superior de Botones de Cuenta y Voz */}
         <div className="space-y-2.5">
           {/* 1. Botón: Estado de Cuenta Google */}
           {activeLinkedState ? (
             <button
               disabled
-              className="w-full py-3 px-4 rounded-2xl border border-emerald-500/40 bg-emerald-950/20 text-emerald-400 font-extrabold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 focus:outline-none cursor-default shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+              className="w-full py-2.5 px-4 rounded-2xl border border-emerald-500/40 bg-emerald-950/20 text-emerald-400 font-extrabold text-xs sm:text-[13px] tracking-wider uppercase flex items-center justify-center gap-2 focus:outline-none cursor-default shadow-[0_0_15px_rgba(16,185,129,0.15)]"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               Cuenta Vinculada Correctamente
@@ -130,13 +187,13 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           {/* 2. Botón: Cerrar Sesión de Gmail en 2 LÍNEAS */}
           <button
             onClick={handleLogoutGoogle}
-            className="w-full py-2.5 px-4 rounded-2xl bg-red-600 hover:bg-red-500 border-2 border-red-400 text-white transition duration-200 flex flex-col items-center justify-center active:scale-98 focus:outline-none cursor-pointer shadow-[0_0_20px_rgba(220,38,38,0.4)] leading-tight"
+            className="w-full py-2 px-4 rounded-2xl bg-red-600 hover:bg-red-500 border-2 border-red-400 text-white transition duration-200 flex flex-col items-center justify-center active:scale-98 focus:outline-none cursor-pointer shadow-[0_0_20px_rgba(220,38,38,0.4)] leading-tight"
           >
-            <div className="flex items-center gap-1.5 font-black text-xs sm:text-[13px] uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 font-black text-xs sm:text-[12px] uppercase tracking-wider">
               <LogOut className="w-3.5 h-3.5 text-white" />
               <span>CERRAR SESIÓN DE GMAIL</span>
             </div>
-            <span className="text-[10px] sm:text-[11px] font-bold text-red-100 uppercase tracking-wide mt-0.5">
+            <span className="text-[9px] sm:text-[10px] font-bold text-red-100 uppercase tracking-wide mt-0.5">
               (PRESIONA PARA CAMBIAR TU CORREO)
             </span>
           </button>
@@ -158,26 +215,58 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
                 }
               }
             }}
-            className={`w-full py-2.5 px-4 rounded-2xl transition duration-200 flex flex-col items-center justify-center border shadow-lg cursor-pointer leading-tight active:scale-98 ${
-              settings.voiceMaleEnabled
-                ? 'bg-green-950/30 text-green-400 border-green-500/40 hover:bg-green-950/50 shadow-green-950/20'
-                : 'bg-pink-950/30 text-pink-300 border-pink-400/50 hover:bg-pink-950/50 shadow-pink-950/20'
-            }`}
+            className={w-full py-2 px-4 rounded-2xl transition duration-200 flex flex-col items-center justify-center border shadow-lg cursor-pointer leading-tight active:scale-98 }
           >
-            <span className="font-black text-xs sm:text-[13px] uppercase tracking-wider">
+            <span className="font-black text-xs sm:text-[12px] uppercase tracking-wider">
               {settings.voiceMaleEnabled ? '🟢 VOZ DE HOMBRE' : '🌸 VOZ DE MUJER'}
             </span>
-            <span className="text-[10px] sm:text-[11px] font-bold opacity-90 uppercase tracking-wide mt-0.5">
+            <span className="text-[9px] sm:text-[10px] font-bold opacity-90 uppercase tracking-wide mt-0.5">
               {settings.voiceMaleEnabled ? '(PRESIONA PARA CAMBIAR A VOZ DE MUJER)' : '(PRESIONA PARA CAMBIAR A VOZ DE HOMBRE)'}
             </span>
           </button>
         </div>
 
-        {/* ── CUADRO 4: SOPORTE Y ASISTENCIA (VERDE WHATSAPP OFICIAL PROFESIONAL) ── */}
+        {/* ── SECCIÓN 1: NOMBRE DEL ASISTENTE ── */}
+        <div className="space-y-1 pt-1">
+          <label className="text-[11px] font-black tracking-wider text-[#d4af37] uppercase block">
+            NOMBRE DE TU ASISTENTE:
+          </label>
+          <input
+            type="text"
+            value={assistantName}
+            onChange={(e) => handleNameChange(e.target.value)}
+            placeholder="Escribe aquí el nombre... (Ej: Asistente)"
+            className="w-full bg-[#14141a] border border-[#d4af37]/40 rounded-xl px-3.5 py-2 text-white placeholder-zinc-500 text-xs sm:text-[13px] outline-none focus:border-[#d4af37] font-semibold transition"
+          />
+        </div>
+
+        {/* ── SECCIÓN 2: PERSONALIDADES (6 BOTONES DORADOS ELEGANTES) ── */}
+        <div className="space-y-1.5 pt-1">
+          <label className="text-[11px] font-black tracking-wider text-[#d4af37] uppercase block">
+            ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE?
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {PERSONALITY_PRESETS.map((preset) => {
+              const isSelected = selectedPersonality === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => handleSelectPersonality(preset)}
+                  className={py-2.5 px-2 rounded-xl font-black text-[10px] sm:text-[11px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 }
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── CUADRO 4: SOPORTE Y ASISTENCIA (ESTILO WHATSAPP DARK PROFESIONAL) ── */}
         <div className="rounded-3xl border-2 border-[#25D366] bg-[#0b141a] overflow-hidden shadow-[0_0_30px_rgba(37,211,102,0.25)] font-sans mt-2">
-          {/* Cabecera Verde WhatsApp Clásica */}
+          {/* Cabecera WhatsApp */}
           <div className="bg-[#1f2c34] px-4 py-2.5 flex items-center justify-between border-b border-[#25D366]/30">
-            <p className="text-sm font-extrabold text-white tracking-wide">
+            <p className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
               Soporte y Asistencia
             </p>
             
@@ -189,7 +278,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
             </div>
           </div>
 
-          {/* Cuerpo del Chat Estilo WhatsApp Dark Oficial */}
+          {/* Cuerpo del Chat */}
           <div className="p-3.5 space-y-2.5 bg-[#0b141a]">
             {/* Mensaje de Bienvenida */}
             <div className="flex items-start">
@@ -215,8 +304,8 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
                 type="text"
                 value={supportMessage}
                 onChange={(e) => setSupportMessage(e.target.value)}
-                placeholder="Escribe un mensaje aquí..."
-                className="flex-1 bg-[#2a3942] border border-white/15 rounded-2xl px-3.5 py-2.5 text-white placeholder-zinc-400 text-xs sm:text-[13px] outline-none focus:border-[#25D366] transition font-sans shadow-inner"
+                placeholder="Escribe tu mensaje aquí..."
+                className="flex-1 bg-[#2a3942] border border-white/15 rounded-2xl px-3.5 py-2 text-white placeholder-zinc-400 text-xs sm:text-[12px] outline-none focus:border-[#25D366] transition font-sans shadow-inner"
               />
               <button
                 type="submit"
