@@ -1343,14 +1343,16 @@ export const AdminPanel: React.FC = () => {
                     </div>
                     <textarea
                       id={`instructions-${client.client_id}`}
-                      defaultValue={client.system_instructions}
+                      value={client.system_instructions || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, system_instructions: val } : c));
+                      }}
                       placeholder="Escribe el comportamiento del asistente aquí..."
                       rows={12}
                       className="w-full bg-black border border-[#BF953F]/25 rounded-2xl p-4 text-base text-white font-sans font-medium leading-relaxed focus:outline-none focus:border-[#FCF6BA] transition duration-300 shadow-inner"
                       onBlur={(e) => {
-                        if (e.target.value !== client.system_instructions) {
-                          saveInstructions(client.client_id, e.target.value);
-                        }
+                        saveInstructions(client.client_id, e.target.value);
                       }}
                     />
                   </div>
