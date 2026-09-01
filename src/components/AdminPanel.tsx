@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { DiagnosticModal } from './DiagnosticModal';
 
-// Definición local de la estructura del cliente incluyendo la columna de celular
 interface ClientConfigRow {
   client_id: string;
   system_instructions: string;
@@ -19,6 +18,9 @@ interface ClientConfigRow {
   daily_memory?: string | null;
   memory_days?: number | null;
   sync_memory_to_device?: boolean | null;
+  assistant_name?: string | null;
+  personality_style?: string | null;
+  voice_selection?: string | null;
 }
 
 export const AdminPanel: React.FC = () => {
@@ -1168,6 +1170,83 @@ export const AdminPanel: React.FC = () => {
                           />
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  {/* ── FRANJA DE PERSONALIZACIÓN DEL ASISTENTE Y SELECTOR DE VOZ (ALGIEBA / ZEPHYR) ── */}
+                  <div className="bg-black/80 rounded-2xl p-4 border border-[#d4af37]/30 shadow-[0_0_25px_rgba(212,175,55,0.1)] space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#d4af37]/20 pb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-[#FCF6BA] font-extrabold uppercase tracking-widest">
+                          🏷️ NOMBRE ELEGIDO POR EL CLIENTE:
+                        </span>
+                        <span className="px-3 py-1 bg-[#d4af37]/15 border border-[#d4af37]/40 rounded-xl text-white font-black text-xs font-mono shadow-sm">
+                          {client.assistant_name || 'Asistente (Predeterminado)'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-[#FCF6BA] font-extrabold uppercase tracking-widest">
+                          🎭 PERSONALIDAD ACTIVA:
+                        </span>
+                        <span className="px-3 py-1 bg-gradient-to-r from-[#d4af37]/20 to-amber-950/40 border border-[#d4af37]/40 rounded-xl text-[#FCF6BA] font-black text-xs uppercase tracking-wider shadow-sm">
+                          {client.personality_style || 'ELEGANTE Y FORMAL'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Selector de Voz Espejo con Nombres Técnicos para el Administrador */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                      <div>
+                        <p className="text-[10px] text-gray-300 font-extrabold uppercase tracking-wider">
+                          🎙️ CONTROL DE VOZ MAESTRO (GOOGLE AI STUDIO):
+                        </p>
+                        <p className="text-[9px] text-gray-500">
+                          Cambia la voz del asistente entre Algieba (Hombre) y Zephyr (Mujer).
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const currentVoice = client.voice_selection || 'male';
+                          const nextVoice = currentVoice === 'male' ? 'female' : 'male';
+                          setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, voice_selection: nextVoice } : c));
+                          showSaveStatus(client.client_id, 'Cambiando voz...', false);
+                          try {
+                            const { error } = await supabase
+                              .from('asistente_config')
+                              .update({ voice_selection: nextVoice } as any)
+                              .eq('client_id', client.client_id);
+                            if (error) throw error;
+                            showSaveStatus(client.client_id, '✓ Voz actualizada', false);
+                          } catch (err: any) {
+                            console.error('Error al actualizar voz:', err);
+                            showSaveStatus(client.client_id, '⚠ Error al guardar voz', true);
+                          }
+                        }}
+                        className={`px-4 py-2.5 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all duration-300 border shadow-lg cursor-pointer flex items-center justify-center gap-2 active:scale-95 ${
+                          (client.voice_selection || 'male') === 'male'
+                            ? 'bg-green-950/40 text-green-300 border-green-500/60 hover:bg-green-900/50 shadow-green-950/30'
+                            : 'bg-pink-950/40 text-pink-300 border-pink-400/60 hover:bg-pink-900/50 shadow-pink-950/30'
+                        }`}
+                      >
+                        {(client.voice_selection || 'male') === 'male' ? (
+                          <>
+                            <span>🟢 VOZ DE HOMBRE</span>
+                            <span className="text-[9px] text-green-200 font-mono bg-green-900/60 px-2 py-0.5 rounded-md border border-green-400/40">
+                              (ALGIEBA)
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span>🌸 VOZ DE MUJER</span>
+                            <span className="text-[9px] text-pink-200 font-mono bg-pink-900/60 px-2 py-0.5 rounded-md border border-pink-400/40">
+                              (ZEPHYR)
+                            </span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
 
