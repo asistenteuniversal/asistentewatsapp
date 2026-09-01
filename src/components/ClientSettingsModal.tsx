@@ -109,11 +109,53 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     }
   };
 
+  // 🎙️ CAMBIO INSTANTÁNEO DE VOZ Y GÉNERO A SUPABASE Y JAVA SIN ESPERAR BOTÓN DE GUARDAR
+  const handleToggleVoiceInstant = async () => {
+    const nextVoiceMale = !settings.voiceMaleEnabled;
+    setSettings((prev) => ({
+      ...prev,
+      voiceMaleEnabled: nextVoiceMale
+    }));
+
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateVoiceOption) {
+      try {
+        (window as any).AndroidInterface.updateVoiceOption(nextVoiceMale);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
+    const finalName = (assistantName.trim() || localStorage.getItem('ava_custom_assistant_name') || 'Asistente');
+    const activePreset = PERSONALITY_PRESETS.find(p => p.id === selectedPersonality) || PERSONALITY_PRESETS[0];
+
+    const genderDirective = nextVoiceMale
+      ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
+      : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
+
+    const identityHeader = [IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n\nESTILO DE COMUNICACIÓN: \n\n;
+    
+    const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
+    const fullInstructionsWithIdentity = ${identityHeader};
+
+    try {
+      await supabase
+        .from('asistente_config')
+        .update({
+          system_instructions: fullInstructionsWithIdentity
+        })
+        .eq('client_id', clientId);
+      console.log('[Supabase] Voz y género actualizados instantáneamente en la nube.');
+    } catch (errSupabase) {
+      console.warn('[Supabase] Error actualizando voz en Supabase:', errSupabase);
+    }
+  };
+
   const handleSelectPersonality = (preset: typeof PERSONALITY_PRESETS[0]) => {
     setSelectedPersonality(preset.id);
   };
 
-  // 🚀 FUNCIÓN MAESTRA: GUARDAR Y APLICAR CAMBIOS EN VIVO A SUPABASE Y GOOGLE STUDIO
+  // 🚀 FUNCIÓN MAESTRA: GUARDAR Y APLICAR NOMBRE Y PERSONALIDAD EN VIVO
   const handleSaveAndApplyAll = async () => {
     setIsApplyingChanges(true);
     setApplySuccess(false);
@@ -129,14 +171,15 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
     const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
 
-    // Inyectar en Android / Google Studio en caliente
-    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
-    
-    // Limpiar cualquier encabezado previo para no duplicarlo en la base de datos
-    const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
-    const fullInstructionsWithIdentity = `${identityHeader}${rawBaseInstructions}`;
+    const genderDirective = settings.voiceMaleEnabled
+      ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
+      : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
-    // 1. Sincronizar inmediatamente con Supabase inyectando al inicio de system_instructions
+    const identityHeader = [IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n\nESTILO DE COMUNICACIÓN: \n\n;
+    
+    const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
+    const fullInstructionsWithIdentity = ${identityHeader};
+
     try {
       await supabase
         .from('asistente_config')
@@ -156,7 +199,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
     const cleanMemory = (settings.systemMemory || '').replace(/^\[[^\]]+\]\s*/gm, '');
     const mergedText = cleanMemory.trim()
-      ? `${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n${cleanMemory}`
+      ? ${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n
       : fullInstructionsWithIdentity;
 
     if ((window as any).AndroidInterface) {
@@ -175,7 +218,6 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
       }
     }
 
-    // 3. Confirmación visual y cierre
     setTimeout(() => {
       setIsApplyingChanges(false);
       setApplySuccess(true);
@@ -267,23 +309,10 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
             </span>
           </button>
 
-          {/* 3. Botón: Selector de Voz en 2 LÍNEAS */}
+          {/* 3. Botón: Selector de Voz INSTANTÁNEO en 2 LÍNEAS */}
           <button
             type="button"
-            onClick={() => {
-              const nextVal = !settings.voiceMaleEnabled;
-              setSettings((prev) => ({
-                ...prev,
-                voiceMaleEnabled: nextVal
-              }));
-              if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateVoiceOption) {
-                try {
-                  (window as any).AndroidInterface.updateVoiceOption(nextVal);
-                } catch (e) {
-                  console.error(e);
-                }
-              }
-            }}
+            onClick={handleToggleVoiceInstant}
             className={`w-full py-2 px-4 rounded-2xl transition duration-200 flex flex-col items-center justify-center border shadow-lg cursor-pointer leading-tight active:scale-98 ${
               settings.voiceMaleEnabled
                 ? 'bg-green-950/30 text-green-400 border-green-500/40 hover:bg-green-950/50 shadow-green-950/20'
@@ -299,53 +328,54 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           </button>
         </div>
 
-        {/* ── SECCIÓN 1: NOMBRE DEL ASISTENTE (CAMPO COMPLETO LIMPIO SIN BOTÓN EXTRA) ── */}
-        <div className="space-y-1 pt-1">
-          <label className="text-[11px] font-black tracking-wider text-[#d4af37] uppercase block">
-            NOMBRE DE TU ASISTENTE:
-          </label>
-          <input
-            type="text"
-            value={assistantName}
-            onChange={(e) => setAssistantName(e.target.value)}
-            placeholder="Escribe el nombre de tu asistente aquí... (Ej: Asistente)"
-            className="w-full bg-[#14141a] border border-[#d4af37]/50 rounded-2xl px-3.5 py-2.5 text-white placeholder-zinc-500 text-xs sm:text-[13px] outline-none focus:border-[#d4af37] font-semibold transition"
-          />
-        </div>
-
-        {/* ── SECCIÓN 2: PERSONALIDADES (6 BOTONES DORADOS ELEGANTES) ── */}
-        <div className="space-y-1 pt-1">
-          <label className="text-[11px] font-black tracking-wider text-[#d4af37] uppercase block">
-            ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE?
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {PERSONALITY_PRESETS.map((preset) => {
-              const isSelected = selectedPersonality === preset.id;
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => handleSelectPersonality(preset)}
-                  className={`py-2 px-2 rounded-xl font-black text-[10px] sm:text-[11px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 ${
-                    isSelected
-                      ? 'bg-gradient-to-r from-[#d4af37]/30 via-[#f0d060]/20 to-[#d4af37]/30 text-white border-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.4)] scale-[1.02]'
-                      : 'bg-black/60 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              );
-            })}
+        {/* ── CUADRO INTEGRADO: PERSONALIZACIÓN DEL ASISTENTE Y BOTÓN DE APLICAR ── */}
+        <div className="rounded-2xl border border-[#d4af37]/40 bg-black/40 p-3 sm:p-3.5 space-y-2.5 shadow-[0_0_20px_rgba(212,175,55,0.1)]">
+          {/* SECCIÓN: NOMBRE DEL ASISTENTE */}
+          <div className="space-y-1">
+            <label className="text-[10px] sm:text-[11px] font-black tracking-wider text-[#d4af37] uppercase block">
+              NOMBRE DE TU ASISTENTE:
+            </label>
+            <input
+              type="text"
+              value={assistantName}
+              onChange={(e) => setAssistantName(e.target.value)}
+              placeholder="Escribe el nombre de tu asistente aquí... (Ej: Asistente)"
+              className="w-full bg-[#14141a] border border-[#d4af37]/50 rounded-xl px-3 py-2 text-white placeholder-zinc-500 text-xs sm:text-[13px] outline-none focus:border-[#d4af37] font-semibold transition"
+            />
           </div>
-        </div>
 
-        {/* ── 🚀 BOTÓN MAESTRO: GUARDAR Y APLICAR CAMBIOS EN VIVO ── */}
-        <div className="pt-1">
+          {/* SECCIÓN: PERSONALIDADES (6 BOTONES DORADOS ELEGANTES) */}
+          <div className="space-y-1">
+            <label className="text-[10px] sm:text-[11px] font-black tracking-wider text-[#d4af37] uppercase block">
+              ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE?
+            </label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {PERSONALITY_PRESETS.map((preset) => {
+                const isSelected = selectedPersonality === preset.id;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => handleSelectPersonality(preset)}
+                    className={`py-2 px-2 rounded-xl font-black text-[9px] sm:text-[10px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-[#d4af37]/30 via-[#f0d060]/20 to-[#d4af37]/30 text-white border-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.4)] scale-[1.02]'
+                        : 'bg-black/60 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 🚀 BOTÓN MAESTRO DENTRO DEL CUADRO: GUARDAR Y APLICAR CAMBIOS EN VIVO */}
           <button
             type="button"
             disabled={isApplyingChanges}
             onClick={handleSaveAndApplyAll}
-            className={`w-full py-3 px-4 rounded-2xl font-black text-xs sm:text-[13px] uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-98 border ${
+            className={`w-full py-2.5 px-4 rounded-xl font-black text-xs sm:text-[12px] uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-98 border mt-1 ${
               applySuccess
                 ? 'bg-emerald-500 text-black border-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.6)] animate-pulse'
                 : isApplyingChanges
