@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { X, CheckCircle2, LogOut, Send, Bot } from 'lucide-react';
 import { AppSettings } from '../types';
 
@@ -83,7 +83,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-[#020205]/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-4 font-sans text-white">
-      <style>{@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');`}</style>
       
       <div 
         className="w-full max-w-md bg-[#0a0a0f] border border-[#d4af37]/40 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(212,175,55,0.2)] space-y-4 relative max-h-[95vh] overflow-y-auto"
