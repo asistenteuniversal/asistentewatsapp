@@ -1196,7 +1196,7 @@ export const AdminPanel: React.FC = () => {
                           COMPORTAMIENTO ASISTENTE
                         </label>
                         {/* Foquito de Estado de Actualización en el Celular */}
-                        {client.system_memory === 'UPDATE_INSTRUCTIONS' ? (
+                        {client.system_memory === 'UPDATE_INSTRUCTIONS' || client.system_memory === 'UPDATE_AND_CLEAR' ? (
                           <span className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.25)]">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                             <span>🟠 ACTUALIZACIÓN EN CURSO</span>
@@ -1244,7 +1244,7 @@ export const AdminPanel: React.FC = () => {
                           Memoria de Conversación
                         </label>
                         {/* Foquito de Estado de Borrado de Memoria en el Celular */}
-                        {client.system_memory === 'CLEAR' ? (
+                        {client.system_memory === 'CLEAR' || client.system_memory === 'UPDATE_AND_CLEAR' ? (
                           <span className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.25)]">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                             <span>🟠 BORRADO PENDIENTE</span>
