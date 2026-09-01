@@ -1182,6 +1182,8 @@ export default function App() {
         onClose={() => setIsClientSettingsOpen(false)}
         isGoogleLinked={isGoogleLinked}
         setIsGoogleLinked={setIsGoogleLinked}
+        settings={settings}
+        setSettings={setSettings}
       />
 
       {/* Settings Modal (Administrador) */}
