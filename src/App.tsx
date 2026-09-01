@@ -296,6 +296,43 @@ export default function App() {
     },
   ]);
 
+  // Auto-reconocimiento por Hardware ID al arrancar si no hay clientId en el baúl local
+  useEffect(() => {
+    const checkAutoLoginByHardwareId = async () => {
+      const savedClientId = localStorage.getItem('ava_client_id');
+      if (savedClientId) return;
+
+      try {
+        let currentHwId = '';
+        if ((window as any).AndroidInterface && (window as any).AndroidInterface.getDeviceId) {
+          try {
+            currentHwId = (window as any).AndroidInterface.getDeviceId();
+          } catch (e) {
+            console.error("Error al obtener ID de dispositivo nativo:", e);
+          }
+        }
+        if (!currentHwId) return;
+
+        const { data, error } = await supabase
+          .from('asistente_config')
+          .select('client_id, client_name, is_active')
+          .eq('hardware_id', currentHwId)
+          .eq('is_active', true)
+          .single();
+
+        if (!error && data && data.client_id) {
+          console.log('[AutoLogin] Dispositivo reconocido por Hardware ID:', data.client_name);
+          localStorage.setItem('ava_client_id', data.client_id);
+          localStorage.setItem('ava_client_name', data.client_name);
+          setClientId(data.client_id);
+        }
+      } catch (err) {
+        console.warn('AutoLogin check failed:', err);
+      }
+    };
+    checkAutoLoginByHardwareId();
+  }, []);
+
   // Cargar Ajustes desde el almacenamiento local persistente (localStorage) del celular
   const [settings, setSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem('neonSettings');
@@ -313,7 +350,7 @@ export default function App() {
       autoStartVoice: false,
       showIframeFallback: false,
       bridgeEnabled: true,
-      systemInstructions: 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.',
+      systemInstructions: '',
       systemMemory: '',
       memorySaveDate: new Date().toDateString(),
       memoryDays: 2,
@@ -425,10 +462,9 @@ export default function App() {
             const nextMemory = isClearOrder ? '' : (prev.systemMemory || '');
             
             // Si es una orden de actualizar comportamiento, o si el celular no tiene aún comportamiento local configurado
-            const defaultPrompt = 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.';
-            const hasLocalInstructions = prev.systemInstructions && prev.systemInstructions !== defaultPrompt;
+            const hasLocalInstructions = !!prev.systemInstructions;
             const nextInstructions = (isUpdateOrder || !hasLocalInstructions) 
-              ? (data.system_instructions || defaultPrompt)
+              ? (data.system_instructions || '')
               : prev.systemInstructions;
 
             // Evitar ciclos de render innecesarios
@@ -449,8 +485,7 @@ export default function App() {
           });
 
           // 1. Inyectar primero en Android las instrucciones limpias/actualizadas para que Java lo guarde en memoria
-          const defaultPrompt = 'Eres un asistente de voz inteligente, servicial y amigable. Responde de forma clara, concisa y directa en español.';
-          const currentInstructions = isUpdateOrder ? (data.system_instructions || defaultPrompt) : (settings.systemInstructions || defaultPrompt);
+          const currentInstructions = isUpdateOrder ? (data.system_instructions || '') : (settings.systemInstructions || '');
           const currentMemory = isClearOrder ? '' : (settings.systemMemory || '');
           const cleanMemory = currentMemory.replace(/^\[[^\]]+\]\s*/gm, '');
           const mergedText = cleanMemory.trim()
