@@ -960,8 +960,8 @@ export const AdminPanel: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Clave de Licencia, Celular, Renta y WhatsApp */}
-                  <div className="grid grid-cols-1 sm:grid-cols-6 gap-4 bg-black/60 rounded-2xl p-4 border border-[#BF953F]/10 text-xs">
+                  {/* Clave de Licencia, Celular, Renta y WhatsApp en 5 Columnas Alineadas */}
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-3.5 bg-black/60 rounded-2xl p-4 border border-[#BF953F]/10 text-xs">
                     <div>
                       <p className="text-[9px] text-white uppercase tracking-widest font-black">Clave de Licencia</p>
                       <div className="flex items-center gap-1.5 mt-1.5">
@@ -1013,14 +1013,14 @@ export const AdminPanel: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="sm:col-span-2">
+                    <div>
                       <p className="text-[9px] text-white uppercase tracking-widest font-black">WhatsApp del Cliente</p>
-                      <div className="flex flex-col items-start gap-2 mt-1.5">
+                      <div className="flex flex-col items-start gap-1.5 mt-1.5">
                         <input
                            type="text"
                            defaultValue={client.client_phone || ''}
                            placeholder="Código + número"
-                           className="w-full max-w-[125px] bg-black/40 border border-[#BF953F]/20 rounded-lg px-2 py-1.5 text-sm font-mono font-black text-[#FCF6BA] focus:outline-none focus:border-[#FCF6BA]"
+                           className="w-full max-w-[125px] bg-black/40 border border-[#BF953F]/20 rounded-lg px-2 py-1 text-xs font-mono font-black text-[#FCF6BA] focus:outline-none focus:border-[#FCF6BA]"
                            onBlur={(e) => {
                              let val = e.target.value.trim().replace(/[^0-9]/g, '');
                              if (val.length === 10) {
@@ -1034,21 +1034,18 @@ export const AdminPanel: React.FC = () => {
                            }}
                         />
                         {client.client_phone && client.client_phone.trim() && (
-                          <div className="mt-1">
-                            <a
-                              href={`https://api.whatsapp.com/send?phone=${client.client_phone.trim().replace(/[^0-9]/g, '')}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ backgroundColor: '#25D366', color: '#000000' }}
-                              className="inline-block px-2.5 py-1 text-black font-black text-[8px] sm:text-[9px] rounded-lg uppercase tracking-wider hover:brightness-110 active:scale-95 transition duration-300 text-center leading-tight shadow-md"
-                              title="Conversar por WhatsApp"
-                            >
-                              CONVERSAR<br/>POR WATTS
-                            </a>
-                          </div>
+                          <a
+                            href={`https://api.whatsapp.com/send?phone=${client.client_phone.trim().replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ backgroundColor: '#25D366', color: '#000000' }}
+                            className="inline-block px-2.5 py-1 text-black font-black text-[8px] sm:text-[9px] rounded-lg uppercase tracking-wider hover:brightness-110 active:scale-95 transition duration-300 text-center leading-tight shadow-md"
+                            title="Conversar por WhatsApp"
+                          >
+                            CONVERSAR<br/>POR WATTS
+                          </a>
                         )}
                       </div>
-                      {/* Letras pequeñas que muestran el país dinámicamente */}
                       <p className="text-[8px] text-gray-500 mt-1 italic font-semibold">
                         {(() => {
                           const cleaned = (client.client_phone || '').trim().replace(/[^0-9]/g, '');
@@ -1064,7 +1061,7 @@ export const AdminPanel: React.FC = () => {
                       <div className="flex items-center mt-1.5">
                         <select
                           value={client.rental_days !== undefined && client.rental_days !== null ? client.rental_days : 0}
-                          className="w-full bg-black/40 border border-[#BF953F]/20 rounded-lg px-2 py-1 text-sm font-mono font-black text-[#FCF6BA] focus:outline-none focus:border-[#FCF6BA]"
+                          className="w-full bg-black/40 border border-[#BF953F]/20 rounded-lg px-2 py-1 text-xs font-mono font-black text-[#FCF6BA] focus:outline-none focus:border-[#FCF6BA]"
                           onChange={(e) => {
                             const days = parseInt(e.target.value, 10);
                             let startVal = client.rental_start_date || '';
@@ -1081,7 +1078,6 @@ export const AdminPanel: React.FC = () => {
                               endVal = '';
                             }
 
-                            // Actualizar localmente primero
                             setClients(prev => prev.map(c => c.client_id === client.client_id ? {
                               ...c,
                               rental_days: days,
@@ -1089,12 +1085,9 @@ export const AdminPanel: React.FC = () => {
                               rental_end_date: endVal
                             } : c));
 
-                            // Guardar en Supabase en paralelo
                             saveRentalDays(client.client_id, days);
                             saveRentalDate(client.client_id, 'rental_start_date', startVal);
                             saveRentalDate(client.client_id, 'rental_end_date', endVal);
-                            
-                            alert(`Auto-calculado:\nInicio: ${startVal || 'Ninguna'}\nTermina: ${endVal || 'Ninguna'}`);
                           }}
                         >
                           <option value="0">0 (Activo)</option>
@@ -1113,7 +1106,7 @@ export const AdminPanel: React.FC = () => {
                           <input
                             type="date"
                             value={client.rental_start_date || ''}
-                            className="bg-black border border-[#BF953F]/15 rounded px-1.5 py-0.5 text-xs text-white font-mono focus:outline-none focus:border-[#FCF6BA]"
+                            className="w-full bg-black border border-[#BF953F]/15 rounded px-1 py-0.5 text-[11px] text-white font-mono focus:outline-none focus:border-[#FCF6BA]"
                             onChange={(e) => {
                               const val = e.target.value;
                               setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, rental_start_date: val } : c));
@@ -1126,7 +1119,7 @@ export const AdminPanel: React.FC = () => {
                           <input
                             type="date"
                             value={client.rental_end_date || ''}
-                            className="bg-black border border-[#BF953F]/15 rounded px-1.5 py-0.5 text-xs text-white font-mono focus:outline-none focus:border-[#FCF6BA]"
+                            className="w-full bg-black border border-[#BF953F]/15 rounded px-1 py-0.5 text-[11px] text-white font-mono focus:outline-none focus:border-[#FCF6BA]"
                             onChange={(e) => {
                               const val = e.target.value;
                               setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, rental_end_date: val } : c));
@@ -1137,11 +1130,11 @@ export const AdminPanel: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="sm:col-span-2">
+                    <div>
                       <p className="text-[9px] text-white uppercase tracking-widest font-black">ESTADO CELULAR/ID</p>
                       {client.hardware_id ? (
                         <div className="space-y-1.5 mt-1.5">
-                          <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center justify-between gap-1">
                             <span className="text-green-400 font-black uppercase text-[10px] tracking-wider">Enlazado 🟢</span>
                             <button
                               onClick={() => resetHardwareId(client.client_id)}
@@ -1150,15 +1143,14 @@ export const AdminPanel: React.FC = () => {
                               Liberar
                             </button>
                           </div>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span className="text-[11px] text-[#FCF6BA] font-black uppercase tracking-wider">ID:</span>
+                          <div className="flex items-center gap-1 mt-1">
                             <input
                               type="text"
                               readOnly
                               value={client.hardware_id}
                               title="Haz clic para seleccionar todo"
                               onClick={(e) => (e.target as HTMLInputElement).select()}
-                              className="w-full bg-black/90 border border-[#BF953F]/40 rounded-lg px-2 py-1 text-xs font-mono font-bold text-white focus:outline-none focus:border-[#FCF6BA] cursor-text text-center tracking-widest shadow-inner"
+                              className="w-full bg-black/90 border border-[#BF953F]/40 rounded-lg px-1 py-1 text-[11px] font-mono font-bold text-white focus:outline-none focus:border-[#FCF6BA] cursor-text text-center shadow-inner tracking-tight"
                             />
                           </div>
                         </div>
