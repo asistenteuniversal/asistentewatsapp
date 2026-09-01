@@ -515,15 +515,21 @@ export default function App() {
           });
 
           // 1. Inyectar primero en Android las instrucciones limpias/actualizadas para que Java lo guarde en memoria
-          const baseInstructions = isUpdateOrder ? (data.system_instructions || '') : (settings.systemInstructions || '');
+          const rawIncomingInstructions = isUpdateOrder ? (data.system_instructions || '') : (settings.systemInstructions || '');
           const currentMemory = isClearOrder ? '' : (settings.systemMemory || '');
           const cleanMemory = currentMemory.replace(/^\[[^\]]+\]\s*/gm, '');
 
-          // Extraer personalización elegida por el cliente (Nombre y Personalidad)
-          const customName = localStorage.getItem('ava_custom_assistant_name') || (data as any)?.assistant_name || 'Asistente';
-          const customPersonalityPrompt = localStorage.getItem('ava_custom_personality_prompt') || 'Habla de forma muy culta, distinguida, educada y profesional. Usa un vocabulario refinado y respetuoso.';
+          // Limpiar de forma blindada cualquier bloque de identidad duplicado que ya viniera en el texto
+          const baseInstructions = rawIncomingInstructions.replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
 
-          const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${customName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\nESTILO DE COMUNICACIÓN: ${customPersonalityPrompt}\n\n`;
+          // Extraer personalización elegida por el cliente (Nombre, Género y Personalidad)
+          const customName = localStorage.getItem('ava_custom_assistant_name') || 'Asistente';
+          const customPersonalityPrompt = localStorage.getItem('ava_custom_personality_prompt') || 'Habla de forma muy culta, distinguida, educada y profesional. Usa un vocabulario refinado y respetuoso.';
+          const genderDirective = settings.voiceMaleEnabled
+            ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
+            : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
+
+          const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${customName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${genderDirective}\nESTILO DE COMUNICACIÓN: ${customPersonalityPrompt}\n\n`;
 
           const fullInstructionsWithIdentity = `${identityHeader}${baseInstructions}`;
 
