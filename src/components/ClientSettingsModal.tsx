@@ -156,7 +156,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
     const cleanMemory = (settings.systemMemory || '').replace(/^\[[^\]]+\]\s*/gm, '');
     const mergedText = cleanMemory.trim()
-      ? ${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n
+      ? `${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n${cleanMemory}`
       : fullInstructionsWithIdentity;
 
     if ((window as any).AndroidInterface) {
