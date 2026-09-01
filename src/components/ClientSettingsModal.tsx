@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, LogOut, Send, Check, Save } from 'lucide-react';
+import { X, CheckCircle2, LogOut, Send, Check, Save, Loader2, Sparkles } from 'lucide-react';
 import { AppSettings } from '../types';
+import { supabase } from '../supabaseClient';
 
 interface ClientSettingsModalProps {
   isOpen: boolean;
@@ -59,6 +60,8 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     return localStorage.getItem('ava_custom_personality_id') || 'elegante';
   });
   const [isNameSaved, setIsNameSaved] = useState(true);
+  const [isApplyingChanges, setIsApplyingChanges] = useState(false);
+  const [applySuccess, setApplySuccess] = useState(false);
   const [supportMessage, setSupportMessage] = useState('');
   const [isSent, setIsSent] = useState(false);
 
@@ -68,6 +71,8 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     setAssistantName(savedName);
     setSelectedPersonality(savedId);
     setIsNameSaved(true);
+    setIsApplyingChanges(false);
+    setApplySuccess(false);
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -115,14 +120,84 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
   const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAssistantName(e.target.value);
-    setIsNameSaved(false); // Cambia a naranja pendiente
+    setIsNameSaved(false);
   };
 
   const handleSaveName = () => {
     const finalName = assistantName.trim() || 'Asistente';
     localStorage.setItem('ava_custom_assistant_name', finalName);
     setAssistantName(assistantName.trim());
-    setIsNameSaved(true); // Cambia a verde guardado
+    setIsNameSaved(true);
+  };
+
+  // 🚀 FUNCIÓN MAESTRA: GUARDAR Y APLICAR CAMBIOS EN VIVO A SUPABASE Y GOOGLE STUDIO
+  const handleSaveAndApplyAll = async () => {
+    setIsApplyingChanges(true);
+    setApplySuccess(false);
+
+    const finalName = assistantName.trim() || 'Asistente';
+    localStorage.setItem('ava_custom_assistant_name', finalName);
+    setAssistantName(finalName);
+    setIsNameSaved(true);
+
+    const activePreset = PERSONALITY_PRESETS.find(p => p.id === selectedPersonality) || PERSONALITY_PRESETS[0];
+    localStorage.setItem('ava_custom_personality_id', activePreset.id);
+    localStorage.setItem('ava_custom_personality_label', activePreset.label);
+    localStorage.setItem('ava_custom_personality_prompt', activePreset.prompt);
+
+    const clientId = localStorage.getItem('ava_client_id');
+    const voiceMode = settings.voiceMaleEnabled ? 'male' : 'female';
+
+    // 1. Sincronizar inmediatamente con Supabase si hay cliente vinculado
+    if (clientId && clientId !== 'cliente_maestro') {
+      try {
+        await supabase
+          .from('asistente_config')
+          .update({
+            assistant_name: finalName,
+            personality_style: activePreset.label,
+            voice_selection: voiceMode
+          } as any)
+          .eq('client_id', clientId);
+        console.log('[Supabase] Nombre y personalidad sincronizados con éxito a la nube.');
+      } catch (errSupabase) {
+        console.warn('[Supabase] Advertencia al sincronizar con la nube:', errSupabase);
+      }
+    }
+
+    // 2. Inyectar en Android / Google Studio en caliente
+    const identityHeader = [IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\nESTILO DE COMUNICACIÓN: \n\n;
+    const fullInstructionsWithIdentity = ${identityHeader};
+    const cleanMemory = (settings.systemMemory || '').replace(/^\[[^\]]+\]\s*/gm, '');
+
+    const mergedText = cleanMemory.trim()
+      ? ${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n
+      : fullInstructionsWithIdentity;
+
+    if ((window as any).AndroidInterface) {
+      try {
+        if ((window as any).AndroidInterface.updateSystemInstructions) {
+          (window as any).AndroidInterface.updateSystemInstructions(mergedText);
+        }
+        if ((window as any).AndroidInterface.updateVoiceOption) {
+          (window as any).AndroidInterface.updateVoiceOption(settings.voiceMaleEnabled);
+        }
+        if ((window as any).AndroidInterface.reloadStudio) {
+          (window as any).AndroidInterface.reloadStudio();
+        }
+      } catch (e) {
+        console.error('Error aplicando cambios a Java:', e);
+      }
+    }
+
+    // 3. Confirmación visual y cierre
+    setTimeout(() => {
+      setIsApplyingChanges(false);
+      setApplySuccess(true);
+      setTimeout(() => {
+        onClose();
+      }, 1200);
+    }, 800);
   };
 
   const handleSendSupport = (e: React.FormEvent) => {
@@ -152,11 +227,11 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');`}</style>
       
       <div 
-        className="w-full max-w-md bg-[#0a0a0f] border border-[#d4af37]/40 rounded-3xl p-4 sm:p-5 shadow-[0_0_50px_rgba(212,175,55,0.2)] space-y-3.5 relative max-h-[96vh] overflow-y-auto select-none"
+        className="w-full max-w-md bg-[#0a0a0f] border border-[#d4af37]/40 rounded-3xl p-4 sm:p-5 shadow-[0_0_50px_rgba(212,175,55,0.2)] space-y-3 relative max-h-[96vh] overflow-y-auto select-none"
         style={{ fontFamily: "'Outfit', sans-serif" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#d4af37]/25 pb-2.5">
+        <div className="flex items-center justify-between border-b border-[#d4af37]/25 pb-2">
           <h2 className="font-extrabold text-sm sm:text-base tracking-widest uppercase text-[#d4af37]">
             Ajustes y Asistencia
           </h2>
@@ -169,7 +244,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
         </div>
 
         {/* Bloque Superior de Botones de Cuenta y Voz */}
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           {/* 1. Botón: Estado de Cuenta Google */}
           {activeLinkedState ? (
             <button
@@ -182,7 +257,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           ) : (
             <button
               onClick={handleLinkGoogle}
-              className="w-full py-3 px-4 rounded-2xl font-black text-xs sm:text-sm tracking-wider uppercase transition duration-200 flex items-center justify-center focus:outline-none active:scale-98 cursor-pointer shadow-[0_0_20px_rgba(212,175,55,0.4)]"
+              className="w-full py-2.5 px-4 rounded-2xl font-black text-xs sm:text-sm tracking-wider uppercase transition duration-200 flex items-center justify-center focus:outline-none active:scale-98 cursor-pointer shadow-[0_0_20px_rgba(212,175,55,0.4)]"
               style={{
                 background: 'linear-gradient(135deg, #fff5c0 0%, #f0d060 20%, #d4af37 45%, #b8860b 70%, #f0d060 85%, #fff5c0 100%)',
                 color: '#000000',
@@ -245,19 +320,17 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
             NOMBRE DE TU ASISTENTE:
           </label>
           <div className="flex items-center gap-2">
-            {/* Mitad 1: Input para escribir el nombre */}
             <input
               type="text"
               value={assistantName}
               onChange={handleNameInputChange}
               placeholder="Escribe el nombre aquí..."
-              className="flex-1 bg-[#14141a] border border-[#d4af37]/50 rounded-2xl px-3.5 py-2.5 text-white placeholder-zinc-500 text-xs sm:text-[13px] outline-none focus:border-[#d4af37] font-semibold transition"
+              className="flex-1 bg-[#14141a] border border-[#d4af37]/50 rounded-2xl px-3.5 py-2 text-white placeholder-zinc-500 text-xs sm:text-[13px] outline-none focus:border-[#d4af37] font-semibold transition"
             />
-            {/* Mitad 2: Botón Dinámico Naranja/Verde */}
             <button
               type="button"
               onClick={handleSaveName}
-              className={`px-3.5 py-2.5 rounded-2xl font-black text-[10px] sm:text-[11px] uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95 whitespace-nowrap ${
+              className={`px-3.5 py-2 rounded-2xl font-black text-[10px] sm:text-[11px] uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95 whitespace-nowrap ${
                 isNameSaved
                   ? 'bg-emerald-600 border border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]'
                   : 'bg-orange-500 hover:bg-orange-400 border border-orange-300 text-black font-black animate-pulse shadow-[0_0_15px_rgba(249,115,22,0.5)]'
@@ -271,7 +344,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
               ) : (
                 <>
                   <Save className="w-3.5 h-3.5" />
-                  <span>PRESIONA PARA GUARDAR</span>
+                  <span>GUARDAR</span>
                 </>
               )}
             </button>
@@ -279,7 +352,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
         </div>
 
         {/* ── SECCIÓN 2: PERSONALIDADES (6 BOTONES DORADOS ELEGANTES) ── */}
-        <div className="space-y-1.5 pt-1">
+        <div className="space-y-1 pt-1">
           <label className="text-[11px] font-black tracking-wider text-[#d4af37] uppercase block">
             ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE?
           </label>
@@ -291,7 +364,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
                   key={preset.id}
                   type="button"
                   onClick={() => handleSelectPersonality(preset)}
-                  className={`py-2.5 px-2 rounded-xl font-black text-[10px] sm:text-[11px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 ${
+                  className={`py-2 px-2 rounded-xl font-black text-[10px] sm:text-[11px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 ${
                     isSelected
                       ? 'bg-gradient-to-r from-[#d4af37]/30 via-[#f0d060]/20 to-[#d4af37]/30 text-white border-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.4)] scale-[1.02]'
                       : 'bg-black/60 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
@@ -304,16 +377,48 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           </div>
         </div>
 
+        {/* ── 🚀 BOTÓN MAESTRO: GUARDAR Y APLICAR CAMBIOS EN VIVO ── */}
+        <div className="pt-1">
+          <button
+            type="button"
+            disabled={isApplyingChanges}
+            onClick={handleSaveAndApplyAll}
+            className={`w-full py-3 px-4 rounded-2xl font-black text-xs sm:text-[13px] uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-98 border ${
+              applySuccess
+                ? 'bg-emerald-500 text-black border-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.6)] animate-pulse'
+                : isApplyingChanges
+                  ? 'bg-amber-600/80 text-white border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.5)] cursor-wait'
+                  : 'bg-gradient-to-r from-[#b8860b] via-[#d4af37] to-[#f0d060] text-black hover:brightness-110 border-[#ffe57f] shadow-[0_0_25px_rgba(212,175,55,0.5)]'
+            }`}
+          >
+            {isApplyingChanges ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <span>GUARDANDO Y APLICANDO CAMBIOS...</span>
+              </>
+            ) : applySuccess ? (
+              <>
+                <Check className="w-4 h-4 stroke-[3]" />
+                <span>¡CAMBIOS APLICADOS CON ÉXITO!</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 fill-black" />
+                <span>GUARDAR Y APLICAR CAMBIOS</span>
+              </>
+            )}
+          </button>
+        </div>
+
         {/* ── CUADRO 4: SOPORTE Y ASISTENCIA (ESTILO WHATSAPP DARK PROFESIONAL) ── */}
-        <div className="rounded-3xl border-2 border-[#25D366] bg-[#0b141a] overflow-hidden shadow-[0_0_30px_rgba(37,211,102,0.25)] font-sans mt-2">
+        <div className="rounded-3xl border-2 border-[#25D366] bg-[#0b141a] overflow-hidden shadow-[0_0_30px_rgba(37,211,102,0.25)] font-sans mt-1">
           {/* Cabecera WhatsApp */}
-          <div className="bg-[#1f2c34] px-4 py-2.5 flex items-center justify-between border-b border-[#25D366]/30">
+          <div className="bg-[#1f2c34] px-4 py-2 flex items-center justify-between border-b border-[#25D366]/30">
             <p className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
               Soporte y Asistencia
             </p>
             
-            {/* Insignia EN CONSTRUCCIÓN Centrada */}
-            <div className="bg-red-600 border border-red-400 rounded-full px-3 py-1 text-center shadow-[0_0_12px_rgba(239,68,68,0.5)]">
+            <div className="bg-red-600 border border-red-400 rounded-full px-3 py-0.5 text-center shadow-[0_0_12px_rgba(239,68,68,0.5)]">
               <span className="text-[9px] sm:text-[10px] font-black text-white uppercase tracking-wider block text-center leading-none">
                 EN CONSTRUCCIÓN
               </span>
@@ -321,10 +426,9 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           </div>
 
           {/* Cuerpo del Chat */}
-          <div className="p-3.5 space-y-2.5 bg-[#0b141a]">
-            {/* Mensaje de Bienvenida */}
+          <div className="p-3 space-y-2 bg-[#0b141a]">
             <div className="flex items-start">
-              <div className="bg-[#1f2c34] text-white rounded-2xl rounded-tl-none p-3 text-xs sm:text-[13px] leading-relaxed max-w-[92%] border border-white/10 shadow-md">
+              <div className="bg-[#1f2c34] text-white rounded-2xl rounded-tl-none p-2.5 text-xs sm:text-[13px] leading-relaxed max-w-[92%] border border-white/10 shadow-md">
                 <p className="font-normal text-white">
                   Hola 👋 ¿En qué podemos ayudarte? Escribe tu pregunta o mensaje de asistencia:
                 </p>
@@ -332,27 +436,25 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
               </div>
             </div>
 
-            {/* Aviso de confirmación de envío */}
             {isSent && (
-              <div className="bg-[#005c4b] text-white rounded-2xl rounded-tr-none p-3 text-xs sm:text-[13px] leading-relaxed max-w-[92%] ml-auto border border-[#25D366]/40 shadow-lg animate-pulse">
+              <div className="bg-[#005c4b] text-white rounded-2xl rounded-tr-none p-2.5 text-xs sm:text-[13px] leading-relaxed max-w-[92%] ml-auto border border-[#25D366]/40 shadow-lg animate-pulse">
                 <p className="font-semibold">✅ ¡Mensaje recibido! Te responderemos a la brevedad.</p>
                 <span className="text-[9px] text-emerald-200 block text-right mt-1 font-mono">Enviado ✓✓</span>
               </div>
             )}
 
-            {/* Formulario de Entrada */}
-            <form onSubmit={handleSendSupport} className="pt-1.5 flex items-center gap-2">
+            <form onSubmit={handleSendSupport} className="pt-1 flex items-center gap-2">
               <input
                 type="text"
                 value={supportMessage}
                 onChange={(e) => setSupportMessage(e.target.value)}
                 placeholder="Escribe tu mensaje aquí..."
-                className="flex-1 bg-[#2a3942] border border-white/15 rounded-2xl px-3.5 py-2 text-white placeholder-zinc-400 text-xs sm:text-[12px] outline-none focus:border-[#25D366] transition font-sans shadow-inner"
+                className="flex-1 bg-[#2a3942] border border-white/15 rounded-2xl px-3 py-1.5 text-white placeholder-zinc-400 text-xs sm:text-[12px] outline-none focus:border-[#25D366] transition font-sans shadow-inner"
               />
               <button
                 type="submit"
                 disabled={!supportMessage.trim()}
-                className="p-2.5 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-95 text-black disabled:opacity-40 disabled:pointer-events-none transition shadow-[0_0_15px_rgba(37,211,102,0.4)] cursor-pointer flex items-center justify-center"
+                className="p-2 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-95 text-black disabled:opacity-40 disabled:pointer-events-none transition shadow-[0_0_15px_rgba(37,211,102,0.4)] cursor-pointer flex items-center justify-center"
               >
                 <Send className="w-4 h-4 fill-black" />
               </button>
