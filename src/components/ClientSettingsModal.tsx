@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, LogOut, Send, Check, Save, Loader2, Sparkles } from 'lucide-react';
+import { X, CheckCircle2, LogOut, Send, Loader2, Sparkles } from 'lucide-react';
 import { AppSettings } from '../types';
 import { supabase } from '../supabaseClient';
 
@@ -59,7 +59,6 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
   const [selectedPersonality, setSelectedPersonality] = useState(() => {
     return localStorage.getItem('ava_custom_personality_id') || 'elegante';
   });
-  const [isNameSaved, setIsNameSaved] = useState(true);
   const [isApplyingChanges, setIsApplyingChanges] = useState(false);
   const [applySuccess, setApplySuccess] = useState(false);
   const [supportMessage, setSupportMessage] = useState('');
@@ -70,7 +69,6 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const savedId = localStorage.getItem('ava_custom_personality_id') || 'elegante';
     setAssistantName(savedName);
     setSelectedPersonality(savedId);
-    setIsNameSaved(true);
     setIsApplyingChanges(false);
     setApplySuccess(false);
   }, [isOpen]);
@@ -113,21 +111,6 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
   const handleSelectPersonality = (preset: typeof PERSONALITY_PRESETS[0]) => {
     setSelectedPersonality(preset.id);
-    localStorage.setItem('ava_custom_personality_id', preset.id);
-    localStorage.setItem('ava_custom_personality_label', preset.label);
-    localStorage.setItem('ava_custom_personality_prompt', preset.prompt);
-  };
-
-  const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAssistantName(e.target.value);
-    setIsNameSaved(false);
-  };
-
-  const handleSaveName = () => {
-    const finalName = assistantName.trim() || 'Asistente';
-    localStorage.setItem('ava_custom_assistant_name', finalName);
-    setAssistantName(assistantName.trim());
-    setIsNameSaved(true);
   };
 
   // 🚀 FUNCIÓN MAESTRA: GUARDAR Y APLICAR CAMBIOS EN VIVO A SUPABASE Y GOOGLE STUDIO
@@ -138,40 +121,42 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const finalName = assistantName.trim() || 'Asistente';
     localStorage.setItem('ava_custom_assistant_name', finalName);
     setAssistantName(finalName);
-    setIsNameSaved(true);
 
     const activePreset = PERSONALITY_PRESETS.find(p => p.id === selectedPersonality) || PERSONALITY_PRESETS[0];
     localStorage.setItem('ava_custom_personality_id', activePreset.id);
     localStorage.setItem('ava_custom_personality_label', activePreset.label);
     localStorage.setItem('ava_custom_personality_prompt', activePreset.prompt);
 
-    const clientId = localStorage.getItem('ava_client_id');
-    const voiceMode = settings.voiceMaleEnabled ? 'male' : 'female';
+    const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
 
-    // 1. Sincronizar inmediatamente con Supabase si hay cliente vinculado
-    if (clientId && clientId !== 'cliente_maestro') {
-      try {
-        await supabase
-          .from('asistente_config')
-          .update({
-            assistant_name: finalName,
-            personality_style: activePreset.label,
-            voice_selection: voiceMode
-          } as any)
-          .eq('client_id', clientId);
-        console.log('[Supabase] Nombre y personalidad sincronizados con éxito a la nube.');
-      } catch (errSupabase) {
-        console.warn('[Supabase] Advertencia al sincronizar con la nube:', errSupabase);
-      }
+    // Inyectar en Android / Google Studio en caliente
+    const identityHeader = [IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\nESTILO DE COMUNICACIÓN: \n\n;
+    
+    // Limpiar cualquier encabezado previo para no duplicarlo en la base de datos
+    const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
+    const fullInstructionsWithIdentity = ${identityHeader};
+
+    // 1. Sincronizar inmediatamente con Supabase inyectando al inicio de system_instructions
+    try {
+      await supabase
+        .from('asistente_config')
+        .update({
+          system_instructions: fullInstructionsWithIdentity
+        })
+        .eq('client_id', clientId);
+      console.log('[Supabase] Instrucciones y personalidad sincronizadas con éxito a Supabase.');
+    } catch (errSupabase) {
+      console.warn('[Supabase] Advertencia al sincronizar con la nube:', errSupabase);
     }
 
-    // 2. Inyectar en Android / Google Studio en caliente
-    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
-    const fullInstructionsWithIdentity = `${identityHeader}${settings.systemInstructions || ''}`;
-    const cleanMemory = (settings.systemMemory || '').replace(/^\[[^\]]+\]\s*/gm, '');
+    setSettings((prev) => ({
+      ...prev,
+      systemInstructions: fullInstructionsWithIdentity
+    }));
 
+    const cleanMemory = (settings.systemMemory || '').replace(/^\[[^\]]+\]\s*/gm, '');
     const mergedText = cleanMemory.trim()
-      ? `${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n${cleanMemory}`
+      ? ${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n
       : fullInstructionsWithIdentity;
 
     if ((window as any).AndroidInterface) {
@@ -196,8 +181,8 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
       setApplySuccess(true);
       setTimeout(() => {
         onClose();
-      }, 1200);
-    }, 800);
+      }, 1000);
+    }, 700);
   };
 
   const handleSendSupport = (e: React.FormEvent) => {
@@ -314,41 +299,18 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           </button>
         </div>
 
-        {/* ── SECCIÓN 1: NOMBRE DEL ASISTENTE (DIVIDIDO A LA MITAD CON BOTÓN GUARDAR DINÁMICO) ── */}
+        {/* ── SECCIÓN 1: NOMBRE DEL ASISTENTE (CAMPO COMPLETO LIMPIO SIN BOTÓN EXTRA) ── */}
         <div className="space-y-1 pt-1">
           <label className="text-[11px] font-black tracking-wider text-[#d4af37] uppercase block">
             NOMBRE DE TU ASISTENTE:
           </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={assistantName}
-              onChange={handleNameInputChange}
-              placeholder="Escribe el nombre aquí..."
-              className="flex-1 bg-[#14141a] border border-[#d4af37]/50 rounded-2xl px-3.5 py-2 text-white placeholder-zinc-500 text-xs sm:text-[13px] outline-none focus:border-[#d4af37] font-semibold transition"
-            />
-            <button
-              type="button"
-              onClick={handleSaveName}
-              className={`px-3.5 py-2 rounded-2xl font-black text-[10px] sm:text-[11px] uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95 whitespace-nowrap ${
-                isNameSaved
-                  ? 'bg-emerald-600 border border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]'
-                  : 'bg-orange-500 hover:bg-orange-400 border border-orange-300 text-black font-black animate-pulse shadow-[0_0_15px_rgba(249,115,22,0.5)]'
-              }`}
-            >
-              {isNameSaved ? (
-                <>
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  <span>GUARDADO</span>
-                </>
-              ) : (
-                <>
-                  <Save className="w-3.5 h-3.5" />
-                  <span>GUARDAR</span>
-                </>
-              )}
-            </button>
-          </div>
+          <input
+            type="text"
+            value={assistantName}
+            onChange={(e) => setAssistantName(e.target.value)}
+            placeholder="Escribe el nombre de tu asistente aquí... (Ej: Asistente)"
+            className="w-full bg-[#14141a] border border-[#d4af37]/50 rounded-2xl px-3.5 py-2.5 text-white placeholder-zinc-500 text-xs sm:text-[13px] outline-none focus:border-[#d4af37] font-semibold transition"
+          />
         </div>
 
         {/* ── SECCIÓN 2: PERSONALIDADES (6 BOTONES DORADOS ELEGANTES) ── */}
@@ -398,7 +360,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
               </>
             ) : applySuccess ? (
               <>
-                <Check className="w-4 h-4 stroke-[3]" />
+                <CheckCircle2 className="w-4 h-4 text-black" />
                 <span>¡CAMBIOS APLICADOS CON ÉXITO!</span>
               </>
             ) : (

@@ -1174,26 +1174,41 @@ export const AdminPanel: React.FC = () => {
                   </div>
 
                   {/* ── FRANJA DE PERSONALIZACIÓN DEL ASISTENTE Y SELECTOR DE VOZ (ALGIEBA / ZEPHYR) ── */}
-                  <div className="bg-black/80 rounded-2xl p-4 border border-[#d4af37]/30 shadow-[0_0_25px_rgba(212,175,55,0.1)] space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#d4af37]/20 pb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[#FCF6BA] font-extrabold uppercase tracking-widest">
-                          🏷️ NOMBRE ELEGIDO POR EL CLIENTE:
-                        </span>
-                        <span className="px-3 py-1 bg-[#d4af37]/15 border border-[#d4af37]/40 rounded-xl text-white font-black text-xs font-mono shadow-sm">
-                          {client.assistant_name || 'Asistente (Predeterminado)'}
-                        </span>
-                      </div>
+                  {(() => {
+                    // Extraer nombre y personalidad directamente de system_instructions
+                    const instructions = client.system_instructions || '';
+                    const nameMatch = instructions.match(/Tu nombre oficial es:\s*"([^"]+)"/);
+                    const detectedName = nameMatch ? nameMatch[1] : (client.assistant_name || 'Asistente (Predeterminado)');
+                    
+                    let detectedPersonality = client.personality_style || 'ELEGANTE Y FORMAL';
+                    if (instructions.includes('culta, distinguida, educada')) detectedPersonality = 'ELEGANTE Y FORMAL';
+                    else if (instructions.includes('alegre, amigable, optimista')) detectedPersonality = 'ALEGRE Y AMIGABLE';
+                    else if (instructions.includes('directo, conciso y sabio')) detectedPersonality = 'SABIO Y CONCISO';
+                    else if (instructions.includes('barrio popular')) detectedPersonality = 'ESTILO DE BARRIO';
+                    else if (instructions.includes('rudo, agresivo, retador, peleonero')) detectedPersonality = 'AGRESIVO Y PELEONERO';
+                    else if (instructions.includes('productividad, finanzas, eficiencia ejecutiva')) detectedPersonality = 'EJECUTIVO DE NEGOCIOS';
 
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[#FCF6BA] font-extrabold uppercase tracking-widest">
-                          🎭 PERSONALIDAD ACTIVA:
-                        </span>
-                        <span className="px-3 py-1 bg-gradient-to-r from-[#d4af37]/20 to-amber-950/40 border border-[#d4af37]/40 rounded-xl text-[#FCF6BA] font-black text-xs uppercase tracking-wider shadow-sm">
-                          {client.personality_style || 'ELEGANTE Y FORMAL'}
-                        </span>
-                      </div>
-                    </div>
+                    return (
+                      <div className="bg-black/80 rounded-2xl p-4 border border-[#d4af37]/30 shadow-[0_0_25px_rgba(212,175,55,0.1)] space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#d4af37]/20 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-[#FCF6BA] font-extrabold uppercase tracking-widest">
+                              🏷️ NOMBRE ELEGIDO POR EL CLIENTE:
+                            </span>
+                            <span className="px-3 py-1 bg-[#d4af37]/15 border border-[#d4af37]/40 rounded-xl text-white font-black text-xs font-mono shadow-sm">
+                              {detectedName}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-[#FCF6BA] font-extrabold uppercase tracking-widest">
+                              🎭 PERSONALIDAD ACTIVA:
+                            </span>
+                            <span className="px-3 py-1 bg-gradient-to-r from-[#d4af37]/20 to-amber-950/40 border border-[#d4af37]/40 rounded-xl text-[#FCF6BA] font-black text-xs uppercase tracking-wider shadow-sm">
+                              {detectedPersonality}
+                            </span>
+                          </div>
+                        </div>
 
                     {/* Selector de Voz Espejo con Nombres Técnicos para el Administrador */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
@@ -1249,8 +1264,10 @@ export const AdminPanel: React.FC = () => {
                       </button>
                     </div>
                   </div>
+                );
+              })()}
 
-                  {/* Modificar Comportamiento */}
+              {/* Modificar Comportamiento */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center flex-wrap gap-2">
                       <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
