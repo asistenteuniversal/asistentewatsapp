@@ -5,7 +5,7 @@ import avaLogo from '../assets/images/ava_logo.png';
 // ============================================================
 // CONFIGURACIÓN FÁCIL - Para producción cambia true/false aquí
 // ============================================================
-const SHOW_MOSTRAR_INTERFAZ = true;  // ← false para ocultar en producción
+const SHOW_MOSTRAR_INTERFAZ = false; // ← Oculto en carátula principal (movido a SettingsModal)
 const SHOW_SETTINGS_BUTTON  = true;  // ← false para ocultar en producción
 const SHOW_MUTE_BUTTON      = true;  // ← false para quitar botón de silencio
 // ============================================================

@@ -1,5 +1,5 @@
-import React from 'react';
-import { X } from 'lucide-react';
+﻿import React from 'react';
+import { X, Eye } from 'lucide-react';
 import { AppSettings } from '../types';
 
 interface SettingsModalProps {
@@ -26,14 +26,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     onClose();
   };
 
+  const handleShowStudio = () => {
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.showStudio) {
+      try {
+        (window as any).AndroidInterface.showStudio(true);
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      alert("Esta opción solo está disponible dentro de la aplicación de celular.");
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-[#020205]/80 backdrop-blur-xl flex items-center justify-center p-4 font-sans text-white">
       <div className="w-full max-w-md bg-[#0a0a0f]/90 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 shadow-[0_0_60px_rgba(6,182,212,0.25)] space-y-5 relative max-h-[90vh] overflow-y-auto">
-        {/* Header - Solo botón de cierre */}
-        <div className="flex items-center justify-end border-b border-white/10 pb-2">
+        {/* Header - Botón del Ojito a la izquierda y Botón de cierre X a la derecha */}
+        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+          <button
+            type="button"
+            onClick={handleShowStudio}
+            className="p-2 rounded-xl bg-black/70 border border-[#d4af37]/40 text-[#d4af37] shadow-[0_0_12px_rgba(212,175,55,0.15)] active:scale-95 transition hover:bg-[#d4af37]/10 flex items-center justify-center cursor-pointer"
+            title="Mostrar Google Studio"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl hover:bg-white/10 text-zinc-400 hover:text-white transition"
+            className="p-1.5 rounded-xl hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -115,45 +136,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     syncMemoryEnabled: prev.syncMemoryEnabled === undefined ? false : !prev.syncMemoryEnabled
                   }));
                 }}
-                className={`px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer ${
-                  settings.syncMemoryEnabled === false
-                    ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/30'
-                    : 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
-                }`}
+                className={px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer }
               >
                 {settings.syncMemoryEnabled === false ? '🔴 DESCONECTADO (AUTÓNOMO)' : '🟢 CONECTADO (VINCULADO)'}
               </button>
             </div>
           </div>
 
-          {/* Voz del Asistente (Hombre Verde / Mujer Rosa) */}
-          <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-2 backdrop-blur-md font-sans">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-zinc-300 font-sans text-[11px]">
-                Voz del Asistente:
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setSettings((prev) => ({
-                    ...prev,
-                    voiceMaleEnabled: !prev.voiceMaleEnabled
-                  }));
-                }}
-                className={`px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer ${
-                  settings.voiceMaleEnabled
-                    ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
-                    : 'bg-pink-950/25 text-pink-300 border-pink-400/40 hover:bg-pink-950/40'
-                }`}
-              >
-                {settings.voiceMaleEnabled ? '🟢 VOZ DE HOMBRE (ALGIEBA)' : '🌸 VOZ DE MUJER (ZEPHYR)'}
-              </button>
-            </div>
-            <p className="text-[10px] text-zinc-400 leading-normal font-sans italic font-medium">
+          {/* Voz del Asistente (Botón amplio con todo el texto integrado) */}
+          <div className="space-y-1.5 font-sans">
+            <button
+              type="button"
+              onClick={() => {
+                setSettings((prev) => ({
+                  ...prev,
+                  voiceMaleEnabled: !prev.voiceMaleEnabled
+                }));
+              }}
+              className={w-full py-3 px-4 font-black rounded-2xl text-[11px] sm:text-xs uppercase tracking-wider transition duration-300 border shadow-lg cursor-pointer flex items-center justify-center text-center }
+            >
               {settings.voiceMaleEnabled
-                ? 'Presionar si quieres voz de mujer'
-                : 'Presionar para voz de hombre'}
-            </p>
+                ? '🟢 VOZ DE HOMBRE — PRESIONAR PARA CAMBIAR A VOZ DE MUJER'
+                : '🌸 VOZ DE MUJER — PRESIONAR PARA CAMBIAR A VOZ DE HOMBRE'}
+            </button>
           </div>
 
           {/* Días de Memoria a Conservar */}
@@ -182,7 +187,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <option value="0" className="bg-[#0a0a0f] text-cyan-200">0 (Infinito)</option>
               {Array.from({ length: 31 }, (_, i) => i + 1).map((num) => (
                 <option key={num} value={num} className="bg-[#0a0a0f] text-cyan-200">
-                  {num === 2 ? `${num} días (Predeterminado)` : `${num} días`}
+                  {num === 2 ? ${num} días (Predeterminado) : ${num} días}
                 </option>
               ))}
             </select>
@@ -202,7 +207,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   alert("Esta opción solo está disponible dentro de la aplicación de celular.");
                 }
               }}
-              className="w-full py-2.5 rounded-xl border border-rose-500/30 bg-rose-950/20 hover:bg-rose-950/40 text-rose-300 font-semibold text-[11px] transition duration-200 flex items-center justify-center backdrop-blur-md"
+              className="w-full py-2.5 rounded-xl border border-rose-500/30 bg-rose-950/20 hover:bg-rose-950/40 text-rose-300 font-semibold text-[11px] transition duration-200 flex items-center justify-center backdrop-blur-md cursor-pointer"
             >
               Cerrar Sesión de Google (Cambiar Correo)
             </button>
@@ -213,7 +218,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="pt-2">
           <button
             onClick={handleSave}
-            className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 font-bold text-black text-xs transition shadow-[0_0_30px_rgba(6,182,212,0.5)] uppercase tracking-wider"
+            className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 font-bold text-black text-xs transition shadow-[0_0_30px_rgba(6,182,212,0.5)] uppercase tracking-wider cursor-pointer"
           >
             Guardar y Aplicar
           </button>
