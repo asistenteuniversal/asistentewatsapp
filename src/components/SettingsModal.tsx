@@ -157,7 +157,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   voiceMaleEnabled: !prev.voiceMaleEnabled
                 }));
               }}
-              className={w-full py-3 px-4 font-black rounded-2xl text-[11px] sm:text-xs uppercase tracking-wider transition duration-300 border shadow-lg cursor-pointer flex items-center justify-center text-center }
+              className={`w-full py-3 px-4 font-black rounded-2xl text-[11px] sm:text-xs uppercase tracking-wider transition duration-300 border shadow-lg cursor-pointer flex items-center justify-center text-center ${
+                settings.voiceMaleEnabled
+                  ? 'bg-green-950/30 text-green-400 border-green-500/40 hover:bg-green-950/50 shadow-green-950/20'
+                  : 'bg-pink-950/30 text-pink-300 border-pink-400/50 hover:bg-pink-950/50 shadow-pink-950/20'
+              }`}
             >
               {settings.voiceMaleEnabled
                 ? '🟢 VOZ DE HOMBRE — PRESIONAR PARA CAMBIAR A VOZ DE MUJER'
