@@ -600,6 +600,29 @@ export default function App() {
     };
 
     loadConfig();
+
+    // ⚡ Escuchar cambios en tiempo real por WebSocket desde Supabase
+    const channel = supabase
+      .channel(`mobile_realtime_${clientId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'asistente_config', filter: `client_id=eq.${clientId}` },
+        (payload) => {
+          console.log('[MobileRealtime] Cambio detectado desde la web:', payload);
+          loadConfig();
+        }
+      )
+      .subscribe();
+
+    // Polling de respaldo cada 4 segundos
+    const interval = setInterval(() => {
+      loadConfig();
+    }, 4000);
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [clientId]);
 
   // Guardar Ajustes en localStorage cada vez que cambien

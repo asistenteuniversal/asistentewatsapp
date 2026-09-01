@@ -259,14 +259,33 @@ export const AdminPanel: React.FC = () => {
     }
   }, []);
 
-  // Cargar clientes al iniciar sesión y mantenerlos actualizados en tiempo real cada 10 segundos
+  // Cargar clientes al iniciar sesión y escuchar cambios en tiempo real instantáneo por WebSocket
   useEffect(() => {
     if (isLoggedIn) {
       loadClients();
+
+      // Escucha WebSocket de Supabase en tiempo real (instantáneo)
+      const channel = supabase
+        .channel('admin_panel_realtime_changes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'asistente_config' },
+          (payload) => {
+            console.log('[Realtime] Cambio detectado en base de datos:', payload);
+            loadClientsSilently();
+          }
+        )
+        .subscribe();
+
+      // Polling de respaldo cada 5 segundos
       const interval = setInterval(() => {
         loadClientsSilently();
-      }, 10000);
-      return () => clearInterval(interval);
+      }, 5000);
+
+      return () => {
+        clearInterval(interval);
+        supabase.removeChannel(channel);
+      };
     }
   }, [isLoggedIn]);
 
