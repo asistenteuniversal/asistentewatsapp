@@ -166,12 +166,12 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     }
 
     // 2. Inyectar en Android / Google Studio en caliente
-    const identityHeader = [IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\nESTILO DE COMUNICACIÓN: \n\n;
-    const fullInstructionsWithIdentity = ${identityHeader};
+    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
+    const fullInstructionsWithIdentity = `${identityHeader}${settings.systemInstructions || ''}`;
     const cleanMemory = (settings.systemMemory || '').replace(/^\[[^\]]+\]\s*/gm, '');
 
     const mergedText = cleanMemory.trim()
-      ? ${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n
+      ? `${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n${cleanMemory}`
       : fullInstructionsWithIdentity;
 
     if ((window as any).AndroidInterface) {
