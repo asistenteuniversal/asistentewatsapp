@@ -410,14 +410,38 @@ export default function App() {
           .eq('client_id', clientId)
           .single();
 
-        // Si el registro fue eliminado (PGRST116 = no rows returned) -> LIMPIAR MEMORIA PERO MANTENER VINCULADO
+        // Si el registro fue eliminado (PGRST116 = no rows returned) -> VACIADO TOTAL Y DESVINCULACIÓN LIMPIA
         if (error && error.code === 'PGRST116') {
-          console.warn('[Licencia] La licencia ha sido eliminada. Limpiando memoria de conversación local...');
+          console.warn('[Licencia] El cliente ha sido borrado del servidor. Vaciando datos, memoria y sesión de Google...');
+          
+          // 1. Limpiar ajustes en memoria React
           setSettings((prev) => ({
             ...prev,
+            systemInstructions: '',
             systemMemory: '',
           }));
-          setIsLicensePaused(true);
+
+          // 2. Limpiar baúl local del celular
+          localStorage.removeItem('ava_client_id');
+          localStorage.removeItem('ava_client_name');
+          localStorage.removeItem('neonSettings');
+          localStorage.setItem('google_logged_in', 'false');
+          setClientId(null);
+          setIsGoogleLinked(false);
+
+          // 3. Cerrar y destruir cookies de Google AI Studio en el WebView de Android
+          if ((window as any).AndroidInterface) {
+            try {
+              if ((window as any).AndroidInterface.logoutGoogle) {
+                (window as any).AndroidInterface.logoutGoogle();
+              }
+              if ((window as any).AndroidInterface.updateSystemInstructions) {
+                (window as any).AndroidInterface.updateSystemInstructions('');
+              }
+            } catch (e) {
+              console.error('Error al limpiar sesión nativa de Google:', e);
+            }
+          }
           return;
         }
 
