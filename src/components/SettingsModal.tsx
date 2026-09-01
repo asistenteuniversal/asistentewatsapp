@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { X } from 'lucide-react';
 import { AppSettings } from '../types';
 
@@ -115,7 +115,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     syncMemoryEnabled: prev.syncMemoryEnabled === undefined ? false : !prev.syncMemoryEnabled
                   }));
                 }}
-                className={px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer }
+                className={`px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer ${
+                  settings.syncMemoryEnabled === false
+                    ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/30'
+                    : 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
+                }`}
               >
                 {settings.syncMemoryEnabled === false ? '🔴 DESCONECTADO (AUTÓNOMO)' : '🟢 CONECTADO (VINCULADO)'}
               </button>
@@ -136,7 +140,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     voiceMaleEnabled: !prev.voiceMaleEnabled
                   }));
                 }}
-                className={px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer }
+                className={`px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer ${
+                  settings.voiceMaleEnabled
+                    ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
+                    : 'bg-pink-950/25 text-pink-300 border-pink-400/40 hover:bg-pink-950/40'
+                }`}
               >
                 {settings.voiceMaleEnabled ? '🟢 VOZ DE HOMBRE (ALGIEBA)' : '🌸 VOZ DE MUJER (ZEPHYR)'}
               </button>
