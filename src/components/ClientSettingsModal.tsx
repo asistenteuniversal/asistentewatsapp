@@ -216,15 +216,15 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
       console.warn('[Supabase] Advertencia al sincronizar con la nube:', errSupabase);
     }
 
+    // 🧠 REGLA DE ORO: Al cambiar de comportamiento, resetear la memoria del celular para evitar contaminación de estilos
     setSettings((prev) => ({
       ...prev,
-      systemInstructions: fullInstructionsWithIdentity
+      systemInstructions: fullInstructionsWithIdentity,
+      systemMemory: '' // Memoria limpia y fresca
     }));
 
-    const cleanMemory = (settings.systemMemory || '').replace(/^\[[^\]]+\]\s*/gm, '');
-    const mergedText = cleanMemory.trim()
-      ? `${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n${cleanMemory}`
-      : fullInstructionsWithIdentity;
+    // Inyectar a Google Studio / Android únicamente las nuevas instrucciones limpias
+    const mergedText = fullInstructionsWithIdentity;
 
     if ((window as any).AndroidInterface) {
       try {
