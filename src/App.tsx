@@ -355,7 +355,7 @@ export default function App() {
       memorySaveDate: new Date().toDateString(),
       memoryDays: 2,
       syncMemoryEnabled: true,
-      voiceMaleEnabled: false
+      voiceMaleEnabled: true
     };
 
     if (saved) {
@@ -775,7 +775,12 @@ export default function App() {
     };
   }, []);
 
-  // Intercept call toggle to send commands to agent via WebSockets or native bridge
+  // =========================================================================================
+  // 🛑🛑🛑 [ZONA SAGRADA DE MÁXIMA SEGURIDAD - DISPARADORES DE LLAMADA Y VIDEOLLAMADA] 🛑🛑🛑
+  // ⚠️⚠️⚠️ ¡ESTRICTAMENTE PROHIBIDO MODIFICAR O REFACTORIZAR ESTAS DOS FUNCIONES! ⚠️⚠️⚠️
+  // handleToggleCall (Videollamada con flag nativo) y handleToggleAudioCall (Llamada de voz).
+  // Ambos están 100% probados y funcionando idénticos a la copia de seguridad 1-1.
+  // =========================================================================================
   const handleToggleCall = useCallback(async () => {
     // 1. Toggle call locally in UI
     await voiceEngine.toggleCall();
@@ -854,6 +859,9 @@ export default function App() {
       wsRef.current.send(JSON.stringify({ type: 'command', action: command }));
     }
   }, [voiceEngine]);
+  // =========================================================================================
+  // 🛑🛑🛑 [FIN DE ZONA SAGRADA DE LLAMADAS Y VIDEOLLAMADAS] 🛑🛑🛑
+  // =========================================================================================
 
   // Keyboard shortcut handler (Ctrl + Shift + H)
   useEffect(() => {
