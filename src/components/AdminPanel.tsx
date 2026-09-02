@@ -1215,17 +1215,22 @@ export const AdminPanel: React.FC = () => {
                       <p className="text-[9px] text-white uppercase tracking-widest font-black">ESTADO CELULAR/ID</p>
                       {client.hardware_id ? (
                         <div className="space-y-1.5 mt-1.5">
-                          <div className="flex items-center justify-between gap-1 flex-wrap">
+                          <div className="flex items-center justify-between gap-1">
                             <span className="text-green-400 font-black uppercase text-[10px] tracking-wider">Enlazado 🟢</span>
-                            <span className="text-[8.5px] font-bold text-[#FCF6BA] bg-black/80 border border-[#BF953F]/30 px-1.5 py-0.5 rounded">
-                              {client.app_version ? `v${client.app_version} (Actualizado 🟢)` : 'v1.42 (Actualizado 🟢)'}
-                            </span>
                             <button
                               onClick={() => resetHardwareId(client.client_id)}
                               className="text-[9px] text-red-400 hover:text-red-300 font-bold transition uppercase tracking-wider underline"
                             >
                               Liberar
                             </button>
+                          </div>
+                          
+                          {/* VERSIÓN DEL CELULAR AMPLIADA CON ETIQUETA CLARA */}
+                          <div className="flex items-center justify-between gap-1 bg-black/90 border border-[#BF953F]/30 px-2 py-1 rounded-lg">
+                            <span className="text-[8px] text-white uppercase tracking-widest font-black">VERSIÓN:</span>
+                            <span className="text-xs font-mono font-black text-[#FCF6BA] tracking-wide">
+                              {client.app_version ? `V.${client.app_version} (Actualizado 🟢)` : 'V.1.42 (Actualizado 🟢)'}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1 mt-1">
                             <input
