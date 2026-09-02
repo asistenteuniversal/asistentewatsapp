@@ -651,8 +651,12 @@ export const AdminPanel: React.FC = () => {
       );
     })
     .sort((a, b) => {
-      const numA = a.client_number !== undefined && a.client_number !== null ? a.client_number : 999;
-      const numB = b.client_number !== undefined && b.client_number !== null ? b.client_number : 999;
+      // AL-PACHUS siempre fijo en la posición #1 hasta arriba
+      if (a.client_id === 'al_pachus_9468') return -1;
+      if (b.client_id === 'al_pachus_9468') return 1;
+
+      const numA = (a.client_number !== undefined && a.client_number !== null && a.client_number > 0) ? a.client_number : 999;
+      const numB = (b.client_number !== undefined && b.client_number !== null && b.client_number > 0) ? b.client_number : 999;
       return numA - numB;
     });
 
