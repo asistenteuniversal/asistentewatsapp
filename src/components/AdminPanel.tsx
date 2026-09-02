@@ -1041,9 +1041,11 @@ export const AdminPanel: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Clave de Licencia, Celular, Renta y WhatsApp en 5 Columnas Alineadas */}
-                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-3.5 bg-black/60 rounded-2xl p-4 border border-[#BF953F]/10 text-xs">
-                    <div>
+                  {/* Clave de Licencia, Celular, Renta, Fechas y ESTADO CELULAR en 5 Columnas con Espacio Ampliado */}
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5 bg-black/60 rounded-2xl p-4 border border-[#BF953F]/10 text-xs">
+                    
+                    {/* Columna 1: Clave de Licencia (sm:col-span-2) */}
+                    <div className="sm:col-span-2">
                       <p className="text-[9px] text-white uppercase tracking-widest font-black">Clave de Licencia</p>
                       <div className="flex items-center gap-1.5 mt-1.5">
                         <span className="font-mono font-black text-[#FCF6BA] select-all text-sm tracking-wider">
@@ -1094,7 +1096,8 @@ export const AdminPanel: React.FC = () => {
                       )}
                     </div>
 
-                    <div>
+                    {/* Columna 2: WhatsApp del Cliente (sm:col-span-2) */}
+                    <div className="sm:col-span-2">
                       <p className="text-[9px] text-white uppercase tracking-widest font-black">WhatsApp del Cliente</p>
                       <div className="flex flex-col items-start gap-1.5 mt-1.5">
                         <input
@@ -1137,7 +1140,8 @@ export const AdminPanel: React.FC = () => {
                       </p>
                     </div>
 
-                    <div>
+                    {/* Columna 3: Días de Renta (sm:col-span-2) */}
+                    <div className="sm:col-span-2">
                       <p className="text-[9px] text-white uppercase tracking-widest font-black">Días de Renta</p>
                       <div className="flex items-center mt-1.5">
                         <select
@@ -1179,7 +1183,8 @@ export const AdminPanel: React.FC = () => {
                       </div>
                     </div>
 
-                    <div>
+                    {/* Columna 4: Fecha Inicio / Vence (sm:col-span-2) */}
+                    <div className="sm:col-span-2">
                       <p className="text-[9px] text-white uppercase tracking-widest font-black">Fecha Inicio / Vence</p>
                       <div className="space-y-1 mt-1">
                         <div className="flex items-center gap-1">
@@ -1211,10 +1216,12 @@ export const AdminPanel: React.FC = () => {
                       </div>
                     </div>
 
-                    <div>
-                      <p className="text-[9px] text-white uppercase tracking-widest font-black">ESTADO CELULAR/ID</p>
+                    {/* Columna 5: ESTADO CELULAR (sm:col-span-4 -> AMPLIO Y HORIZONTAL) */}
+                    <div className="sm:col-span-4">
+                      <p className="text-[9px] text-white uppercase tracking-widest font-black">ESTADO CELULAR</p>
                       {client.hardware_id ? (
                         <div className="space-y-1.5 mt-1.5">
+                          {/* LÍNEA 1: ENLAZADO Y LIBERAR */}
                           <div className="flex items-center justify-between gap-1">
                             <span className="text-green-400 font-black uppercase text-[10px] tracking-wider">Enlazado 🟢</span>
                             <button
@@ -1225,21 +1232,27 @@ export const AdminPanel: React.FC = () => {
                             </button>
                           </div>
                           
-                          {/* VERSIÓN DEL CELULAR AMPLIADA CON ETIQUETA CLARA */}
-                          <div className="flex items-center justify-between gap-1 bg-black/90 border border-[#BF953F]/30 px-2 py-1 rounded-lg">
-                            <span className="text-[8px] text-white uppercase tracking-widest font-black">VERSIÓN:</span>
-                            <span className="text-xs font-mono font-black text-[#FCF6BA] tracking-wide">
-                              {client.app_version ? `V.${client.app_version} (Actualizado 🟢)` : 'V.1.42 (Actualizado 🟢)'}
+                          {/* LÍNEA 2: VERSIÓN Y ACTUALIZADO EN LA MISMA LÍNEA */}
+                          <div className="flex items-center gap-2 bg-black/90 border border-[#BF953F]/30 px-2.5 py-1 rounded-lg">
+                            <span className="text-[8px] text-white uppercase tracking-widest font-black shrink-0">VERSIÓN:</span>
+                            <span className="text-xs font-mono font-black text-[#FCF6BA] tracking-wide shrink-0">
+                              {client.app_version ? `V.${client.app_version}` : 'V.1.42'}
+                            </span>
+                            <span className="text-[9px] font-bold text-green-400 tracking-wider">
+                              (Actualizado 🟢)
                             </span>
                           </div>
-                          <div className="flex items-center gap-1 mt-1">
+
+                          {/* LÍNEA 3: ID CON SU CÓDIGO */}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[8px] text-gray-400 uppercase tracking-widest font-bold shrink-0">ID:</span>
                             <input
                               type="text"
                               readOnly
                               value={client.hardware_id}
                               title="Haz clic para seleccionar todo"
                               onClick={(e) => (e.target as HTMLInputElement).select()}
-                              className="w-full bg-black/90 border border-[#BF953F]/40 rounded-lg px-1 py-1 text-[11px] font-mono font-bold text-white focus:outline-none focus:border-[#FCF6BA] cursor-text text-center shadow-inner tracking-tight"
+                              className="w-full bg-black/90 border border-[#BF953F]/40 rounded-lg px-2 py-0.5 text-[11px] font-mono font-bold text-white focus:outline-none focus:border-[#FCF6BA] cursor-text text-center shadow-inner tracking-tight"
                             />
                           </div>
                         </div>
@@ -1248,16 +1261,20 @@ export const AdminPanel: React.FC = () => {
                           <p className="text-gray-400 font-bold text-[10px] uppercase tracking-wider">
                             Esperando... ⏳
                           </p>
-                          <input
-                            type="text"
-                            readOnly
-                            value="Sin enlazar"
-                            disabled
-                            className="w-full bg-black/30 border border-zinc-800 rounded-lg px-2 py-1 text-[10px] font-mono text-zinc-600 focus:outline-none text-center"
-                          />
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] text-gray-400 uppercase tracking-widest font-bold">ID:</span>
+                            <input
+                              type="text"
+                              readOnly
+                              value="Sin enlazar"
+                              disabled
+                              className="w-full bg-black/30 border border-zinc-800 rounded-lg px-2 py-1 text-[10px] font-mono text-zinc-600 focus:outline-none text-center"
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
+
                   </div>
 
                   {/* ── FRANJA DE PERSONALIZACIÓN DEL ASISTENTE Y SELECTOR DE VOZ (ALGIEBA / ZEPHYR) ── */}
