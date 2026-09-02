@@ -758,7 +758,7 @@ export const AdminPanel: React.FC = () => {
           <div className="flex flex-col items-center text-center">
             <span className="text-[8px] sm:text-[10px] text-white uppercase tracking-widest font-black">VERSIÓN DE APK ACTUAL: V.1.42</span>
             <span className="font-mono text-[9px] sm:text-xs font-bold text-[#FCF6BA] mt-0.5 tracking-tight">
-              APK_SEPTIEMBRE_2026_01_55_PM.apk
+              APK_SEPTIEMBRE-2-2026_01_55_PM.apk
             </span>
           </div>
 
