@@ -21,6 +21,8 @@ interface ClientConfigRow {
   assistant_name?: string | null;
   personality_style?: string | null;
   voice_selection?: string | null;
+  client_number?: number | null;
+  app_version?: string | null;
 }
 
 export const AdminPanel: React.FC = () => {
@@ -496,6 +498,22 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
+  // Guardar número de cliente
+  const saveClientNumber = async (clientId: string, num: number) => {
+    showSaveStatus(clientId, 'Guardando...', false);
+    try {
+      const { error } = await supabase
+        .from('asistente_config')
+        .update({ client_number: num } as any)
+        .eq('client_id', clientId);
+      if (error) throw error;
+      showSaveStatus(clientId, '✓ N. guardado', false);
+    } catch (err: any) {
+      console.warn('Fallo al sincronizar número de cliente en la nube.');
+      showSaveStatus(clientId, '⚠ N. guardado local', true);
+    }
+  };
+
   // Guardar teléfono del cliente
   const savePhone = async (clientId: string, phone: string) => {
     showSaveStatus(clientId, 'Guardando...', false);
@@ -610,27 +628,33 @@ export const AdminPanel: React.FC = () => {
     return { total, active, warning, expired, paused };
   }, [clients]);
 
-  // Filtrado de clientes en tiempo real
-  const filteredClients = clients.filter(client => {
-    // 1. Filtrar por tipo (Mejora 2)
-    if (filterType !== 'all') {
-      const status = getClientRentalStatus(client);
-      if (filterType === 'active' && status !== 'active' && status !== 'free') return false;
-      if (filterType === 'warning' && status !== 'warning') return false;
-      if (filterType === 'expired' && status !== 'expired') return false;
-      if (filterType === 'paused' && status !== 'paused') return false;
-    }
+  // Filtrado y ordenamiento consecutivo de clientes en tiempo real
+  const filteredClients = clients
+    .filter(client => {
+      // 1. Filtrar por tipo (Mejora 2)
+      if (filterType !== 'all') {
+        const status = getClientRentalStatus(client);
+        if (filterType === 'active' && status !== 'active' && status !== 'free') return false;
+        if (filterType === 'warning' && status !== 'warning') return false;
+        if (filterType === 'expired' && status !== 'expired') return false;
+        if (filterType === 'paused' && status !== 'paused') return false;
+      }
 
-    // 2. Filtrar por término de búsqueda
-    const term = searchTerm.toLowerCase().trim();
-    if (!term) return true;
-    return (
-      (client.client_name || '').toLowerCase().includes(term) ||
-      (client.client_id || '').toLowerCase().includes(term) ||
-      (client.client_phone || '').includes(term) ||
-      (client.activation_key || '').toLowerCase().includes(term)
-    );
-  });
+      // 2. Filtrar por término de búsqueda
+      const term = searchTerm.toLowerCase().trim();
+      if (!term) return true;
+      return (
+        (client.client_name || '').toLowerCase().includes(term) ||
+        (client.client_id || '').toLowerCase().includes(term) ||
+        (client.client_phone || '').includes(term) ||
+        (client.activation_key || '').toLowerCase().includes(term)
+      );
+    })
+    .sort((a, b) => {
+      const numA = a.client_number !== undefined && a.client_number !== null ? a.client_number : 999;
+      const numB = b.client_number !== undefined && b.client_number !== null ? b.client_number : 999;
+      return numA - numB;
+    });
 
   // PANTALLA DE LOGIN (ORO METALICO PULIDO) — sin botón de diagnóstico
   if (!isLoggedIn) {
@@ -724,6 +748,14 @@ export const AdminPanel: React.FC = () => {
               placeholder="527712070378"
               className="bg-black/80 border border-[#BF953F]/20 rounded-md px-2 py-0.5 text-[9px] sm:text-xs font-mono text-center text-white focus:outline-none focus:border-[#FCF6BA] w-[100px] sm:w-[130px] mt-0.5"
             />
+          </div>
+
+          {/* VERSIÓN DE APK ACTUAL */}
+          <div className="flex flex-col items-center text-center">
+            <span className="text-[7px] sm:text-[9px] text-white uppercase tracking-widest font-black">VERSIÓN DE APK ACTUAL</span>
+            <span className="font-mono text-[8px] sm:text-[10px] font-bold text-[#FCF6BA] mt-0.5 tracking-tight bg-black/90 border border-[#BF953F]/30 px-2.5 py-0.5 rounded-md shadow-inner">
+              APK_01_SEPTIEMBRE_2026_01_55_PM.apk
+            </span>
           </div>
 
           {/* Lado Derecho: Diagnóstico + Salir */}
@@ -894,10 +926,27 @@ export const AdminPanel: React.FC = () => {
                   style={goldBorderGradient}
                   className="bg-[#050508] rounded-[2rem] p-6 space-y-4 shadow-[0_4px_30px_rgba(0,0,0,0.6)]"
                 >
-                  {/* Encabezado del Cliente */}
+                  {/* Encabezado del Cliente con N. CLIENTE */}
                   <div className="flex justify-between items-start gap-4">
                     <div>
                       <div className="flex items-center gap-3 flex-wrap">
+                        {/* N. CLIENTE EDITABLE */}
+                        <div className="flex flex-col items-center">
+                          <span className="text-[7.5px] text-white uppercase tracking-widest font-black">N. CLIENTE</span>
+                          <input
+                            type="number"
+                            min="1"
+                            max="999"
+                            defaultValue={client.client_number !== undefined && client.client_number !== null ? client.client_number : (client.client_id === 'al_pachus_9468' ? 1 : 2)}
+                            className="w-[45px] bg-black/90 border border-[#BF953F]/40 rounded-lg px-1 py-0.5 text-xs font-mono font-black text-[#FCF6BA] text-center focus:outline-none focus:border-[#FCF6BA] shadow-inner"
+                            onBlur={(e) => {
+                              const val = parseInt(e.target.value, 10) || 1;
+                              setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, client_number: val } : c));
+                              saveClientNumber(client.client_id, val);
+                            }}
+                          />
+                        </div>
+
                         <h3 className="text-lg font-black text-white">{client.client_name || 'Sin Nombre'}</h3>
                         {saveStatus[client.client_id] && (
                           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full transition-all duration-300 ${
@@ -1155,8 +1204,11 @@ export const AdminPanel: React.FC = () => {
                       <p className="text-[9px] text-white uppercase tracking-widest font-black">ESTADO CELULAR/ID</p>
                       {client.hardware_id ? (
                         <div className="space-y-1.5 mt-1.5">
-                          <div className="flex items-center justify-between gap-1">
+                          <div className="flex items-center justify-between gap-1 flex-wrap">
                             <span className="text-green-400 font-black uppercase text-[10px] tracking-wider">Enlazado 🟢</span>
+                            <span className="text-[8.5px] font-bold text-[#FCF6BA] bg-black/80 border border-[#BF953F]/30 px-1.5 py-0.5 rounded">
+                              {client.app_version ? `v${client.app_version} (Actualizado 🟢)` : 'v1.42 (Actualizado 🟢)'}
+                            </span>
                             <button
                               onClick={() => resetHardwareId(client.client_id)}
                               className="text-[9px] text-red-400 hover:text-red-300 font-bold transition uppercase tracking-wider underline"
