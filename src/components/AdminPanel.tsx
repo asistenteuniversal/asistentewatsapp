@@ -752,9 +752,9 @@ export const AdminPanel: React.FC = () => {
 
           {/* VERSIÓN DE APK ACTUAL */}
           <div className="flex flex-col items-center text-center">
-            <span className="text-[7px] sm:text-[9px] text-white uppercase tracking-widest font-black">VERSIÓN DE APK ACTUAL</span>
-            <span className="font-mono text-[8px] sm:text-[10px] font-bold text-[#FCF6BA] mt-0.5 tracking-tight bg-black/90 border border-[#BF953F]/30 px-2.5 py-0.5 rounded-md shadow-inner">
-              APK_01_SEPTIEMBRE_2026_01_55_PM.apk
+            <span className="text-[8px] sm:text-[10px] text-white uppercase tracking-widest font-black">VERSIÓN DE APK ACTUAL: V.1.42</span>
+            <span className="font-mono text-[9px] sm:text-xs font-bold text-[#FCF6BA] mt-0.5 tracking-tight">
+              APK_SEPTIEMBRE_2026_01_55_PM.apk
             </span>
           </div>
 
@@ -926,11 +926,31 @@ export const AdminPanel: React.FC = () => {
                   style={goldBorderGradient}
                   className="bg-[#050508] rounded-[2rem] p-6 space-y-4 shadow-[0_4px_30px_rgba(0,0,0,0.6)]"
                 >
-                  {/* Encabezado del Cliente con N. CLIENTE */}
+                  {/* Encabezado del Cliente: NOMBRE A LA IZQUIERDA, LUEGO N. CLIENTE */}
                   <div className="flex justify-between items-start gap-4">
                     <div>
-                      <div className="flex items-center gap-3 flex-wrap">
-                        {/* N. CLIENTE EDITABLE */}
+                      <div className="flex items-center gap-4 flex-wrap">
+                        
+                        {/* 1. NOMBRE DEL CLIENTE (PRIMERO A LA IZQUIERDA) */}
+                        <div className="flex flex-col items-start">
+                          <span className="text-[7.5px] text-white uppercase tracking-widest font-black">NOMBRE DE CLIENTE</span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <h3 className="text-lg font-black text-white">{client.client_name || 'Sin Nombre'}</h3>
+                            {saveStatus[client.client_id] && (
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full transition-all duration-300 ${
+                                saveStatus[client.client_id]?.isError 
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
+                                  : saveStatus[client.client_id]?.text === 'Guardando...'
+                                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30 animate-pulse'
+                                    : 'bg-green-500/20 text-green-300 border border-green-500/30'
+                              }`}>
+                                {saveStatus[client.client_id]?.text}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 2. N. CLIENTE A UN LADO (UN POCO MÁS GRANDE) */}
                         <div className="flex flex-col items-center">
                           <span className="text-[7.5px] text-white uppercase tracking-widest font-black">N. CLIENTE</span>
                           <input
@@ -938,7 +958,7 @@ export const AdminPanel: React.FC = () => {
                             min="1"
                             max="999"
                             defaultValue={client.client_number !== undefined && client.client_number !== null ? client.client_number : (client.client_id === 'al_pachus_9468' ? 1 : 2)}
-                            className="w-[45px] bg-black/90 border border-[#BF953F]/40 rounded-lg px-1 py-0.5 text-xs font-mono font-black text-[#FCF6BA] text-center focus:outline-none focus:border-[#FCF6BA] shadow-inner"
+                            className="w-[52px] bg-black/90 border border-[#BF953F]/40 rounded-lg px-1.5 py-1 text-sm font-mono font-black text-[#FCF6BA] text-center focus:outline-none focus:border-[#FCF6BA] shadow-inner mt-0.5"
                             onBlur={(e) => {
                               const val = parseInt(e.target.value, 10) || 1;
                               setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, client_number: val } : c));
@@ -947,20 +967,7 @@ export const AdminPanel: React.FC = () => {
                           />
                         </div>
 
-                        <h3 className="text-lg font-black text-white">{client.client_name || 'Sin Nombre'}</h3>
-                        {saveStatus[client.client_id] && (
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full transition-all duration-300 ${
-                            saveStatus[client.client_id]?.isError 
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
-                              : saveStatus[client.client_id]?.text === 'Guardando...'
-                                ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30 animate-pulse'
-                                : 'bg-green-500/20 text-green-300 border border-green-500/30'
-                          }`}>
-                            {saveStatus[client.client_id]?.text}
-                          </span>
-                        )}
                       </div>
-                      <p className="text-[9px] text-gray-500 font-mono mt-0.5">ID: {client.client_id}</p>
                     </div>
 
                     {/* Switch de Activación (Activo / Pausado) y Acciones */}
