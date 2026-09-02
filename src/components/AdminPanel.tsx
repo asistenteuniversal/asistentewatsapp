@@ -120,16 +120,19 @@ export const AdminPanel: React.FC = () => {
   useEffect(() => {
     const updateClock = () => {
       const now = new Date();
-      const options: Intl.DateTimeFormatOptions = {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      };
-      setCurrentTime(now.toLocaleString('es-MX', options));
+      const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+      const dia = String(now.getDate()).padStart(2, '0');
+      const mes = meses[now.getMonth()];
+      const anio = now.getFullYear();
+      let horas = now.getHours();
+      const ampm = horas >= 12 ? 'PM' : 'AM';
+      horas = horas % 12;
+      horas = horas ? horas : 12;
+      const strHoras = String(horas).padStart(2, '0');
+      const minutos = String(now.getMinutes()).padStart(2, '0');
+      const segundos = String(now.getSeconds()).padStart(2, '0');
+
+      setCurrentTime(`${dia} ${mes} ${anio} ${strHoras}:${minutos}:${segundos} ${ampm}`);
     };
 
     updateClock();
@@ -720,44 +723,41 @@ export const AdminPanel: React.FC = () => {
       />
 
       {/* 📍 CABECERA FIJA SUPERIOR */}
-      <header className="sticky top-0 z-50 bg-[#010103]/90 backdrop-blur-md border-b border-[#BF953F]/25 py-4 px-6 shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
-        <div className="max-w-4xl mx-auto flex justify-between items-center gap-4">
+      <header className="sticky top-0 z-50 bg-[#010103]/95 backdrop-blur-md border-b border-[#BF953F]/25 py-4 px-4 sm:px-6 shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
+        <div className="max-w-6xl mx-auto flex justify-between items-center gap-3 sm:gap-6">
           
           {/* Lado Izquierdo: Logotipo */}
-          <div>
+          <div className="shrink-0">
             <h1 className="text-lg sm:text-xl font-black uppercase tracking-wider" style={goldTextGradient}>
               Panel AVA
             </h1>
-            <p className="hidden sm:block text-[9px] text-[#FCF6BA] uppercase tracking-widest font-semibold mt-0.5">
-              Control de Licencias
-            </p>
           </div>
 
-          {/* Centro: Reloj y Fecha */}
-          <div className="flex flex-col items-center text-center">
-            <span className="text-[7px] sm:text-[9px] text-[#FCF6BA] uppercase tracking-widest font-black">Tiempo de Servidor</span>
-            <span className="font-mono text-[9px] sm:text-xs font-bold text-white mt-0.5 tracking-wide bg-black/80 border border-[#BF953F]/10 px-2 py-0.5 rounded-md">
+          {/* Centro 1: Reloj y Fecha */}
+          <div className="flex flex-col items-center text-center shrink-0">
+            <span className="text-[7.5px] sm:text-[9px] text-white uppercase tracking-widest font-black">TIEMPO DE SERVIDOR</span>
+            <span className="font-mono text-[9px] sm:text-xs font-bold text-white mt-0.5 tracking-wide bg-black/80 border border-[#BF953F]/10 px-2 py-0.5 rounded-md whitespace-nowrap">
               {currentTime || 'Cargando reloj...'}
             </span>
           </div>
 
-          {/* WhatsApp de Soporte Técnico */}
-          <div className="flex flex-col items-center text-center">
-            <span className="text-[7px] sm:text-[9px] text-[#FCF6BA] uppercase tracking-widest font-black">WhatsApp de Soporte</span>
+          {/* Centro 2: WhatsApp de Soporte Técnico */}
+          <div className="flex flex-col items-center text-center shrink-0">
+            <span className="text-[7.5px] sm:text-[9px] text-white uppercase tracking-widest font-black">WHATSAPP DE SOPORTE</span>
             <input
               type="text"
               value={supportPhone}
               onChange={(e) => setSupportPhone(e.target.value.trim().replace(/[^0-9]/g, ''))}
               onBlur={(e) => saveSupportPhone(e.target.value)}
               placeholder="527712070378"
-              className="bg-black/80 border border-[#BF953F]/20 rounded-md px-2 py-0.5 text-[9px] sm:text-xs font-mono text-center text-white focus:outline-none focus:border-[#FCF6BA] w-[100px] sm:w-[130px] mt-0.5"
+              className="bg-black/80 border border-[#BF953F]/20 rounded-md px-2 py-0.5 text-[9px] sm:text-xs font-mono text-center text-white focus:outline-none focus:border-[#FCF6BA] w-[105px] sm:w-[130px] mt-0.5"
             />
           </div>
 
-          {/* VERSIÓN DE APK ACTUAL */}
-          <div className="flex flex-col items-center text-center">
-            <span className="text-[8px] sm:text-[10px] text-white uppercase tracking-widest font-black">VERSIÓN DE APK ACTUAL: V.1.42</span>
-            <span className="font-mono text-[9px] sm:text-xs font-bold text-[#FCF6BA] mt-0.5 tracking-tight">
+          {/* Centro 3: VERSIÓN DE APK ACTUAL */}
+          <div className="flex flex-col items-center text-center shrink-0">
+            <span className="text-[7.5px] sm:text-[9px] text-white uppercase tracking-widest font-black">VERSIÓN DE APK ACTUAL: V.1.42</span>
+            <span className="font-mono text-[9px] sm:text-xs font-bold text-[#FCF6BA] mt-0.5 tracking-tight whitespace-nowrap">
               APK_SEPTIEMBRE-2-2026_01_55_PM.apk
             </span>
           </div>
@@ -766,13 +766,13 @@ export const AdminPanel: React.FC = () => {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setIsDiagnosticOpen(true)}
-              className="px-2.5 py-1.5 sm:px-3 sm:py-2 border border-red-500/40 hover:bg-red-500/10 text-red-400 font-bold rounded-xl text-[9px] uppercase tracking-wider transition duration-300 cursor-pointer"
+              className="px-2 py-1 sm:px-3 sm:py-2 border border-red-500/40 hover:bg-red-500/10 text-red-400 font-bold rounded-xl text-[9px] uppercase tracking-wider transition duration-300 cursor-pointer"
             >
               Diagnosticar 🔍
             </button>
             <button
               onClick={handleLogout}
-              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-red-500/50 hover:bg-red-500/10 text-red-400 font-bold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 cursor-pointer"
+              className="px-2.5 py-1 sm:px-4 sm:py-2 border border-red-500/50 hover:bg-red-500/10 text-red-400 font-bold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 cursor-pointer"
             >
               Salir
             </button>
