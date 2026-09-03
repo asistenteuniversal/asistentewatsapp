@@ -232,7 +232,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
                 }
               } else {
                 // Fallback en navegador standard de PC
-                window.open("https://neon-studio-gamma.vercel.app/app-release.apk", "_blank");
+                window.open("https://descargas-asistente-avantar.pages.dev/archivos/Asistente_Universal_Oficial.apk", "_blank");
               }
             }}
             className="py-2.5 px-6 rounded-full font-bold text-xs tracking-widest uppercase transition duration-300 flex items-center justify-center focus:outline-none active:scale-95 border animate-pulse"
