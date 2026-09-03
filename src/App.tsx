@@ -198,11 +198,24 @@ export default function App() {
       setIsLicensingLoading(false);
     }
   };
-  // Verificar actualizaciones remotas del chasis APK
+
+  // Verificar actualizaciones remotas del chasis APK gobernadas desde la nube (Supabase + Cloudflare)
   useEffect(() => {
     const checkUpdates = async () => {
       try {
-        const res = await fetch(`/version.json?v=${new Date().getTime()}`);
+        const { data: adminConfig } = await supabase
+          .from('asistente_config')
+          .select('system_memory')
+          .eq('client_id', 'admin')
+          .single();
+
+        const updatesPermitted = adminConfig && adminConfig.system_memory === 'UPDATES_ALLOWED';
+        if (!updatesPermitted) {
+          setUpdateAvailable(false);
+          return;
+        }
+
+        const res = await fetch(`https://descargas-asistente-avantar.pages.dev/archivos/version.json?v=${new Date().getTime()}`);
         if (res.ok) {
           const data = await res.json();
           if (data && data.versionCode) {
@@ -216,11 +229,13 @@ export default function App() {
             }
             if (data.versionCode > localVersion) {
               setUpdateAvailable(true);
+              return;
             }
           }
         }
+        setUpdateAvailable(false);
       } catch (err) {
-        console.error('Error checking updates:', err);
+        setUpdateAvailable(false);
       }
     };
     checkUpdates();

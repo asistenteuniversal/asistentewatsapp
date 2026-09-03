@@ -161,14 +161,19 @@ export const AdminPanel: React.FC = () => {
       if (error) throw error;
       setClients(data || []);
 
-      // Cargar también el teléfono de soporte de la cuenta admin
+      // Cargar también el teléfono de soporte y el estado de actualizaciones de la cuenta admin
       const { data: adminData } = await supabase
         .from('asistente_config')
-        .select('client_phone')
+        .select('client_phone, system_memory')
         .eq('client_id', 'admin')
         .single();
-      if (adminData && adminData.client_phone) {
-        setSupportPhone(adminData.client_phone);
+      if (adminData) {
+        if (adminData.client_phone) {
+          setSupportPhone(adminData.client_phone);
+        }
+        const isAllowed = adminData.system_memory === 'UPDATES_ALLOWED';
+        setUpdatesAllowed(isAllowed);
+        localStorage.setItem('ava_updates_allowed', isAllowed ? 'true' : 'false');
       }
     } catch (err: any) {
       console.error('Error al cargar clientes:', err);
@@ -210,6 +215,9 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
+  // Estado para el control global de bloqueo de actualizaciones en la nube
+  const [updatesAllowed, setUpdatesAllowed] = useState<boolean>(() => localStorage.getItem('ava_updates_allowed') === 'true');
+
   // Guardar teléfono de soporte en la base de datos
   const saveSupportPhone = async (phone: string) => {
     try {
@@ -222,6 +230,24 @@ export const AdminPanel: React.FC = () => {
     } catch (err: any) {
       console.warn('Error al guardar teléfono de soporte:', err);
       showNotification('⚠ Error al guardar teléfono en la nube', true);
+    }
+  };
+
+  // Alternar el bloqueo global de actualizaciones para todos los celulares del mundo
+  const toggleGlobalUpdates = async () => {
+    const nextAllowed = !updatesAllowed;
+    setUpdatesAllowed(nextAllowed);
+    localStorage.setItem('ava_updates_allowed', nextAllowed ? 'true' : 'false');
+    try {
+      const { error } = await supabase
+        .from('asistente_config')
+        .update({ system_memory: nextAllowed ? 'UPDATES_ALLOWED' : 'UPDATES_LOCKED' })
+        .eq('client_id', 'admin');
+      if (error) throw error;
+      showNotification(nextAllowed ? '🟢 Actualizaciones HABILITADAS en la nube' : '🔴 Actualizaciones BLOQUEADAS en la nube', false);
+    } catch (err: any) {
+      console.warn('Error al sincronizar bloqueo de actualizaciones:', err);
+      showNotification('⚠ Error al sincronizar con la nube', true);
     }
   };
 
@@ -760,6 +786,23 @@ export const AdminPanel: React.FC = () => {
             <span className="font-mono text-[9px] sm:text-xs font-bold text-[#FCF6BA] mt-0.5 tracking-tight whitespace-nowrap">
               APK_SEPTIEMBRE-2-2026_01_55_PM.apk
             </span>
+          </div>
+
+          {/* Centro 4: CONTROL GLOBAL DE ACTUALIZACIONES (NUBE) */}
+          <div className="flex flex-col items-center text-center shrink-0">
+            <span className="text-[7.5px] sm:text-[9px] text-white uppercase tracking-widest font-black">ACTUALIZACIONES</span>
+            <button
+              type="button"
+              onClick={toggleGlobalUpdates}
+              className={`mt-0.5 px-2.5 py-0.5 rounded-md font-mono text-[8.5px] sm:text-[10px] font-extrabold uppercase tracking-wider border transition-all duration-200 cursor-pointer whitespace-nowrap active:scale-95 shadow-sm ${
+                updatesAllowed
+                  ? 'bg-green-950/80 text-green-300 border-green-500/60 hover:bg-green-900/80 shadow-[0_0_10px_rgba(34,197,94,0.2)]'
+                  : 'bg-red-950/80 text-red-300 border-red-500/60 hover:bg-red-900/80 shadow-[0_0_10px_rgba(239,68,68,0.2)]'
+              }`}
+              title={updatesAllowed ? "Actualizaciones ACTIVAS en la nube. Clic para bloquear." : "Actualizaciones BLOQUEADAS en la nube. Clic para permitir."}
+            >
+              {updatesAllowed ? '🟢 PERMITIDAS' : '🔴 BLOQUEADAS'}
+            </button>
           </div>
 
           {/* Lado Derecho: Diagnóstico + Salir */}
