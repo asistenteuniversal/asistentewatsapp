@@ -501,10 +501,20 @@ export default function App() {
           const isClearOrder = data.system_memory === 'CLEAR' || data.system_memory === 'UPDATE_AND_CLEAR';
           const isUpdateOrder = data.system_memory === 'UPDATE_INSTRUCTIONS' || data.system_memory === 'UPDATE_AND_CLEAR';
 
+          // Detectar si la nube especifica género (Voz de Mujer o Voz de Hombre)
+          const cloudInstructions = data.system_instructions || '';
+          let nextVoiceMale: boolean | undefined = undefined;
+          if (cloudInstructions.includes('asistente femenina (mujer)')) {
+            nextVoiceMale = false;
+          } else if (cloudInstructions.includes('asistente masculino (hombre)')) {
+            nextVoiceMale = true;
+          }
+
           setSettings((prev) => {
             const nextDays = cloudMemoryDays;
             const nextSyncEnabled = !isAutonomous;
             const nextMemory = isClearOrder ? '' : (prev.systemMemory || '');
+            const targetVoiceMale = nextVoiceMale !== undefined ? nextVoiceMale : prev.voiceMaleEnabled;
             
             // Si es una orden de actualizar comportamiento, o si el celular no tiene aún comportamiento local configurado
             const hasLocalInstructions = !!prev.systemInstructions;
@@ -516,7 +526,8 @@ export default function App() {
             if (prev.systemInstructions === nextInstructions && 
                 prev.systemMemory === nextMemory &&
                 prev.memoryDays === nextDays &&
-                prev.syncMemoryEnabled === nextSyncEnabled) {
+                prev.syncMemoryEnabled === nextSyncEnabled &&
+                prev.voiceMaleEnabled === targetVoiceMale) {
               return prev;
             }
 
@@ -526,6 +537,7 @@ export default function App() {
               systemMemory: nextMemory,
               memoryDays: nextDays,
               syncMemoryEnabled: nextSyncEnabled,
+              voiceMaleEnabled: targetVoiceMale
             };
           });
 

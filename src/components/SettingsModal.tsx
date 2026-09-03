@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Eye } from 'lucide-react';
 import { AppSettings } from '../types';
+import { supabase } from '../supabaseClient';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -151,11 +152,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="space-y-1.5 font-sans">
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
+                const nextVoiceMale = !settings.voiceMaleEnabled;
                 setSettings((prev) => ({
                   ...prev,
-                  voiceMaleEnabled: !prev.voiceMaleEnabled
+                  voiceMaleEnabled: nextVoiceMale
                 }));
+
+                // Sincronizar en tiempo real con Supabase para el Panel de Administrador
+                const clientId = localStorage.getItem('ava_client_id');
+                if (clientId) {
+                  const genderDirective = nextVoiceMale
+                    ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
+                    : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
+                  
+                  let updatedInstructions = settings.systemInstructions || '';
+                  if (updatedInstructions.includes('GÉNERO E IDENTIDAD:')) {
+                    updatedInstructions = updatedInstructions.replace(/GÉNERO E IDENTIDAD:.*$/m, genderDirective);
+                  } else {
+                    updatedInstructions = `${genderDirective}\n\n${updatedInstructions}`;
+                  }
+
+                  try {
+                    await supabase
+                      .from('asistente_config')
+                      .update({ 
+                        system_instructions: updatedInstructions 
+                      } as any)
+                      .eq('client_id', clientId);
+                  } catch (e) {
+                    console.error('Error sincronizando voz con Supabase:', e);
+                  }
+                }
               }}
               className={`w-full py-3 px-4 font-black rounded-2xl text-[11px] sm:text-xs uppercase tracking-wider transition duration-300 border shadow-lg cursor-pointer flex items-center justify-center text-center ${
                 settings.voiceMaleEnabled
