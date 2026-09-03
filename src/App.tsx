@@ -372,7 +372,7 @@ export default function App() {
       memorySaveDate: new Date().toDateString(),
       memoryDays: 2,
       syncMemoryEnabled: true,
-      voiceMaleEnabled: true
+      voiceMaleEnabled: false
     };
 
     if (saved) {
