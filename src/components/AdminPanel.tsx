@@ -257,8 +257,8 @@ export const AdminPanel: React.FC = () => {
     setErrorMessage('');
     const trimmedInput = passwordInput.trim();
 
-    // 🚀 ATAJO DIRECTO: Si escribe 'manchas6551', entra directo
-    if (trimmedInput === 'manchas6551') {
+    // 🚀 ATAJO DIRECTO: Aceptar 6551, 86551 y manchas6551 para entrar de inmediato
+    if (trimmedInput === '6551' || trimmedInput === '86551' || trimmedInput === 'manchas6551') {
       setIsLoggedIn(true);
       localStorage.setItem('ava_admin_logged', 'true');
       return;
