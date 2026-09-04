@@ -516,11 +516,10 @@ export default function App() {
             const nextMemory = isClearOrder ? '' : (prev.systemMemory || '');
             const targetVoiceMale = nextVoiceMale !== undefined ? nextVoiceMale : prev.voiceMaleEnabled;
             
-            // Si es una orden de actualizar comportamiento, o si el celular no tiene aún comportamiento local configurado
-            const hasLocalInstructions = !!prev.systemInstructions;
-            const nextInstructions = (isUpdateOrder || !hasLocalInstructions) 
-              ? (data.system_instructions || '')
-              : prev.systemInstructions;
+            // Sincronizar siempre las instrucciones más recientes desde la nube si están disponibles
+            const nextInstructions = data.system_instructions !== undefined && data.system_instructions !== null
+              ? data.system_instructions
+              : (prev.systemInstructions || '');
 
             // Evitar ciclos de render innecesarios
             if (prev.systemInstructions === nextInstructions && 
