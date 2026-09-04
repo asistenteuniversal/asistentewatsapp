@@ -704,7 +704,15 @@ export default function App() {
     };
 
     // Escuchar avisos de corte o falla de conexión desde el motor nativo o Google Studio
+    let lastHandledErrorTimestamp = 0;
     (window as any).onGoogleStreamError = (errorDetail?: string) => {
+      const nowMs = Date.now();
+      // Debounce de 3 segundos para evitar registrar la misma falla dos veces
+      if (nowMs - lastHandledErrorTimestamp < 3000) {
+        return;
+      }
+      lastHandledErrorTimestamp = nowMs;
+
       console.warn('[FallaConexión] Detectada desconexión en vivo:', errorDetail);
       setConnectionErrorVisible(true);
       setConnectionErrorMessage('FALLA DE CONEXIÓN');
@@ -722,9 +730,13 @@ export default function App() {
 
       const previousLogs = localStorage.getItem('ava_last_error_log') || '';
       const logsArray = previousLogs.split('\n').filter(Boolean);
-      logsArray.unshift(newLine); // Agregar al inicio (más reciente arriba)
-      const trimmedLogs = logsArray.slice(0, 100).join('\n'); // Guardar hasta 100 registros acumulativos
-
+      
+      // Evitar duplicar la misma línea exacta si ya estuviera arriba
+      if (logsArray.length === 0 || logsArray[0] !== newLine) {
+        logsArray.unshift(newLine); // Agregar al inicio (más reciente arriba)
+      }
+      
+      const trimmedLogs = logsArray.slice(0, 100).join('\n'); // Conservar hasta 100 registros
       localStorage.setItem('ava_last_error_log', trimmedLogs);
     };
 
