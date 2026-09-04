@@ -126,14 +126,14 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
       {/* Fondo negro puro absoluto (#000000) */}
       <div className="absolute inset-0 w-full h-full" style={{ backgroundColor: '#000000' }} />
 
-      {/* Nuevo Logotipo ASISTENTE flotante en el centro superior (Posición y escala idéntica a la carátula oficial) */}
-      <div className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center top-[5%]">
+      {/* Logotipo circular dorado oficial en el centro superior */}
+      <div className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center top-[4.5%]">
         <img
           src={avaLogo}
-          alt="Asistente"
+          alt="Logo"
           loading="eager"
           decoding="sync"
-          className="w-[clamp(180px,46vw,240px)] h-auto object-contain pointer-events-none"
+          className="w-[clamp(110px,28vw,145px)] h-auto object-contain pointer-events-none"
           style={{
             filter: 'drop-shadow(0 0 15px rgba(212, 175, 55, 0.25))'
           }}
@@ -156,32 +156,37 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
         </button>
       )}
 
-      {/* ── BOTÓN: AJUSTES CLIENTE (arriba derecha, al lado del administrador) ── */}
+      {/* ── BOTÓN: AJUSTES CLIENTE (Esquina superior derecha exterior: Signo de interrogación dorado grande) ── */}
       {SHOW_SETTINGS_BUTTON && onOpenClientSettings && (
         <button
           type="button"
           onClick={onOpenClientSettings}
-          className="absolute top-[5%] right-[16%] z-30 p-2.5 rounded-xl
-                     bg-black/70 border border-[#d4af37]/40 text-[#d4af37]
+          className="absolute top-[5%] right-[5%] z-30 p-2.5 rounded-xl
+                     bg-black/70 border border-[#d4af37]/40
                      shadow-[0_0_12px_rgba(212,175,55,0.15)]
                      active:scale-95 transition-all duration-150 focus:outline-none
-                     hover:bg-[#d4af37]/10"
+                     hover:bg-[#d4af37]/10 cursor-pointer flex items-center justify-center min-w-[36px] min-h-[36px]"
           title="Ajustes de Usuario"
         >
-          <Sliders className="w-4 h-4" />
+          <span 
+            style={goldTextStyle} 
+            className="text-base font-black leading-none select-none"
+          >
+            ?
+          </span>
         </button>
       )}
 
-      {/* ── BOTÓN: CONFIGURACIÓN ADMINISTRADOR (arriba derecha, posición original) ── */}
+      {/* ── BOTÓN: CONFIGURACIÓN ADMINISTRADOR (Posición interior al lado del signo de interrogacion) ── */}
       {SHOW_SETTINGS_BUTTON && onOpenSettings && (
         <button
           type="button"
           onClick={onOpenSettings}
-          className="absolute top-[5%] right-[5%] z-30 p-2.5 rounded-xl
+          className="absolute top-[5%] right-[16%] z-30 p-2.5 rounded-xl
                      bg-black/70 border border-[#d4af37]/40 text-[#d4af37]
                      shadow-[0_0_12px_rgba(212,175,55,0.15)]
                      active:scale-95 transition-all duration-150 focus:outline-none
-                     hover:bg-[#d4af37]/10"
+                     hover:bg-[#d4af37]/10 cursor-pointer"
           title="Configuración Avanzada"
         >
           <Settings className="w-4 h-4" />
