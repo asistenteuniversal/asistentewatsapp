@@ -40,8 +40,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#020205]/80 backdrop-blur-xl flex items-center justify-center p-4 font-sans text-white">
-      <div className="w-full max-w-md bg-[#0a0a0f]/90 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 shadow-[0_0_60px_rgba(6,182,212,0.25)] space-y-5 relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-[#020205]/85 backdrop-blur-xl flex items-center justify-center p-3 font-sans text-white">
+      <div className="w-full max-w-sm bg-[#0a0a0f]/95 backdrop-blur-2xl border border-white/15 rounded-3xl p-4 sm:p-5 shadow-[0_0_60px_rgba(6,182,212,0.2)] space-y-3.5 relative max-h-[94vh] overflow-y-auto">
         {/* Header - Botón del Ojito a la izquierda y Botón de cierre X a la derecha */}
         <div className="flex items-center justify-between border-b border-white/10 pb-2">
           <button
@@ -62,10 +62,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <div className="space-y-4 text-xs">
+        <div className="space-y-3 text-xs">
           {/* System Instructions (Prompt) */}
-          <div className="space-y-1.5">
-            <label className="text-zinc-300 font-semibold font-sans text-[10px] uppercase tracking-wider block">
+          <div className="space-y-1">
+            <label className="text-zinc-200 font-bold font-sans text-[11px] uppercase tracking-wider block">
               COMPORTAMIENTO ASISTENTE:
             </label>
             <textarea
@@ -74,19 +74,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 setSettings((prev) => ({ ...prev, systemInstructions: e.target.value }))
               }
               rows={4}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-xs backdrop-blur-md resize-none leading-relaxed"
               placeholder="Ejemplo: Eres un asistente servicial..."
             />
-            <p className="text-[9px] text-zinc-400 leading-normal">
-              Define la personalidad del asistente. Se inyectará automáticamente en Google Studio al abrir sus ajustes.
-            </p>
           </div>
 
           {/* Memoria de Conversacion (Prompt de Recuerdos) */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <label className="text-zinc-300 font-semibold text-[10px] uppercase tracking-wider">
-                Memoria de Conversacion:
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-2 flex-wrap pb-0.5">
+              <label className="text-zinc-200 font-bold text-[11px] uppercase tracking-wider">
+                MEMORIA DE CONVERSACION:
               </label>
               <button
                 type="button"
@@ -99,7 +96,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     }));
                   }
                 }}
-                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300"
+                className="px-2 py-0.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-black rounded-lg text-[8.5px] uppercase tracking-wider transition duration-300"
               >
                 BORRADO DE MEMORIA DE CONVERSACION
               </button>
@@ -115,18 +112,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }));
               }}
               rows={3}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-xs backdrop-blur-md resize-none leading-relaxed"
               placeholder="Escribe recuerdos de la conversación aquí..."
             />
-            <p className="text-[9px] text-zinc-400 leading-normal">
-              Añade recuerdos temporales. Se unirán al comportamiento y se borrarán automáticamente al cambiar de día.
-            </p>
           </div>
 
           {/* Conexión de Memoria Celular (Vincular / Autónomo) */}
-          <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-2 backdrop-blur-md font-sans">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-zinc-300 font-sans text-[11px]">
+          <div className="p-3 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md font-sans">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-bold text-zinc-100 font-sans text-xs">
                 Sincronización de Memoria:
               </span>
               <button
@@ -137,19 +131,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     syncMemoryEnabled: prev.syncMemoryEnabled === undefined ? false : !prev.syncMemoryEnabled
                   }));
                 }}
-                className={`px-3 py-1.5 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer ${
+                className={`px-2.5 py-1 font-black rounded-xl text-[9px] uppercase tracking-wider transition duration-300 border cursor-pointer ${
                   settings.syncMemoryEnabled === false
-                    ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/30'
-                    : 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/30'
+                    ? 'bg-red-950/30 text-red-400 border-red-500/40 hover:bg-red-950/40'
+                    : 'bg-green-950/30 text-green-300 border-green-500/40 hover:bg-green-950/40'
                 }`}
               >
-                {settings.syncMemoryEnabled === false ? '🔴 DESCONECTADO (AUTÓNOMO)' : '🟢 CONECTADO (VINCULADO)'}
+                {settings.syncMemoryEnabled === false ? '🔴 DESCONECTADO' : '🟢 CONECTADO (VINCULADO)'}
               </button>
             </div>
           </div>
 
           {/* Voz del Asistente (Botón amplio con todo el texto integrado) */}
-          <div className="space-y-1.5 font-sans">
+          <div className="space-y-1 font-sans">
             <button
               type="button"
               onClick={async () => {
@@ -185,21 +179,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   }
                 }
               }}
-              className={`w-full py-3 px-4 font-black rounded-2xl text-[11px] sm:text-xs uppercase tracking-wider transition duration-300 border shadow-lg cursor-pointer flex items-center justify-center text-center ${
+              className={`w-full py-2.5 px-3 font-black rounded-2xl text-[10.5px] uppercase tracking-wider transition duration-300 border shadow-md cursor-pointer flex items-center justify-center text-center ${
                 settings.voiceMaleEnabled
                   ? 'bg-green-950/30 text-green-400 border-green-500/40 hover:bg-green-950/50 shadow-green-950/20'
                   : 'bg-pink-950/30 text-pink-300 border-pink-400/50 hover:bg-pink-950/50 shadow-pink-950/20'
               }`}
             >
               {settings.voiceMaleEnabled
-                ? '🟢 VOZ DE HOMBRE — PRESIONAR PARA CAMBIAR A VOZ DE MUJER'
-                : '🌸 VOZ DE MUJER — PRESIONAR PARA CAMBIAR A VOZ DE HOMBRE'}
+                ? '🟢 VOZ DE HOMBRE — CAMBIAR A MUJER'
+                : '🌸 VOZ DE MUJER — CAMBIAR A HOMBRE'}
             </button>
           </div>
 
           {/* Días de Memoria a Conservar */}
-          <div className="space-y-1.5">
-            <label className="text-zinc-300 font-semibold font-sans text-[10px] uppercase tracking-wider block">
+          <div className="space-y-1">
+            <label className="text-zinc-200 font-bold font-sans text-[11px] uppercase tracking-wider block">
               DÍAS DE MEMORIA DE CONVERSACIÓN A GUARDAR:
             </label>
             <select
@@ -218,7 +212,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   memoryDays: val
                 }));
               }}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-[11px] backdrop-blur-md"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-cyan-200 outline-none focus:border-cyan-500/80 font-sans text-xs backdrop-blur-md"
             >
               <option value="0" className="bg-[#0a0a0f] text-cyan-200">0 (Infinito)</option>
               {Array.from({ length: 31 }, (_, i) => i + 1).map((num) => (
@@ -228,33 +222,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               ))}
             </select>
           </div>
-
-          {/* Cerrar Sesión de Google para cambiar cuenta */}
-          <div className="pt-1">
-            <button
-              onClick={() => {
-                if ((window as any).AndroidInterface && (window as any).AndroidInterface.logoutGoogle) {
-                  try {
-                    (window as any).AndroidInterface.logoutGoogle();
-                  } catch (e) {
-                    console.error(e);
-                  }
-                } else {
-                  alert("Esta opción solo está disponible dentro de la aplicación de celular.");
-                }
-              }}
-              className="w-full py-2.5 rounded-xl border border-rose-500/30 bg-rose-950/20 hover:bg-rose-950/40 text-rose-300 font-semibold text-[11px] transition duration-200 flex items-center justify-center backdrop-blur-md cursor-pointer"
-            >
-              Cerrar Sesión de Google (Cambiar Correo)
-            </button>
-          </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="pt-2">
+        <div className="pt-1.5">
           <button
             onClick={handleSave}
-            className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 font-bold text-black text-xs transition shadow-[0_0_30px_rgba(6,182,212,0.5)] uppercase tracking-wider cursor-pointer"
+            className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 font-black text-black text-xs transition shadow-[0_0_30px_rgba(6,182,212,0.5)] uppercase tracking-wider cursor-pointer"
           >
             Guardar y Aplicar
           </button>
