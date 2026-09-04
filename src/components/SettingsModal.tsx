@@ -142,11 +142,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           </div>
 
-          {/* ── BLOQUE LEGO INDEPENDIENTE: HISTORIAL DE DIAGNÓSTICO DE FALLAS (ADMINISTRADOR) ── */}
-          <div className="p-3 bg-black/80 rounded-2xl border border-red-500/40 backdrop-blur-md font-sans shadow-[0_0_15px_rgba(239,68,68,0.15)] space-y-1.5">
-            <div className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 font-mono text-[11.5px] sm:text-xs text-yellow-300 whitespace-pre-line leading-relaxed max-h-28 overflow-y-auto">
-              {localStorage.getItem('ava_last_error_log') || '[04/Sep/2026 01:52:48 AM] Start new stream'}
-            </div>
+          {/* ── BLOQUE LEGO INDEPENDIENTE: HISTORIAL DE FALLAS (IDÉNTICO A MEMORIA DE CONVERSACIÓN) ── */}
+          <div className="space-y-1">
+            <textarea
+              readOnly
+              value={localStorage.getItem('ava_last_error_log') || '[04/Sep/2026 02:10:43 AM] Start new stream'}
+              rows={3}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-red-500/80 font-sans text-xs backdrop-blur-md resize-none leading-relaxed overflow-y-auto whitespace-pre-wrap select-text"
+              placeholder="Historial de fallas..."
+            />
           </div>
 
           {/* Voz del Asistente (Botón amplio con todo el texto integrado) */}

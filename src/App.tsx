@@ -723,7 +723,7 @@ export default function App() {
       const previousLogs = localStorage.getItem('ava_last_error_log') || '';
       const logsArray = previousLogs.split('\n').filter(Boolean);
       logsArray.unshift(newLine); // Agregar al inicio (más reciente arriba)
-      const trimmedLogs = logsArray.slice(0, 5).join('\n'); // Mantener hasta 5 registros
+      const trimmedLogs = logsArray.slice(0, 100).join('\n'); // Guardar hasta 100 registros acumulativos
 
       localStorage.setItem('ava_last_error_log', trimmedLogs);
     };
