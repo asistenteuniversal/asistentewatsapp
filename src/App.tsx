@@ -26,6 +26,7 @@ export default function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false); // Estado de actualizador flotante
   const [connectionErrorVisible, setConnectionErrorVisible] = useState(false); // Aviso flotante de falla de conexión
   const [connectionErrorMessage, setConnectionErrorMessage] = useState('FALLA DE CONEXIÓN');
+  const [errorLogs, setErrorLogs] = useState<string>(() => localStorage.getItem('ava_last_error_log') || '');
 
   // Estados de licenciamiento dinámico
   const [clientId, setClientId] = useState<string | null>(() => localStorage.getItem('ava_client_id'));
@@ -738,6 +739,7 @@ export default function App() {
       
       const trimmedLogs = logsArray.slice(0, 100).join('\n'); // Conservar hasta 100 registros
       localStorage.setItem('ava_last_error_log', trimmedLogs);
+      setErrorLogs(trimmedLogs);
     };
 
     return () => {
@@ -1305,6 +1307,7 @@ export default function App() {
         onSave={handleSaveSettings}
         settings={settings}
         setSettings={setSettings}
+        errorLogs={errorLogs}
       />
     </div>
   );
