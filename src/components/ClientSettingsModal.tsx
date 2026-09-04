@@ -119,24 +119,11 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     }
   };
 
-  // 🎙️ CAMBIO INSTANTÁNEO DE VOZ Y GÉNERO A SUPABASE Y JAVA SIN ESPERAR BOTÓN DE GUARDAR
+  // 🎙️ CAMBIO INSTANTÁNEO DE VOZ Y GÉNERO (IDÉNTICO AL BOTÓN DE GUARDAR NOMBRES)
   const handleToggleVoiceInstant = async () => {
     const nextVoiceMale = !settings.voiceMaleEnabled;
-    setSettings((prev) => ({
-      ...prev,
-      voiceMaleEnabled: nextVoiceMale
-    }));
-
-    if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateVoiceOption) {
-      try {
-        (window as any).AndroidInterface.updateVoiceOption(nextVoiceMale);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
     const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
-    const finalName = (assistantName.trim() || localStorage.getItem('ava_custom_assistant_name') || 'Asistente');
+    const finalName = assistantName.trim() || localStorage.getItem('ava_custom_assistant_name') || 'Asistente';
     const activePreset = PERSONALITY_PRESETS.find(p => p.id === selectedPersonality) || PERSONALITY_PRESETS[0];
 
     const genderDirective = nextVoiceMale
@@ -145,29 +132,40 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
     const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${genderDirective}\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
     
-    const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
-    const fullInstructionsWithIdentity = `${identityHeader}${rawBaseInstructions}`;
+    const rawBaseInstructions = (settings.systemInstructions || '')
+      .replace(/\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?(?=\n\n|$)/gi, '')
+      .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
+      .trim();
+    const fullInstructionsWithIdentity = rawBaseInstructions
+      ? `${identityHeader}${rawBaseInstructions}`
+      : identityHeader.trim();
 
-    // Inyectar en caliente a Google Studio / Android sin reiniciar
-    const cleanMemory = (settings.systemMemory || '').replace(/^\[[^\]]+\]\s*/gm, '');
-    const mergedText = cleanMemory.trim()
-      ? `${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO]: \n${cleanMemory}`
-      : fullInstructionsWithIdentity;
+    // 1. Actualizar React localmente al instante (cambia el cuadro de comportamiento)
+    setSettings((prev) => ({
+      ...prev,
+      voiceMaleEnabled: nextVoiceMale,
+      systemInstructions: fullInstructionsWithIdentity
+    }));
 
-    if ((window as any).AndroidInterface && (window as any).AndroidInterface.updateSystemInstructions) {
+    // 2. Inyectar a Android / Java
+    if ((window as any).AndroidInterface) {
       try {
-        (window as any).AndroidInterface.updateSystemInstructions(mergedText);
+        if ((window as any).AndroidInterface.updateVoiceOption) {
+          (window as any).AndroidInterface.updateVoiceOption(nextVoiceMale);
+        }
+        if ((window as any).AndroidInterface.updateSystemInstructions) {
+          (window as any).AndroidInterface.updateSystemInstructions(fullInstructionsWithIdentity);
+        }
       } catch (e) {
         console.error(e);
       }
     }
 
+    // 3. Sincronizar con Supabase
     try {
       await supabase
         .from('asistente_config')
-        .update({
-          system_instructions: fullInstructionsWithIdentity
-        })
+        .update({ system_instructions: fullInstructionsWithIdentity })
         .eq('client_id', clientId);
       console.log('[Supabase] Voz y género actualizados instantáneamente en la nube.');
     } catch (errSupabase) {
