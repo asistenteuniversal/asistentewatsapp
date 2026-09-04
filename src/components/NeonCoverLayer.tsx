@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Video, Phone, Eye, MicOff, Sliders, Headphones } from 'lucide-react';
 import avaLogo from '../assets/images/ava_logo.png';
+import { ConnectionErrorBanner } from './ConnectionErrorBanner';
 
 // ============================================================
 // CONFIGURACIÓN FÁCIL - Para producción cambia true/false aquí
@@ -37,6 +38,9 @@ interface NeonCoverLayerProps {
   onOpenSettings?: () => void; // Abre administrador (Engrane original)
   onOpenClientSettings?: () => void; // Abre cliente (Sliders nuevo)
   updateAvailable?: boolean;
+  connectionErrorVisible?: boolean;
+  onDismissConnectionError?: () => void;
+  connectionErrorMessage?: string;
 }
 
 export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
@@ -55,6 +59,9 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   onOpenSettings,
   onOpenClientSettings,
   updateAvailable = false,
+  connectionErrorVisible = false,
+  onDismissConnectionError,
+  connectionErrorMessage,
 }) => {
 
   const [activeCallType, setActiveCallType] = useState<'video' | 'audio' | null>(null);
@@ -260,6 +267,13 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
           </button>
         </div>
       )}
+
+      {/* ── BLOQUE LEGO INDEPENDIENTE: AVISO DE FALLA DE CONEXIÓN ── */}
+      <ConnectionErrorBanner
+        visible={connectionErrorVisible}
+        onDismiss={onDismissConnectionError}
+        errorMessage={connectionErrorMessage}
+      />
 
       {/* ── CRONÓMETRO: escala con vw para cualquier Android ── */}
       <div className="absolute bottom-[24%] left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
