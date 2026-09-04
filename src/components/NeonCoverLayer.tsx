@@ -140,6 +140,13 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
         />
       </div>
 
+      {/* ── BLOQUE INDEPENDIENTE: NOMBRE DEL ASISTENTE EN BLANCO (ESTILO LLAMADA WHATSAPP GRANDE) ── */}
+      <div className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center top-[17.5%] w-full max-w-[92%] px-4 pointer-events-none">
+        <h2 className="text-white text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-center truncate max-w-full drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+          {localStorage.getItem('ava_custom_assistant_name') || 'Asistente'}
+        </h2>
+      </div>
+
       {/* ── BOTÓN: MOSTRAR INTERFAZ (arriba izquierda) ── */}
       {SHOW_MOSTRAR_INTERFAZ && onShowStudio && (
         <button
