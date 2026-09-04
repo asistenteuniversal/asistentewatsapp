@@ -718,9 +718,14 @@ export default function App() {
       hours = hours % 12;
       hours = hours ? hours : 12;
       const timeFormatted = `${pad(hours)}:${pad(now.getMinutes())}:${pad(now.getSeconds())} ${ampm}`;
-      const logEntry = `[${dateFormatted} ${timeFormatted}] ${errorDetail || 'Falla de conexión en transmisión Live'}`;
+      const newLine = `[${dateFormatted} ${timeFormatted}] ${errorDetail || 'Connection failed'}`;
 
-      localStorage.setItem('ava_last_error_log', logEntry);
+      const previousLogs = localStorage.getItem('ava_last_error_log') || '';
+      const logsArray = previousLogs.split('\n').filter(Boolean);
+      logsArray.unshift(newLine); // Agregar al inicio (más reciente arriba)
+      const trimmedLogs = logsArray.slice(0, 5).join('\n'); // Mantener hasta 5 registros
+
+      localStorage.setItem('ava_last_error_log', trimmedLogs);
     };
 
     return () => {

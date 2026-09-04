@@ -142,10 +142,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           </div>
 
-          {/* ── BLOQUE LEGO INDEPENDIENTE: DIAGNÓSTICO DE ÚLTIMA FALLA (ADMINISTRADOR) ── */}
-          <div className="w-full p-2.5 bg-black/70 rounded-2xl border border-red-500/40 backdrop-blur-md font-sans shadow-[0_0_15px_rgba(239,68,68,0.15)]">
-            <div className="bg-white/5 border border-white/10 rounded-xl px-2.5 py-2 font-mono text-[10px] sm:text-[10.5px] text-yellow-300 break-words leading-tight tracking-tight text-center">
-              {localStorage.getItem('ava_last_error_log') || '[03/Sep/2026 10:44:00 PM] Start new stream replay'}
+          {/* ── BLOQUE LEGO INDEPENDIENTE: HISTORIAL DE DIAGNÓSTICO DE FALLAS (ADMINISTRADOR) ── */}
+          <div className="p-3 bg-black/80 rounded-2xl border border-red-500/40 backdrop-blur-md font-sans shadow-[0_0_15px_rgba(239,68,68,0.15)] space-y-1.5">
+            <div className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 font-mono text-[11.5px] sm:text-xs text-yellow-300 whitespace-pre-line leading-relaxed max-h-28 overflow-y-auto">
+              {localStorage.getItem('ava_last_error_log') || '[04/Sep/2026 01:52:48 AM] Start new stream'}
             </div>
           </div>
 
