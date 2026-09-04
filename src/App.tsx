@@ -24,6 +24,8 @@ export default function App() {
   const [isClientSettingsOpen, setIsClientSettingsOpen] = useState(false); // Modal de Cliente (nuevo)
   const [isSystemLoading, setIsSystemLoading] = useState(true); // Temporizador de arranque seguro
   const [updateAvailable, setUpdateAvailable] = useState(false); // Estado de actualizador flotante
+  const [connectionErrorVisible, setConnectionErrorVisible] = useState(false); // Aviso flotante de falla de conexión
+  const [connectionErrorMessage, setConnectionErrorMessage] = useState('FALLA DE CONEXIÓN');
 
   // Estados de licenciamiento dinámico
   const [clientId, setClientId] = useState<string | null>(() => localStorage.getItem('ava_client_id'));
@@ -700,8 +702,30 @@ export default function App() {
         });
       }
     };
+
+    // Escuchar avisos de corte o falla de conexión desde el motor nativo o Google Studio
+    (window as any).onGoogleStreamError = (errorDetail?: string) => {
+      console.warn('[FallaConexión] Detectada desconexión en vivo:', errorDetail);
+      setConnectionErrorVisible(true);
+      setConnectionErrorMessage('FALLA DE CONEXIÓN');
+
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const dateFormatted = `${pad(now.getDate())}/${months[now.getMonth()]}/${now.getFullYear()}`;
+      let hours = now.getHours();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const timeFormatted = `${pad(hours)}:${pad(now.getMinutes())}:${pad(now.getSeconds())} ${ampm}`;
+      const logEntry = `[${dateFormatted} ${timeFormatted}] ${errorDetail || 'Falla de conexión en transmisión Live'}`;
+
+      localStorage.setItem('ava_last_error_log', logEntry);
+    };
+
     return () => {
       delete (window as any).onGoogleTranscriptExtracted;
+      delete (window as any).onGoogleStreamError;
     };
   }, []);
 
@@ -1236,6 +1260,9 @@ export default function App() {
             onOpenSettings={() => setIsSettingsOpen(true)} // Engrane abre Administrador (original)
             onOpenClientSettings={() => setIsClientSettingsOpen(true)} // Sliders abre Cliente (nuevo)
             updateAvailable={updateAvailable}
+            connectionErrorVisible={connectionErrorVisible}
+            connectionErrorMessage={connectionErrorMessage}
+            onDismissConnectionError={() => setConnectionErrorVisible(false)}
           />
         </div>
       </main>
