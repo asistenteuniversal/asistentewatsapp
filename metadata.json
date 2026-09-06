@@ -1,0 +1,6 @@
+{
+  "name": "NEON Stealth AI Phone Cover",
+  "description": "Google AI Studio interface running completely hidden beneath an interactive glowing NEON cyber phone skin with voice call trigger and real-time audio visualization.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

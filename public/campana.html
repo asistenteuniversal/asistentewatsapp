@@ -1,0 +1,322 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mi Campaña • Centro de Comando Político</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    * { box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #030308; color: #ffffff; }
+    
+    .gold-gradient {
+      background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .gold-border {
+      border: 1px solid rgba(212, 175, 55, 0.35);
+    }
+    
+    .glass-card {
+      background: rgba(10, 10, 18, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(212, 175, 55, 0.25);
+    }
+
+    .pulse-glow {
+      animation: pulseGlow 2.5s infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+      50% { box-shadow: 0 0 25px rgba(212, 175, 55, 0.45); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+  <!-- ==================== PANTALLA DE BLOQUEO CON CLAVE (6551) ==================== -->
+  <div id="lockScreen" class="fixed inset-0 z-50 bg-[#040409] flex items-center justify-center p-4">
+    <div class="w-full max-w-sm glass-card rounded-3xl p-6 text-center space-y-5 shadow-[0_0_50px_rgba(0,0,0,0.9)] gold-border">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#FCF6BA] shadow-lg">
+        <i data-lucide="shield-check" class="w-8 h-8 text-[#d4af37]"></i>
+      </div>
+      
+      <div>
+        <h1 class="text-2xl font-black tracking-wider uppercase gold-gradient">MI CAMPAÑA</h1>
+        <p class="text-xs text-gray-400 mt-1">Plataforma Estratégica Electoral</p>
+      </div>
+
+      <div class="space-y-3">
+        <input 
+          type="password" 
+          id="pinInput" 
+          placeholder="Ingresa clave de acceso" 
+          maxlength="8"
+          class="w-full bg-black/80 border border-[#d4af37]/50 rounded-xl px-4 py-3 text-center text-lg font-mono font-black text-[#FCF6BA] focus:outline-none focus:border-[#FCF6BA] shadow-inner"
+        >
+        <button 
+          onclick="validatePin()"
+          class="w-full py-3 rounded-xl bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] text-black font-black uppercase text-sm tracking-widest hover:brightness-110 active:scale-95 transition shadow-lg cursor-pointer"
+        >
+          DESBLOQUEAR PLATAFORMA
+        </button>
+        <p id="errorMsg" class="text-xs text-red-400 font-bold hidden">⚠️ Clave incorrecta. Intenta nuevamente.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PLATAFORMA PRINCIPAL MI CAMPAÑA ==================== -->
+  <div id="mainPlatform" class="hidden min-h-screen flex flex-col">
+    
+    <!-- CABECERA SUPERIOR RESPONSIVA -->
+    <header class="bg-black/80 border-b border-[#d4af37]/30 px-4 py-3 sticky top-0 z-40 backdrop-blur-md flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-[#d4af37]/20 border border-[#d4af37]/50 flex items-center justify-center">
+          <i data-lucide="flag" class="w-5 h-5 text-[#d4af37]"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-black tracking-wider gold-gradient leading-none">MI CAMPAÑA</h1>
+          <span class="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">● Centro Activo</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="switchTab('whatsapp')" class="px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-[10px] font-bold flex items-center gap-1">
+          <i data-lucide="message-square" class="w-3 h-3"></i> WhatsApp
+        </button>
+        <button onclick="switchTab('simulator')" class="px-2.5 py-1 rounded-lg bg-[#d4af37]/20 border border-[#d4af37]/50 text-[#FCF6BA] text-[10px] font-bold flex items-center gap-1">
+          <i data-lucide="mic" class="w-3 h-3"></i> Asistente Voz
+        </button>
+      </div>
+    </header>
+
+    <!-- CUERPO PRINCIPAL -->
+    <main class="flex-1 p-3 sm:p-5 max-w-6xl mx-auto w-full space-y-4">
+
+      <!-- TARJETAS DE INDICADORES RÁPIDOS -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div class="glass-card rounded-2xl p-3 border border-[#d4af37]/30">
+          <span class="text-[9px] text-gray-400 uppercase font-black">Equipo Capacitado</span>
+          <p class="text-xl font-black text-white mt-0.5">142 <span class="text-xs text-emerald-400 font-bold">+12 hoy</span></p>
+        </div>
+        <div class="glass-card rounded-2xl p-3 border border-[#d4af37]/30">
+          <span class="text-[9px] text-gray-400 uppercase font-black">Mensajes WhatsApp</span>
+          <p class="text-xl font-black text-white mt-0.5">38,500 <span class="text-xs text-[#d4af37] font-bold">98% tasa</span></p>
+        </div>
+        <div class="glass-card rounded-2xl p-3 border border-[#d4af37]/30">
+          <span class="text-[9px] text-gray-400 uppercase font-black">Alcance Redes (FB/TT)</span>
+          <p class="text-xl font-black text-white mt-0.5">450K <span class="text-xs text-blue-400 font-bold">En alza ↗</span></p>
+        </div>
+        <div class="glass-card rounded-2xl p-3 border border-[#d4af37]/30">
+          <span class="text-[9px] text-gray-400 uppercase font-black">Videos de Campaña</span>
+          <p class="text-xl font-black text-white mt-0.5">16 <span class="text-xs text-purple-400 font-bold">2 en proceso</span></p>
+        </div>
+      </div>
+
+      <!-- MÓDULO 1: CAPACITACIÓN CON ASISTENTE DE VOZ AI (SIMULADOR DE CAMPAÑA) -->
+      <section class="glass-card rounded-3xl p-4 sm:p-5 gold-border space-y-3">
+        <div class="flex items-center justify-between border-b border-[#d4af37]/20 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="p-2 rounded-xl bg-[#d4af37]/15 text-[#d4af37] border border-[#d4af37]/30">
+              <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+            </span>
+            <div>
+              <h2 class="text-sm sm:text-base font-black uppercase text-white">1. Capacitador de Brigadistas (Asistente de Voz AI)</h2>
+              <p class="text-[10px] text-gray-400">Entrena a tu equipo de campo con lo que deben decir puerta por puerta</p>
+            </div>
+          </div>
+          <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[9px] font-extrabold border border-emerald-500/40">SIMULADOR EN VIVO</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="bg-black/60 rounded-2xl p-3 border border-zinc-800 space-y-2">
+            <label class="text-[10px] text-[#FCF6BA] font-extrabold uppercase">Cargar Guion o Discurso</label>
+            <textarea id="campaignPrompt" rows="3" class="w-full bg-black/80 border border-[#d4af37]/40 rounded-xl p-2 text-xs text-white focus:outline-none">Enfócate en propuestas de seguridad, becas para jóvenes y agua potable. Sé empático, cercano y responde calmadamente a quejas ciudadanas.</textarea>
+            <button onclick="saveVoicePrompt()" class="w-full py-1.5 rounded-lg bg-[#d4af37]/30 border border-[#d4af37]/50 text-[#FCF6BA] text-xs font-bold hover:bg-[#d4af37]/50 transition">
+              Actualizar Guion a Todos los Celulares
+            </button>
+          </div>
+
+          <div class="sm:col-span-2 bg-black/60 rounded-2xl p-3 border border-zinc-800 flex flex-col justify-between space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] text-gray-300 uppercase font-black">Simulación de Práctica en Tiempo Real</span>
+              <span id="simStatus" class="text-[9px] text-zinc-400 font-mono">Esperando inicio...</span>
+            </div>
+            <div class="bg-black/90 rounded-xl p-3 border border-zinc-800 text-xs text-gray-300 font-mono min-h-[60px] flex items-center justify-center text-center" id="voiceDisplay">
+              "Presiona Iniciar Práctica para simular una visita vecinal con IA"
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="startVoiceSim()" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-700 text-white font-black text-xs uppercase tracking-wider hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-1.5 shadow-md">
+                <i data-lucide="mic" class="w-4 h-4"></i> Iniciar Práctica con Voz
+              </button>
+              <button onclick="stopVoiceSim()" class="px-4 py-2 rounded-xl bg-red-950/60 border border-red-500/50 text-red-300 font-bold text-xs uppercase hover:bg-red-900/60 transition">
+                Detener
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULO 2: COMUNICACIÓN MASIVA DE WHATSAPP Y ÓRDENES DE CAMPAÑA -->
+      <section class="glass-card rounded-3xl p-4 sm:p-5 gold-border space-y-3">
+        <div class="flex items-center justify-between border-b border-[#d4af37]/20 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="p-2 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              <i data-lucide="send" class="w-5 h-5"></i>
+            </span>
+            <div>
+              <h2 class="text-sm sm:text-base font-black uppercase text-white">2. Difusión y Órdenes por WhatsApp</h2>
+              <p class="text-[10px] text-gray-400">Envía instrucciones, eventos del día y encuestas a toda tu estructura</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="bg-black/60 rounded-2xl p-3 border border-zinc-800 space-y-2">
+            <label class="text-[10px] text-[#FCF6BA] font-extrabold uppercase">Mensaje para la Red de Brigadas</label>
+            <textarea id="waMsg" rows="3" class="w-full bg-black/80 border border-[#d4af37]/40 rounded-xl p-2 text-xs text-white focus:outline-none">¡Equipo! Hoy a las 4:00 PM nos reunimos en la Sede Norte. Lleven folletos de Salud y compartan el video oficial de hoy en sus estados.</textarea>
+            <button onclick="sendWaBroadcast()" class="w-full py-2 rounded-xl bg-gradient-to-r from-[#25D366] to-emerald-600 text-black font-black text-xs uppercase tracking-wider hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-1.5 shadow-md">
+              <i data-lucide="share-2" class="w-4 h-4"></i> Enviar Mensaje a Toda la Estructura
+            </button>
+          </div>
+
+          <div class="bg-black/60 rounded-2xl p-3 border border-zinc-800 space-y-2">
+            <span class="text-[10px] text-gray-300 uppercase font-black">Grupos Destinatarios</span>
+            <div class="space-y-1.5 text-xs">
+              <label class="flex items-center justify-between p-2 rounded-xl bg-black/50 border border-zinc-800 cursor-pointer">
+                <span>🟢 Coordinadores de Zona (24 líderes)</span>
+                <input type="checkbox" checked class="accent-[#d4af37]">
+              </label>
+              <label class="flex items-center justify-between p-2 rounded-xl bg-black/50 border border-zinc-800 cursor-pointer">
+                <span>🟢 Brigadistas Puerta por Puerta (118 miembros)</span>
+                <input type="checkbox" checked class="accent-[#d4af37]">
+              </label>
+              <label class="flex items-center justify-between p-2 rounded-xl bg-black/50 border border-zinc-800 cursor-pointer">
+                <span>🔵 Ciudadanos Simpatizantes (3,400 registrados)</span>
+                <input type="checkbox" class="accent-[#d4af37]">
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULO 3 Y 4: RADAR DE COMPETENCIA EN REDES Y GENERADOR DE VIDEOS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        
+        <!-- RADAR REDES SOCIALES -->
+        <section class="glass-card rounded-3xl p-4 gold-border space-y-3">
+          <div class="flex items-center gap-2 border-b border-[#d4af37]/20 pb-2">
+            <span class="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
+              <i data-lucide="trending-up" class="w-4 h-4"></i>
+            </span>
+            <h3 class="text-xs font-black uppercase text-white">3. Radar de Competencia y Redes</h3>
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between p-2 rounded-xl bg-black/60 border border-zinc-800">
+              <span class="font-bold">📘 Facebook Campaña</span>
+              <span class="text-emerald-400 font-extrabold">+18.5% Interacción</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-black/60 border border-zinc-800">
+              <span class="font-bold">🎵 TikTok Viral</span>
+              <span class="text-emerald-400 font-extrabold">2.4M Vistas totales</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-black/60 border border-zinc-800">
+              <span class="font-bold">⚠️ Menciones Competencia</span>
+              <span class="text-amber-400 font-extrabold">Bajo control (Monitoreo 24/7)</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- GENERADOR DE VIDEOS RÁPIDOS -->
+        <section class="glass-card rounded-3xl p-4 gold-border space-y-3">
+          <div class="flex items-center gap-2 border-b border-[#d4af37]/20 pb-2">
+            <span class="p-1.5 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30">
+              <i data-lucide="video" class="w-4 h-4"></i>
+            </span>
+            <h3 class="text-xs font-black uppercase text-white">4. Creador de Videos para Redes</h3>
+          </div>
+          <div class="space-y-2 text-xs">
+            <input type="text" placeholder="Tema del video (ej. Propuesta de Parque Central)" class="w-full bg-black/80 border border-[#d4af37]/30 rounded-xl p-2 text-xs text-white focus:outline-none">
+            <button onclick="simulateVideoGen()" class="w-full py-2 rounded-xl bg-gradient-to-r from-purple-800 to-indigo-700 text-white font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-md flex items-center justify-center gap-1.5">
+              <i data-lucide="sparkles" class="w-4 h-4"></i> Generar Video con IA
+            </button>
+            <p id="videoStatus" class="text-[10px] text-gray-400 text-center">Formato vertical 9:16 optimizado para Reels y TikTok</p>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center py-4 border-t border-[#d4af37]/15 text-[10px] text-gray-500">
+      Mi Campaña Platform © 2026 • Desarrollado con Arquitectura Modular LEGO
+    </footer>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function validatePin() {
+      const pin = document.getElementById('pinInput').value.trim();
+      if (pin === '6551' || pin === '86551') {
+        document.getElementById('lockScreen').classList.add('hidden');
+        document.getElementById('mainPlatform').classList.remove('hidden');
+        lucide.createIcons();
+      } else {
+        document.getElementById('errorMsg').classList.remove('hidden');
+      }
+    }
+
+    // Permitir presionar Enter
+    document.getElementById('pinInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') validatePin();
+    });
+
+    function saveVoicePrompt() {
+      alert("✓ Guion actualizado y distribuido a todos los celulares del equipo.");
+    }
+
+    let isSimActive = false;
+    function startVoiceSim() {
+      isSimActive = true;
+      document.getElementById('simStatus').innerText = "🔴 Escuchando y respondiendo...";
+      document.getElementById('simStatus').className = "text-[9px] text-emerald-400 font-mono animate-pulse";
+      document.getElementById('voiceDisplay').innerText = "IA: 'Hola vecino, venimos del equipo de campaña. ¿Cuál es su principal preocupación en su colonia?'";
+    }
+
+    function stopVoiceSim() {
+      isSimActive = false;
+      document.getElementById('simStatus').innerText = "Detenido";
+      document.getElementById('simStatus').className = "text-[9px] text-zinc-400 font-mono";
+      document.getElementById('voiceDisplay').innerText = "Sesión finalizada. Desempeño del brigadista: 9.5/10 (Excelente empatía).";
+    }
+
+    function sendWaBroadcast() {
+      const msg = document.getElementById('waMsg').value;
+      alert("✓ Mensaje preparado para envío masivo a 142 líderes y brigadas.");
+    }
+
+    function simulateVideoGen() {
+      const vStatus = document.getElementById('videoStatus');
+      vStatus.innerText = "⏳ Generando guion, voz de avatar y clips de video con IA (65%)...";
+      vStatus.className = "text-[10px] text-purple-300 text-center animate-pulse";
+      setTimeout(() => {
+        vStatus.innerText = "✓ ¡Video Vertical listo para descargar y publicar en TikTok!";
+        vStatus.className = "text-[10px] text-emerald-400 text-center font-bold";
+      }, 2500);
+    }
+
+    function switchTab(tab) {
+      alert("Navegando a módulo: " + tab);
+    }
+  </script>
+</body>
+</html>
