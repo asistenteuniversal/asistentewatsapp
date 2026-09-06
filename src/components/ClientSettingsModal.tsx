@@ -274,6 +274,17 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     }, 3500);
   };
 
+  const handleSupportWhatsApp = () => {
+    const phone = "5575165733";
+    const msg = "HOLA NECESITO SOPORTE PARA ASISTENTE UNIVERSAL MI PREGUNTA ES ";
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.openWhatsApp) {
+      (window as any).AndroidInterface.openWhatsApp(phone, msg);
+    } else {
+      const cleanPhone = "52" + phone;
+      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-[#020205]/95 backdrop-blur-2xl flex items-center justify-center p-2 sm:p-4 font-sans text-white">
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');`}</style>
@@ -427,7 +438,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           </button>
         </div>
 
-        {/* ── CUADRO 4: SOPORTE Y ASISTENCIA (ESTILO WHATSAPP DARK PROFESIONAL) ── */}
+        {/* ── CUADRO 4: SOPORTE Y ASISTENCIA (WHATSAPP DIRECTO) ── */}
         <div className="rounded-3xl border-2 border-[#25D366] bg-[#0b141a] overflow-hidden shadow-[0_0_30px_rgba(37,211,102,0.25)] font-sans mt-1">
           {/* Cabecera WhatsApp */}
           <div className="bg-[#1f2c34] px-4 py-2 flex items-center justify-between border-b border-[#25D366]/30">
@@ -435,47 +446,27 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
               Soporte y Asistencia
             </p>
             
-            <div className="bg-red-600 border border-red-400 rounded-full px-3 py-0.5 text-center shadow-[0_0_12px_rgba(239,68,68,0.5)]">
+            <div className="bg-emerald-600 border border-emerald-400 rounded-full px-3 py-0.5 text-center shadow-[0_0_12px_rgba(16,185,129,0.5)]">
               <span className="text-[9px] sm:text-[10px] font-black text-white uppercase tracking-wider block text-center leading-none">
-                EN CONSTRUCCIÓN
+                EN LÍNEA
               </span>
             </div>
           </div>
 
-          {/* Cuerpo del Chat */}
-          <div className="p-3 space-y-2 bg-[#0b141a]">
-            <div className="flex items-start">
-              <div className="bg-[#1f2c34] text-white rounded-2xl rounded-tl-none p-2.5 text-xs sm:text-[13px] leading-relaxed max-w-[92%] border border-white/10 shadow-md">
-                <p className="font-normal text-white">
-                  Hola 👋 ¿En qué podemos ayudarte? Escribe tu pregunta o mensaje de asistencia:
-                </p>
-                <span className="text-[9px] text-zinc-400 block text-right mt-1 font-mono">Hoy</span>
-              </div>
-            </div>
+          {/* Botón Cuadrado Verde de Asistencia Centrado */}
+          <div className="p-4 space-y-2.5 bg-[#0b141a] flex flex-col items-center justify-center text-center">
+            <p className="text-[11px] text-zinc-300 leading-relaxed font-medium">
+              ¿Necesitas ayuda o soporte técnico para tu Asistente? Presiona el botón para abrir WhatsApp oficial de inmediato:
+            </p>
 
-            {isSent && (
-              <div className="bg-[#005c4b] text-white rounded-2xl rounded-tr-none p-2.5 text-xs sm:text-[13px] leading-relaxed max-w-[92%] ml-auto border border-[#25D366]/40 shadow-lg animate-pulse">
-                <p className="font-semibold">✅ ¡Mensaje recibido! Te responderemos a la brevedad.</p>
-                <span className="text-[9px] text-emerald-200 block text-right mt-1 font-mono">Enviado ✓✓</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSendSupport} className="pt-1 flex items-center gap-2">
-              <input
-                type="text"
-                value={supportMessage}
-                onChange={(e) => setSupportMessage(e.target.value)}
-                placeholder="Escribe tu mensaje aquí..."
-                className="flex-1 bg-[#2a3942] border border-white/15 rounded-2xl px-3 py-1.5 text-white placeholder-zinc-400 text-xs sm:text-[12px] outline-none focus:border-[#25D366] transition font-sans shadow-inner"
-              />
-              <button
-                type="submit"
-                disabled={!supportMessage.trim()}
-                className="p-2 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-95 text-black disabled:opacity-40 disabled:pointer-events-none transition shadow-[0_0_15px_rgba(37,211,102,0.4)] cursor-pointer flex items-center justify-center"
-              >
-                <Send className="w-4 h-4 fill-black" />
-              </button>
-            </form>
+            <button
+              type="button"
+              onClick={handleSupportWhatsApp}
+              className="w-full py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-98 text-black font-black text-xs sm:text-sm tracking-wider uppercase transition shadow-[0_0_20px_rgba(37,211,102,0.5)] cursor-pointer flex items-center justify-center gap-2 border border-white/20"
+            >
+              <span className="text-lg">💬</span>
+              <span>PRESIONA PARA ASISTENCIA</span>
+            </button>
           </div>
         </div>
       </div>
