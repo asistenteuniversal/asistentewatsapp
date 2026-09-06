@@ -79,7 +79,16 @@ export default function App() {
   const handleActivateLicense = async (e: React.FormEvent) => {
     e.preventDefault();
     setLicensingError('');
-    // Limpiar espacios y guiones intermedios para normalizar la entrada
+    const rawInput = activationKeyInput.trim();
+
+    // 🚀 DESBLOQUEO MAESTRO DIRECTO CON PIN 6551 / 86551 / AVANTAR-WHATSAPP-2026
+    if (rawInput === '6551' || rawInput === '86551' || rawInput.toLowerCase() === 'manchas6551' || rawInput.toUpperCase() === 'AVANTAR-WHATSAPP-2026') {
+      localStorage.setItem('ava_client_id', 'asistentewatsapp_master');
+      localStorage.setItem('ava_client_name', 'Cliente Maestro WhatsApp');
+      setClientId('asistentewatsapp_master');
+      setIsLicensingLoading(false);
+      return;
+    }
     const cleanedInput = activationKeyInput.trim().toUpperCase().replace(/[\s-]/g, '');
     if (!cleanedInput) return;
 
