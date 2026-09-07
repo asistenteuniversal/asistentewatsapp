@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, MessageSquare, BookOpen, Mic, Sparkles, SlidersHorizontal, ShieldCheck, ChevronRight, Layers } from 'lucide-react';
+import { X, MessageSquare, BookOpen, Mic, Sparkles, SlidersHorizontal, ShieldCheck, ChevronRight, Layers, Globe } from 'lucide-react';
 
 interface AppsHubModalProps {
   isOpen: boolean;
@@ -23,6 +23,19 @@ export const AppsHubModal: React.FC<AppsHubModalProps> = ({
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
     filter: 'drop-shadow(0 2px 8px rgba(212, 175, 55, 0.3))',
+  };
+
+  const handleOpenChrome = () => {
+    onClose();
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.showChromeView) {
+      try {
+        (window as any).AndroidInterface.showChromeView(true);
+      } catch (e) {
+        console.error('Error abriendo Chrome a pantalla completa:', e);
+      }
+    } else {
+      window.open('https://www.google.com', '_blank');
+    }
   };
 
   const handleOpenWhatsApp = () => {
@@ -88,7 +101,7 @@ export const AppsHubModal: React.FC<AppsHubModalProps> = ({
                 style={goldGradientText}
                 className="text-lg font-black tracking-wider uppercase leading-none"
               >
-                NEOAVANIA
+                NEON-AV
               </h3>
               <p className="text-[10px] font-mono tracking-widest text-zinc-400 mt-0.5">
                 MULTIAPP • HUB DE MÓDULOS
@@ -152,6 +165,46 @@ export const AppsHubModal: React.FC<AppsHubModalProps> = ({
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-[#4ade80] transition-transform group-hover:translate-x-1" />
+            </div>
+          </button>
+
+          {/* TARJETA 1.5: GOOGLE CHROME */}
+          <button
+            type="button"
+            onClick={handleOpenChrome}
+            className="w-full text-left p-4 rounded-2xl transition-all duration-200 group active:scale-[0.98] relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, rgba(15, 20, 32, 0.9) 0%, rgba(6, 10, 18, 0.95) 100%)',
+              border: '1px solid rgba(59, 130, 246, 0.4)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.7), 0 0 15px rgba(59, 130, 246, 0.15)',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(10, 20, 40, 0.8) 100%)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                  }}
+                >
+                  <Globe className="w-6 h-6 text-[#60a5fa]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-bold text-base tracking-wide group-hover:text-[#60a5fa] transition-colors">
+                      Google Chrome
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase bg-[#3b82f6]/20 text-[#60a5fa] border border-[#3b82f6]/40">
+                      NAVEGADOR
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-1 leading-snug">
+                    Navegador web completo y rápido con buscador Google y botón de regreso.
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-[#60a5fa] transition-transform group-hover:translate-x-1" />
             </div>
           </button>
 
