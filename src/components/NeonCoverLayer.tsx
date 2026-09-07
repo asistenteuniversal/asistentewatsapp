@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Video, Phone, Eye, MicOff, Sliders, Headphones } from 'lucide-react';
+import { Settings, Video, Phone, Eye, MicOff, Sliders, Headphones, LayoutGrid } from 'lucide-react';
 import avaLogo from '../assets/images/ava_logo.png';
 import { ConnectionErrorBanner } from './ConnectionErrorBanner';
 
@@ -37,6 +37,7 @@ interface NeonCoverLayerProps {
   onShowStudio?: () => void;
   onOpenSettings?: () => void; // Abre administrador (Engrane original)
   onOpenClientSettings?: () => void; // Abre cliente (Sliders nuevo)
+  onOpenAppsHub?: () => void; // Abre Neoavania MultiApp Hub
   updateAvailable?: boolean;
   connectionErrorVisible?: boolean;
   onDismissConnectionError?: () => void;
@@ -58,6 +59,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   onShowStudio,
   onOpenSettings,
   onOpenClientSettings,
+  onOpenAppsHub,
   updateAvailable = false,
   connectionErrorVisible = false,
   onDismissConnectionError,
@@ -204,6 +206,22 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
           title="Configuración Avanzada"
         >
           <Settings className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* ── BOTÓN: NEOAVANIA MULTIAPP HUB (Al lado de configuración) ── */}
+      {onOpenAppsHub && (
+        <button
+          type="button"
+          onClick={onOpenAppsHub}
+          className="absolute top-[5%] right-[27%] z-30 p-2.5 rounded-xl
+                     bg-black/70 border border-[#d4af37]/60 text-[#f0d060]
+                     shadow-[0_0_16px_rgba(212,175,55,0.25)]
+                     active:scale-95 transition-all duration-150 focus:outline-none
+                     hover:bg-[#d4af37]/15 cursor-pointer flex items-center justify-center min-w-[36px] min-h-[36px]"
+          title="Neoavania MultiApp Hub"
+        >
+          <LayoutGrid className="w-4 h-4" />
         </button>
       )}
 

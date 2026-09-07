@@ -5,6 +5,7 @@ import { ChatGPTLayer } from './components/ChatGPTLayer';
 import { NeonCoverLayer } from './components/NeonCoverLayer';
 import { SettingsModal } from './components/SettingsModal';
 import { ClientSettingsModal } from './components/ClientSettingsModal'; // Importar modal de cliente
+import { AppsHubModal } from './components/AppsHubModal'; // Importar NEOAVANIA MULTIAPP Hub
 import { useVoiceEngine } from './hooks/useVoiceEngine';
 import { supabase } from './supabaseClient';
 import { AdminPanel } from './components/AdminPanel';
@@ -22,6 +23,7 @@ export default function App() {
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Modal de Administrador (original)
   const [isClientSettingsOpen, setIsClientSettingsOpen] = useState(false); // Modal de Cliente (nuevo)
+  const [isAppsHubOpen, setIsAppsHubOpen] = useState(false); // Modal NEOAVANIA MULTIAPP Hub
   const [isSystemLoading, setIsSystemLoading] = useState(true); // Temporizador de arranque seguro
   const [updateAvailable, setUpdateAvailable] = useState(false); // Estado de actualizador flotante
   const [connectionErrorVisible, setConnectionErrorVisible] = useState(false); // Aviso flotante de falla de conexión
@@ -1287,6 +1289,7 @@ export default function App() {
             onShowStudio={() => handleSetMode('studio')}
             onOpenSettings={() => setIsSettingsOpen(true)} // Engrane abre Administrador (original)
             onOpenClientSettings={() => setIsClientSettingsOpen(true)} // Sliders abre Cliente (nuevo)
+            onOpenAppsHub={() => setIsAppsHubOpen(true)}
             updateAvailable={updateAvailable}
             connectionErrorVisible={connectionErrorVisible}
             connectionErrorMessage={connectionErrorMessage}
@@ -1318,7 +1321,14 @@ export default function App() {
         setSettings={setSettings}
         errorLogs={errorLogs}
       />
+
+      {/* Modal NEOAVANIA MULTIAPP Hub */}
+      <AppsHubModal
+        isOpen={isAppsHubOpen}
+        onClose={() => setIsAppsHubOpen(false)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenClientSettings={() => setIsClientSettingsOpen(true)}
+      />
     </div>
   );
 }
-
