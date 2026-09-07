@@ -753,35 +753,11 @@ export default function App() {
       setErrorLogs(trimmedLogs);
     };
 
-    // Callback para que Android regrese a la carátula limpia de NEOAVAN
-    (window as any).handleReturnToCover = () => {
-      setIsSettingsOpen(false);
-      setIsClientSettingsOpen(false);
-      setIsAppsHubOpen(false);
-      if (voiceEngine.isCallActive) {
-        handleToggleCall();
-      }
-    };
-
     return () => {
       delete (window as any).onGoogleTranscriptExtracted;
       delete (window as any).onGoogleStreamError;
-      delete (window as any).handleReturnToCover;
     };
-  }, [voiceEngine.isCallActive, handleToggleCall]);
-
-  // Sincronizar visibilidad del botón flotante dorado con Android cuando hay un modal abierto o llamada activa
-  useEffect(() => {
-    const isAnyModalOpen = isSettingsOpen || isClientSettingsOpen || isAppsHubOpen;
-    const shouldShowFloating = isAnyModalOpen || voiceEngine.isCallActive;
-    if ((window as any).AndroidInterface && (window as any).AndroidInterface.setFloatingReturnButtonVisible) {
-      try {
-        (window as any).AndroidInterface.setFloatingReturnButtonVisible(shouldShowFloating);
-      } catch (e) {
-        console.error('Error sincronizando botón flotante:', e);
-      }
-    }
-  }, [isSettingsOpen, isClientSettingsOpen, isAppsHubOpen, voiceEngine.isCallActive]);
+  }, []);
 
   // Sincronizar memoria de hoy (systemMemory) con Supabase en tiempo real (si está en modo vinculado)
   useEffect(() => {

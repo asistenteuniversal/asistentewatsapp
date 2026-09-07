@@ -101,7 +101,7 @@ export const AppsHubModal: React.FC<AppsHubModalProps> = ({
                 style={goldGradientText}
                 className="text-lg font-black tracking-wider uppercase leading-none"
               >
-                NEOAVAN
+                NEON-AV
               </h3>
               <p className="text-[10px] font-mono tracking-widest text-zinc-400 mt-0.5">
                 MULTIAPP • HUB DE MÓDULOS
