@@ -18,16 +18,19 @@ export const FloatingReturnOverlay: React.FC<FloatingReturnOverlayProps> = ({
         e.preventDefault();
         onReturn();
       }}
-      title="Regresar a CarÃ¡tula Principal"
-      className="fixed right-3 top-1/2 -translate-y-1/2 z-[60] p-2.5 bg-black flex items-center justify-center transition-transform active:scale-95 cursor-pointer select-none shadow-2xl focus:outline-none"
+      title="Regresar a Carátula Principal"
+      className="fixed right-3 top-1/2 -translate-y-1/2 z-[60] w-12 h-12 rounded-full bg-black flex items-center justify-center transition-transform active:scale-90 cursor-pointer select-none shadow-2xl focus:outline-none border-0 outline-none p-0"
       style={{
         backgroundColor: '#000000',
+        borderRadius: '9999px',
+        border: 'none',
+        outline: 'none',
       }}
     >
-      {/* Flecha Oro Ultra Real MetÃ¡lico - Sin marcos, sin cÃ­rculos, solo la flecha */}
+      {/* Flecha Oro Ultra Real Metálico en Círculo Negro sin marco */}
       <svg
-        width="32"
-        height="32"
+        width="28"
+        height="28"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

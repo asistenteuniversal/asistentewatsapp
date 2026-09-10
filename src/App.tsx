@@ -1314,7 +1314,7 @@ export default function App() {
 
       {/* BLOQUE LEGO: Botón Flotante de Retorno */}
       <FloatingReturnOverlay
-        visible={Boolean(isClientSettingsOpen || isSettingsOpen || mode === 'studio')}
+        visible={Boolean(isClientSettingsOpen || isSettingsOpen)}
         onReturn={() => {
           if (isClientSettingsOpen) {
             setIsClientSettingsOpen(false);
@@ -1322,9 +1322,6 @@ export default function App() {
           }
           if (isSettingsOpen) {
             setIsSettingsOpen(false);
-          }
-          if (mode !== 'neon') {
-            handleSetMode('neon');
           }
         }}
       />
