@@ -16,7 +16,7 @@ interface ConnectionErrorBannerProps {
 export const ConnectionErrorBanner: React.FC<ConnectionErrorBannerProps> = ({
   visible = true,
   onDismiss,
-  errorMessage = 'FALLA DE CONEXIÓN'
+  errorMessage = 'fallo conexión'
 }) => {
   if (!visible) return null;
 

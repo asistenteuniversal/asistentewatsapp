@@ -27,7 +27,7 @@ export default function App() {
   const [isSystemLoading, setIsSystemLoading] = useState(true); // Temporizador de arranque seguro
   const [updateAvailable, setUpdateAvailable] = useState(false); // Estado de actualizador flotante
   const [connectionErrorVisible, setConnectionErrorVisible] = useState(false); // Aviso flotante de falla de conexión
-  const [connectionErrorMessage, setConnectionErrorMessage] = useState('FALLA DE CONEXIÓN');
+  const [connectionErrorMessage, setConnectionErrorMessage] = useState('fallo conexión');
   const [errorLogs, setErrorLogs] = useState<string>(() => localStorage.getItem('ava_last_error_log') || '');
 
   // Estados de licenciamiento dinámico
@@ -718,7 +718,7 @@ export default function App() {
 
       console.warn('[FallaConexión] Detectada desconexión en vivo:', errorDetail);
       setConnectionErrorVisible(true);
-      setConnectionErrorMessage('FALLA DE CONEXIÓN');
+      setConnectionErrorMessage('fallo conexión');
 
       const now = new Date();
       const pad = (n: number) => n.toString().padStart(2, '0');
