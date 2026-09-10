@@ -7,6 +7,7 @@ import { NeonCoverLayer } from './components/NeonCoverLayer';
 import { SettingsModal } from './components/SettingsModal';
 import { ClientSettingsModal } from './components/ClientSettingsModal'; // Importar modal de cliente
 import { FloatingReturnOverlay } from './components/FloatingReturnOverlay'; // Botón Flotante de Retorno (LEGO)
+import { VideoReturnOverlay } from './components/VideoReturnOverlay'; // Botón Flotante de Retorno en Video (LEGO)
 import { useVoiceEngine } from './hooks/useVoiceEngine';
 import { supabase } from './supabaseClient';
 import { AdminPanel } from './components/AdminPanel';
@@ -1311,6 +1312,9 @@ export default function App() {
         setSettings={setSettings}
         errorLogs={errorLogs}
       />
+
+      {/* BLOQUE LEGO: Botón Flotante de Retorno en Videollamada */}
+      <VideoReturnOverlay isCallActive={voiceEngine.isCallActive} mode={mode} />
 
       {/* BLOQUE LEGO: Botón Flotante de Retorno */}
       <FloatingReturnOverlay
