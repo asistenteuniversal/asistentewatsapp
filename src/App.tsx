@@ -1,3 +1,4 @@
+// Versión oficial limpia y estable 100% original
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppMode, AppSettings, ChatMessage } from './types';
 import { StealthHeader } from './components/StealthHeader';
