@@ -7,7 +7,6 @@ import { NeonCoverLayer } from './components/NeonCoverLayer';
 import { SettingsModal } from './components/SettingsModal';
 import { ClientSettingsModal } from './components/ClientSettingsModal'; // Importar modal de cliente
 import { FloatingReturnOverlay } from './components/FloatingReturnOverlay'; // Botón Flotante de Retorno (LEGO)
-import { BottomVideoReturnOverlay } from './components/BottomVideoReturnOverlay'; // Botón Flotante en Franja Negra Inferior para Video (LEGO)
 import { useVoiceEngine } from './hooks/useVoiceEngine';
 import { supabase } from './supabaseClient';
 import { AdminPanel } from './components/AdminPanel';
@@ -1312,9 +1311,6 @@ export default function App() {
         setSettings={setSettings}
         errorLogs={errorLogs}
       />
-
-      {/* BLOQUE LEGO: Botón Flotante centrado en Franja Negra Inferior para Videollamada */}
-      <BottomVideoReturnOverlay isCallActive={voiceEngine.isCallActive} mode={mode} />
 
       {/* BLOQUE LEGO: Botón Flotante de Retorno */}
       <FloatingReturnOverlay
