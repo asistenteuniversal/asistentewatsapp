@@ -29,6 +29,7 @@ export default function App() {
   const [connectionErrorVisible, setConnectionErrorVisible] = useState(false); // Aviso flotante de falla de conexión
   const [connectionErrorMessage, setConnectionErrorMessage] = useState('FALLA DE CONEXIÓN');
   const [errorLogs, setErrorLogs] = useState<string>(() => localStorage.getItem('ava_last_error_log') || '');
+  const [isVideoCallOverlayVisible, setIsVideoCallOverlayVisible] = useState(false); // Visibilidad sincronizada del botón en videollamada
 
   // Estados de licenciamiento dinámico
   const [clientId, setClientId] = useState<string | null>(() => localStorage.getItem('ava_client_id'));
@@ -930,6 +931,11 @@ export default function App() {
     if ((window as any).AndroidInterface) {
       try {
         if (willBeActive) {
+          // Iniciar temporizador: el botón aparece cuando abre la pantalla de video (a los 3 segundos)
+          setTimeout(() => {
+            setIsVideoCallOverlayVisible(true);
+          }, 3000);
+
           // Asegurar sincronización de instrucciones previa al inicio de llamada
           if ((window as any).AndroidInterface.updateSystemInstructions) {
             try {
@@ -946,6 +952,7 @@ export default function App() {
           }
           (window as any).AndroidInterface.startVoiceCall();
         } else {
+          setIsVideoCallOverlayVisible(false); // Apagado instantáneo
           setIsSystemLoading(true); // <── ¡Activa la línea de protección al instante!
           (window as any).AndroidInterface.endVoiceCall();
         }
@@ -1314,8 +1321,22 @@ export default function App() {
 
       {/* BLOQUE LEGO: Botón Flotante de Retorno */}
       <FloatingReturnOverlay
-        visible={Boolean(isClientSettingsOpen || isSettingsOpen)}
+        visible={Boolean(isClientSettingsOpen || isSettingsOpen || isVideoCallOverlayVisible)}
         onReturn={() => {
+          if (isVideoCallOverlayVisible) {
+            setIsVideoCallOverlayVisible(false);
+            setIsSystemLoading(true);
+            if ((window as any).AndroidInterface && (window as any).AndroidInterface.endVoiceCall) {
+              try {
+                (window as any).AndroidInterface.endVoiceCall();
+              } catch (e) {
+                console.error(e);
+              }
+            }
+            if (voiceEngine.isCallActive) {
+              voiceEngine.toggleCall();
+            }
+          }
           if (isClientSettingsOpen) {
             setIsClientSettingsOpen(false);
             setIsSystemLoading(true);

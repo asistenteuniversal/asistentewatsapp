@@ -19,7 +19,7 @@ export const FloatingReturnOverlay: React.FC<FloatingReturnOverlayProps> = ({
         onReturn();
       }}
       title="Regresar a Carátula Principal"
-      className="fixed right-3 top-1/2 -translate-y-1/2 z-[60] w-12 h-12 rounded-full bg-black flex items-center justify-center transition-transform active:scale-90 cursor-pointer select-none shadow-2xl focus:outline-none border-0 outline-none p-0"
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-14 h-14 rounded-full bg-black flex items-center justify-center transition-transform active:scale-90 cursor-pointer select-none shadow-2xl focus:outline-none border-0 outline-none p-0"
       style={{
         backgroundColor: '#000000',
         borderRadius: '9999px',
