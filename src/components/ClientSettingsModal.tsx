@@ -100,7 +100,9 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
   // Selección actual
   const [selectedStyleId, setSelectedStyleId] = useState('elegante');
-  const [selectedAssistantId, setSelectedAssistantId] = useState('asistente_personal');
+  const [selectedAssistantId, setSelectedAssistantId] = useState(() => {
+    return localStorage.getItem('ava_custom_agent_id') || 'asistente_personal';
+  });
 
   // Estados de guardado
   const [isApplyingAgent, setIsApplyingAgent] = useState(false);
@@ -157,10 +159,15 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
         break;
       }
     }
-    for (const a of DEFAULT_EXCLUSIVE_ASSISTANTS) {
-      if (instructions.includes(a.prompt)) {
-        setSelectedAssistantId(a.id);
-        break;
+    const savedAgentId = localStorage.getItem('ava_custom_agent_id');
+    if (savedAgentId && exclusiveAssistants.some(a => a.id === savedAgentId)) {
+      setSelectedAssistantId(savedAgentId);
+    } else {
+      for (const a of exclusiveAssistants) {
+        if (instructions.includes(a.prompt)) {
+          setSelectedAssistantId(a.id);
+          break;
+        }
       }
     }
 
@@ -577,9 +584,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
           {/* 4 Asistentes Exclusivos */}
           <div className="space-y-1 pt-1">
-            <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">
-              ASISTENTES EXCLUSIVOS:
-            </label>
+            <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">ELIGE QUÉ CONOCIMIENTOS Y HABILIDADES TIENE TU ASISTENTE:</label>
             <div className="grid grid-cols-2 gap-1.5">
               {exclusiveAssistants.map((preset) => {
                 const isSelected = selectedAssistantId === preset.id;
@@ -660,9 +665,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
         {/* ── CUADRO 2: ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE? (MARCO ORO METÁLICO) ── */}
         <div className="rounded-2xl border-2 border-[#d4af37] bg-black/90 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.25)]">
           <div className="space-y-1">
-            <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">
-              ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE?
-            </label>
+            <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">¿CÓMO QUIERES QUE SE COMPORTE Y TE HABLE TU ASISTENTE?</label>
             <div className="grid grid-cols-2 gap-1.5">
               {businessStyles.map((preset) => {
                 const isSelected = selectedStyleId === preset.id;

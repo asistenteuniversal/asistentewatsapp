@@ -651,13 +651,7 @@ export default function App() {
       )
       .subscribe();
 
-    // Polling de respaldo cada 4 segundos
-    const interval = setInterval(() => {
-      loadConfig();
-    }, 4000);
-
     return () => {
-      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [clientId]);

@@ -1347,129 +1347,148 @@ export const AdminPanel: React.FC = () => {
 
                   </div>
 
-                  {/* ── FRANJA DE PERSONALIZACIÓN DEL ASISTENTE Y SELECTOR DE VOZ (ALGIEBA / ZEPHYR) ── */}
+                  {/* ── FRANJA DE LAS 3 CARÁTULAS: PRO (IZQ) | ADMIN (CENTRO) | CLIENTE MINIATURA (DER) ── */}
                   {(() => {
-                    // Extraer nombre y personalidad directamente de system_instructions
                     const instructions = client.system_instructions || '';
                     const nameMatch = instructions.match(/Tu nombre oficial es:\s*"([^"]+)"/);
-                    const detectedName = nameMatch ? nameMatch[1] : (client.assistant_name || 'Asistente (Predeterminado)');
-                    
-                    let detectedPersonality = client.personality_style || 'ELEGANTE Y FORMAL';
-                    if (instructions.includes('culta, distinguida, educada')) detectedPersonality = 'ELEGANTE Y FORMAL';
-                    else if (instructions.includes('alegre, amigable, optimista')) detectedPersonality = 'ALEGRE Y AMIGABLE';
-                    else if (instructions.includes('directo, conciso y sabio')) detectedPersonality = 'SABIO Y CONCISO';
-                    else if (instructions.includes('barrio de Tepito') || instructions.includes('barrio popular')) detectedPersonality = 'ESTILO DE BARRIO';
-                    else if (instructions.includes('rudo, agresivo, retador, peleonero')) detectedPersonality = 'AGRESIVO Y PELEONERO';
-                    else if (instructions.includes('productividad, finanzas, eficiencia ejecutiva')) detectedPersonality = 'EJECUTIVO DE NEGOCIOS';
+                    let detectedName = nameMatch ? nameMatch[1] : (client.assistant_name || 'AVA');
+                    if (detectedName === '.') detectedName = 'AVA';
 
-                    // Detectar voz activa (Hombre o Mujer) directamente de las instrucciones
-                    let detectedVoice: 'male' | 'female' = (client.voice_selection as 'male' | 'female') || 'male';
-                    if (instructions.includes('asistente femenina (mujer)')) {
-                      detectedVoice = 'female';
-                    } else if (instructions.includes('asistente masculino (hombre)')) {
+                    let detectedVoice: 'male' | 'female' = 'female';
+                    if (instructions.includes('asistente masculino (hombre)')) {
                       detectedVoice = 'male';
                     }
 
                     return (
-                      <div className="bg-black/80 rounded-2xl p-4 border border-[#d4af37]/30 shadow-[0_0_25px_rgba(212,175,55,0.1)] space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#d4af37]/20 pb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-[#FCF6BA] font-extrabold uppercase tracking-widest">
-                              🏷️ NOMBRE ELEGIDO POR EL CLIENTE:
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                        {/* 1. IZQUIERDA: ASISTENTE PRO (CUADRO RESERVADO) */}
+                        <div className="rounded-3xl border-2 border-dashed border-[#d4af37]/35 bg-black/60 p-4 flex flex-col items-center justify-center text-center space-y-3 shadow-[0_0_20px_rgba(212,175,55,0.05)] min-h-[380px]">
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-600/10 border border-[#d4af37]/40 flex items-center justify-center text-2xl shadow">
+                            ⭐
+                          </div>
+                          <div className="space-y-1">
+                            <span className="font-extrabold text-xs sm:text-sm tracking-widest uppercase text-[#d4af37]">
+                              ASISTENTE PRO
                             </span>
-                            <span className="px-3 py-1 bg-[#d4af37]/15 border border-[#d4af37]/40 rounded-xl text-white font-black text-xs font-mono shadow-sm">
-                              {detectedName}
+                            <br />
+                            <span className="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-[9px] font-black text-amber-300 uppercase tracking-wider mt-1">
+                              ESPACIO RESERVADO
                             </span>
                           </div>
-
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-[#FCF6BA] font-extrabold uppercase tracking-widest">
-                              🎭 PERSONALIDAD ACTIVA:
-                            </span>
-                            <span className="px-3 py-1 bg-gradient-to-r from-[#d4af37]/20 to-amber-950/40 border border-[#d4af37]/40 rounded-xl text-[#FCF6BA] font-black text-xs uppercase tracking-wider shadow-sm">
-                              {detectedPersonality}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setSimulatorClient(client)}
-                              className="px-2.5 py-1 font-bold rounded-lg text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow bg-gradient-to-r from-amber-500/20 to-yellow-500/30 hover:from-amber-500/40 hover:to-yellow-500/50 text-[#FCF6BA] border-amber-500/40 flex items-center gap-1 active:scale-95 ml-1"
-                              title="Abrir Simulador Espejo de Celular"
-                            >
-                              <span>📱 ABRIR SIMULADOR</span>
-                            </button>
-                          </div>
+                          <p className="text-[10px] text-zinc-500 max-w-[200px] leading-relaxed">
+                            Espacio reservado para la versión Pro con multiagentes y automatizaciones avanzadas.
+                          </p>
                         </div>
 
-                    {/* Selector de Voz Espejo con Nombres Técnicos para el Administrador */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-                      <div>
-                        <p className="text-[10px] text-gray-300 font-extrabold uppercase tracking-wider">
-                          🎙️ CONTROL DE VOZ MAESTRO (GOOGLE AI STUDIO):
-                        </p>
-                        <p className="text-[9px] text-gray-500">
-                          Cambia la voz del asistente entre Algieba (Hombre) y Zephyr (Mujer).
-                        </p>
+                        {/* 2. CENTRO: AJUSTES DEL ADMINISTRADOR (CUADRO RESERVADO) */}
+                        <div className="rounded-3xl border-2 border-dashed border-[#d4af37]/35 bg-black/60 p-4 flex flex-col items-center justify-center text-center space-y-3 shadow-[0_0_20px_rgba(212,175,55,0.05)] min-h-[380px]">
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#d4af37]/20 to-amber-700/10 border border-[#d4af37]/40 flex items-center justify-center text-2xl shadow">
+                            👑
+                          </div>
+                          <div className="space-y-1">
+                            <span className="font-extrabold text-xs sm:text-sm tracking-widest uppercase text-[#d4af37]">
+                              AJUSTES DEL ADMINISTRADOR
+                            </span>
+                            <br />
+                            <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 text-[9px] font-black text-[#FCF6BA] uppercase tracking-wider mt-1">
+                              ESPACIO RESERVADO
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-zinc-500 max-w-[200px] leading-relaxed">
+                            Espacio reservado para la carátula maestra de configuración del administrador.
+                          </p>
+                        </div>
+
+                        {/* 3. DERECHA: CARÁTULA DEL CLIENTE (MINIATURA VIVA - CLIC EN CUALQUIER LADO ABRE GRANDE) */}
+                        <div
+                          onClick={() => setSimulatorClient(client)}
+                          className="rounded-3xl border-2 border-[#d4af37] bg-black p-3.5 flex flex-col justify-between space-y-2.5 shadow-[0_0_35px_rgba(212,175,55,0.25)] cursor-pointer hover:border-[#ffe57f] hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] hover:scale-[1.01] transition-all duration-300 min-h-[380px] group select-none"
+                          title="Presiona en cualquier lado para abrir en grande"
+                        >
+                          {/* Header Miniatura */}
+                          <div className="flex items-center justify-between border-b border-[#d4af37]/30 pb-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                              <span className="font-extrabold text-[11px] uppercase tracking-wider text-[#d4af37]">
+                                CARÁTULA DEL CLIENTE
+                              </span>
+                            </div>
+                            <span className="text-[8px] font-black text-black bg-gradient-to-r from-[#ffe57f] to-[#d4af37] px-2 py-0.5 rounded-md uppercase tracking-wider shadow">
+                              🔍 ABRIR GRANDE
+                            </span>
+                          </div>
+
+                          {/* Cuerpo Miniatura */}
+                          <div className="space-y-2 pointer-events-none opacity-95">
+                            {/* Botón de Voz */}
+                            <div className={`w-full py-1.5 px-2 rounded-xl text-center border font-black text-[9px] uppercase tracking-wider flex items-center justify-center gap-1.5 shadow ${
+                              detectedVoice === 'male'
+                                ? 'bg-blue-600/90 text-white border-blue-400'
+                                : 'bg-pink-600/90 text-white border-pink-400'
+                            }`}>
+                              <span>{detectedVoice === 'male' ? '👨' : '👩'}</span>
+                              <span>{detectedVoice === 'male' ? 'VOZ DE HOMBRE' : 'VOZ DE MUJER'}</span>
+                              <span>{detectedVoice === 'male' ? '👨' : '👩'}</span>
+                            </div>
+
+                            {/* Mini Cuadro 1 */}
+                            <div className="rounded-xl border border-[#d4af37]/60 bg-zinc-950/90 p-2 space-y-1.5">
+                              <div className="flex items-center justify-between text-[8px] text-zinc-300 font-bold truncate">
+                                <span>NOMBRE: <span className="text-white font-black">{detectedName}</span></span>
+                                <span>CLIENTE: <span className="text-white font-black">{client.client_name || 'Albert'}</span></span>
+                              </div>
+                              <p className="text-[7.5px] font-black text-[#d4af37] uppercase truncate">
+                                CONOCIMIENTOS Y HABILIDADES (4)
+                              </p>
+                              <div className="grid grid-cols-2 gap-1 text-[7.5px] font-bold text-center">
+                                <div className="py-0.5 rounded bg-black border border-[#d4af37]/40 text-zinc-300 truncate">ASISTENTE PERSONAL</div>
+                                <div className="py-0.5 rounded bg-black border border-[#d4af37]/40 text-zinc-300 truncate">ASISTENTE TRABAJO</div>
+                                <div className="py-0.5 rounded bg-black border border-[#d4af37]/40 text-zinc-300 truncate">AMIGO</div>
+                                <div className="py-0.5 rounded bg-black border border-[#d4af37]/40 text-zinc-300 truncate">ALGUIEN ESPECIAL</div>
+                              </div>
+                              <div className="w-full py-1 rounded bg-gradient-to-r from-[#d4af37] to-[#f0d060] text-black font-black text-[8px] text-center uppercase tracking-wider shadow">
+                                ✨ GUARDAR ASISTENTE
+                              </div>
+                            </div>
+
+                            {/* Mini Botón Rojo */}
+                            <div className="w-full py-1 rounded-lg bg-red-600/90 border border-red-400 text-white font-black text-[7.5px] text-center uppercase tracking-wider shadow flex items-center justify-center gap-1">
+                              <span>🗑️ PRESIONA AQUÍ PARA BORRAR CONVERSACIONES</span>
+                            </div>
+
+                            {/* Mini Cuadro 2 */}
+                            <div className="rounded-xl border border-[#d4af37]/60 bg-zinc-950/90 p-2 space-y-1.5">
+                              <p className="text-[7.5px] font-black text-[#d4af37] uppercase truncate">
+                                COMPORTAMIENTO Y HABLA (6)
+                              </p>
+                              <div className="grid grid-cols-2 gap-1 text-[7.5px] font-bold text-center">
+                                <div className="py-0.5 rounded bg-[#d4af37]/30 border border-[#f0d060] text-white truncate">ELEGANTE Y FORMAL</div>
+                                <div className="py-0.5 rounded bg-black border border-[#d4af37]/40 text-zinc-300 truncate">NEGOCIADOR</div>
+                                <div className="py-0.5 rounded bg-black border border-[#d4af37]/40 text-zinc-300 truncate">ASESOR VENTAS</div>
+                                <div className="py-0.5 rounded bg-black border border-[#d4af37]/40 text-zinc-300 truncate">COBRANZA</div>
+                                <div className="py-0.5 rounded bg-black border border-[#d4af37]/40 text-zinc-300 truncate">ADMINISTRADOR</div>
+                                <div className="py-0.5 rounded bg-black border border-[#d4af37]/40 text-zinc-300 truncate">ESTILO DE BARRIO</div>
+                              </div>
+                              <div className="w-full py-1 rounded bg-gradient-to-r from-[#d4af37] to-[#f0d060] text-black font-black text-[8px] text-center uppercase tracking-wider shadow">
+                                ✨ GUARDAR COMPORTAMIENTO
+                              </div>
+                            </div>
+
+                            {/* Mini Cuadro 3 */}
+                            <div className="rounded-xl border border-emerald-500/50 bg-emerald-950/20 p-1.5 text-[8px] font-bold flex items-center justify-between text-emerald-300">
+                              <span>💬 SOPORTE Y ASISTENCIA</span>
+                              <span className="bg-emerald-500 text-black px-2 py-0.5 rounded font-black text-[7px] uppercase">WHATSAPP</span>
+                            </div>
+                          </div>
+
+                          {/* Pie de llamada a la acción */}
+                          <div className="pt-1.5 border-t border-[#d4af37]/20 flex items-center justify-center gap-1 text-[9px] font-black text-[#FCF6BA] group-hover:text-white uppercase tracking-wider">
+                            <span>📱 PRESIONA PARA ABRIR EN GRANDE</span>
+                          </div>
+                        </div>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const nextVoice = detectedVoice === 'male' ? 'female' : 'male';
-                          
-                          // Actualizar también la directiva de género en system_instructions
-                          const genderDirective = nextVoice === 'male'
-                            ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
-                            : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
-
-                          let updatedInstructions = client.system_instructions || '';
-                          if (updatedInstructions.includes('GÉNERO E IDENTIDAD:')) {
-                            updatedInstructions = updatedInstructions.replace(/GÉNERO E IDENTIDAD:.*$/m, genderDirective);
-                          } else {
-                            updatedInstructions = `${genderDirective}\n\n${updatedInstructions}`;
-                          }
-
-                          setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, voice_selection: nextVoice, system_instructions: updatedInstructions } : c));
-                          showSaveStatus(client.client_id, 'Cambiando voz...', false);
-                          try {
-                            const { error } = await supabase
-                              .from('asistente_config')
-                              .update({ 
-                                system_instructions: updatedInstructions 
-                              } as any)
-                              .eq('client_id', client.client_id);
-                            if (error) throw error;
-                            showSaveStatus(client.client_id, '✓ Voz y género actualizados', false);
-                          } catch (err: any) {
-                            console.error('Error al actualizar voz:', err);
-                            showSaveStatus(client.client_id, '⚠ Error al guardar voz', true);
-                          }
-                        }}
-                        className={`px-4 py-2.5 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all duration-300 border shadow-lg cursor-pointer flex items-center justify-center gap-2 active:scale-95 ${
-                          detectedVoice === 'male'
-                            ? 'bg-green-950/40 text-green-300 border-green-500/60 hover:bg-green-900/50 shadow-green-950/30'
-                            : 'bg-pink-950/40 text-pink-300 border-pink-400/60 hover:bg-pink-900/50 shadow-pink-950/30'
-                        }`}
-                      >
-                        {detectedVoice === 'male' ? (
-                          <>
-                            <span>🟢 VOZ DE HOMBRE</span>
-                            <span className="text-[9px] text-green-200 font-mono bg-green-900/60 px-2 py-0.5 rounded-md border border-green-400/40">
-                              (ALGIEBA)
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <span>🌸 VOZ DE MUJER</span>
-                            <span className="text-[9px] text-pink-200 font-mono bg-pink-900/60 px-2 py-0.5 rounded-md border border-pink-400/40">
-                              (ZEPHYR)
-                            </span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })()}
+                    );
+                  })()}
 
               {/* Modificar Comportamiento */}
               {(() => {

@@ -509,9 +509,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
           {/* 4 Asistentes Exclusivos */}
           <div className="space-y-1 pt-1">
             <div className="flex items-center justify-between">
-              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">
-                ASISTENTES EXCLUSIVOS:
-              </label>
+              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">ELIGE QUÉ CONOCIMIENTOS Y HABILIDADES TIENE TU ASISTENTE:</label>
               <span className="text-[8px] text-zinc-400 uppercase font-bold">✏️ Edición en web</span>
             </div>
             <div className="grid grid-cols-2 gap-1.5">
@@ -604,9 +602,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
         <div className="rounded-2xl border-2 border-[#d4af37] bg-black/90 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.25)]">
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">
-                ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE?
-              </label>
+              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">¿CÓMO QUIERES QUE SE COMPORTE Y TE HABLE TU ASISTENTE?</label>
               <span className="text-[8px] text-zinc-400 uppercase font-bold">✏️ Edición en web</span>
             </div>
             <div className="grid grid-cols-2 gap-1.5">
