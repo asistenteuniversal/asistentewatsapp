@@ -274,29 +274,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       trackingMeta
     ].filter(Boolean);
 
-    const header = lines.join('\n\n') + '\n\n';
-
-    let rawBase = (params.existingInstructions || '')
-      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?(?:Directivas de Formato:|(\n\n[A-Z0-9\.\-]))/i, (match, p1) => {
-        if (match.includes('Directivas de Formato:')) return 'Directivas de Formato:';
-        return p1 || '';
-      })
-      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:.*$/gm, '')
-      .replace(/^GÉNERO E IDENTIDAD:.*$/gm, '')
-      .replace(/^NOMBRE DE TU ASISTENTE:.*$/gm, '')
-      .replace(/^Tu nombre oficial es:.*$/gm, '')
-      .replace(/^¿?CÓMO QUIERES QUE TE LLAME\??:.*$/gm, '')
-      .replace(/^El usuario se llama:.*$/gm, '')
-      .replace(/^COMPORTAMIENTO Y FORMA DE HABLAR:.*$/gm, '')
-      .replace(/^ESTILO DE COMUNICACIÓN:.*$/gm, '')
-      .replace(/^CONOCIMIENTOS Y HABILIDADES:.*$/gm, '')
-      .replace(/^ROL DE ASISTENTE:.*$/gm, '')
-      .replace(/^\[AGENTE_ACTIVO\]:.*$/gm, '')
-      .replace(/^\[ESTILO_ACTIVO\]:.*$/gm, '')
-      .replace(/^\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
-      .trim();
-
-    return `${header}${rawBase}`;
+    return lines.join('\n\n');
   };
 
   const handleToggleVoice = async () => {
