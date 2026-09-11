@@ -108,9 +108,8 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
   const [isApplyingStyle, setIsApplyingStyle] = useState(false);
   const [styleSuccess, setStyleSuccess] = useState(false);
 
-  // Modal de advertencia de borrado de memoria al cambiar comportamiento
+  // Modal de advertencia de borrado de memoria al guardar comportamiento
   const [showStyleWarning, setShowStyleWarning] = useState(false);
-  const [pendingStyleId, setPendingStyleId] = useState<string | null>(null);
 
   // Modal de confirmación para borrar conversaciones voluntariamente
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -200,44 +199,64 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const nextVoiceMale = !settings.voiceMaleEnabled;
     const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
     const finalName = assistantName.trim() || localStorage.getItem('ava_custom_assistant_name') || 'Asistente';
+    const finalUserName = userName.trim() || localStorage.getItem('ava_custom_user_name') || '';
+
+    const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
+    const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
 
     const genderDirective = nextVoiceMale
       ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
       : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
-    let updatedInstructions = settings.systemInstructions || '';
-    if (updatedInstructions.includes('GÉNERO E IDENTIDAD:')) {
-      updatedInstructions = updatedInstructions.replace(/GÉNERO E IDENTIDAD:.*$/m, genderDirective);
-    } else {
-      updatedInstructions = `${genderDirective}\n\n${updatedInstructions}`;
-    }
+    const userDirective = finalUserName
+      ? `El usuario se llama: "${finalUserName}". Dirígete siempre a él con este nombre cuando hables con él.\n`
+      : '';
 
+    const allPresets = [...businessStyles, ...exclusiveAssistants];
+    const presetsMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}\n`;
+
+    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\n${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\nESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
+
+    const rawBase = (settings.systemInstructions || '')
+      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
+      .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
+      .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
+      .trim();
+    const fullInstructions = `${identityHeader}${rawBase}`;
+
+    // 1. Actualizar React localmente
     setSettings((prev) => ({
       ...prev,
       voiceMaleEnabled: nextVoiceMale,
-      systemInstructions: updatedInstructions
+      systemInstructions: fullInstructions
     }));
 
+    // 2. Inyectar a Android nativo
     if ((window as any).AndroidInterface) {
       try {
         if ((window as any).AndroidInterface.updateVoiceOption) {
           (window as any).AndroidInterface.updateVoiceOption(nextVoiceMale);
         }
         if ((window as any).AndroidInterface.updateSystemInstructions) {
-          (window as any).AndroidInterface.updateSystemInstructions(updatedInstructions);
+          (window as any).AndroidInterface.updateSystemInstructions(fullInstructions);
+        }
+        if ((window as any).AndroidInterface.reloadStudio) {
+          (window as any).AndroidInterface.reloadStudio();
         }
       } catch (e) {
-        console.error(e);
+        console.error('Error inyectando voz a Java:', e);
       }
     }
 
+    // 3. Sincronizar con Supabase (SOLO system_instructions existente)
     try {
       await supabase
         .from('asistente_config')
-        .update({ system_instructions: updatedInstructions, voice_selection: nextVoiceMale ? 'male' : 'female' } as any)
+        .update({ system_instructions: fullInstructions })
         .eq('client_id', clientId);
+      console.log('[Supabase] Voz y género actualizados exitosamente.');
     } catch (errSupabase) {
-      console.warn('[Supabase] Error actualizando voz:', errSupabase);
+      console.warn('[Supabase] Error actualizando voz en Supabase:', errSupabase);
     }
   };
 
@@ -256,6 +275,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
     localStorage.setItem('ava_custom_agent_id', activeAgent.id);
 
+    const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
     const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
 
     const genderDirective = settings.voiceMaleEnabled
@@ -269,11 +289,12 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const allPresets = [...businessStyles, ...exclusiveAssistants];
     const presetsMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}\n`;
 
-    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\n\n`;
+    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\n${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\nESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
 
     const rawBase = (settings.systemInstructions || '')
       .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
       .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
+      .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
       .trim();
     const fullInstructions = `${identityHeader}${rawBase}`;
 
@@ -282,15 +303,14 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
         .from('asistente_config')
         .update({
           system_instructions: fullInstructions,
-          assistant_name: finalName,
           client_name: finalUserName || undefined
-        } as any)
+        })
         .eq('client_id', clientId);
     } catch (err) {
-      console.warn('Error guardando agente en Supabase:', err);
+      console.warn('Error guardando asistente en Supabase:', err);
     }
 
-    // Actualizar instrucciones SIN BORRAR memoria
+    // Actualizar instrucciones en React SIN BORRAR memoria
     setSettings((prev) => ({
       ...prev,
       systemInstructions: fullInstructions
@@ -301,8 +321,11 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
         if ((window as any).AndroidInterface.updateSystemInstructions) {
           (window as any).AndroidInterface.updateSystemInstructions(fullInstructions);
         }
+        if ((window as any).AndroidInterface.reloadStudio) {
+          (window as any).AndroidInterface.reloadStudio();
+        }
       } catch (e) {
-        console.error(e);
+        console.error('Error aplicando a Java:', e);
       }
     }
 
@@ -313,22 +336,17 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     }, 500);
   };
 
-  // 🎭 SELECCIÓN DEL CUADRO 2: COMPORTAMIENTO (DISPARA ADVERTENCIA DE BORRADO)
-  const handleSelectStyleWithWarning = (preset: PersonalityPreset) => {
-    if (preset.id === selectedStyleId) return;
-    setPendingStyleId(preset.id);
-    setShowStyleWarning(true);
-  };
-
-  // CONFIRMAR CAMBIO DE COMPORTAMIENTO (BORRA MEMORIA DE CONVERSACIONES)
+  // 🎭 CUADRO 2: CONFIRMAR CAMBIO DE COMPORTAMIENTO (BORRA MEMORIA DE CONVERSACIONES)
   const confirmApplyStyle = async () => {
-    if (!pendingStyleId) return;
     setShowStyleWarning(false);
     setIsApplyingStyle(true);
     setStyleSuccess(false);
 
-    setSelectedStyleId(pendingStyleId);
-    const activeStyle = businessStyles.find(b => b.id === pendingStyleId) || businessStyles[0];
+    const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
+    localStorage.setItem('ava_custom_personality_id', activeStyle.id);
+    localStorage.setItem('ava_custom_personality_prompt', activeStyle.prompt);
+
+    const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
 
     const finalName = assistantName.trim() || 'Asistente';
     const finalUserName = userName.trim();
@@ -345,11 +363,12 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const allPresets = [...businessStyles, ...exclusiveAssistants];
     const presetsMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}\n`;
 
-    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}${presetsMeta}ESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
+    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\n${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\nESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
 
     const rawBase = (settings.systemInstructions || '')
       .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
       .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
+      .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
       .trim();
     const fullInstructions = `${identityHeader}${rawBase}`;
 
@@ -358,10 +377,9 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
         .from('asistente_config')
         .update({
           system_instructions: fullInstructions,
-          personality_style: activeStyle.label,
           daily_memory: '',
           system_memory: 'CLEAR'
-        } as any)
+        })
         .eq('client_id', clientId);
     } catch (err) {
       console.warn('Error aplicando comportamiento en Supabase:', err);
@@ -383,7 +401,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           (window as any).AndroidInterface.reloadStudio();
         }
       } catch (e) {
-        console.error(e);
+        console.error('Error aplicando a Java:', e);
       }
     }
 
@@ -407,10 +425,14 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     try {
       await supabase
         .from('asistente_config')
-        .update({ daily_memory: '', system_memory: 'CLEAR' } as any)
+        .update({ daily_memory: '', system_memory: 'CLEAR' })
         .eq('client_id', clientId);
     } catch (err) {
       console.warn('Error borrando memoria en Supabase:', err);
+    }
+
+    if ((window as any).AndroidInterface?.reloadStudio) {
+      (window as any).AndroidInterface.reloadStudio();
     }
 
     setClearSuccess(true);
@@ -625,7 +647,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
                   <button
                     key={preset.id}
                     type="button"
-                    onClick={() => handleSelectStyleWithWarning(preset)}
+                    onClick={() => setSelectedStyleId(preset.id)}
                     className={`py-2 px-2 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 ${
                       isSelected
                         ? 'bg-gradient-to-r from-[#d4af37]/40 via-[#f0d060]/30 to-[#d4af37]/40 text-white border-[#f0d060] shadow-[0_0_15px_rgba(212,175,55,0.5)] scale-[1.02]'
@@ -643,10 +665,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
           <button
             type="button"
             disabled={isApplyingStyle}
-            onClick={() => {
-              const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
-              handleSelectStyleWithWarning(activeStyle);
-            }}
+            onClick={() => setShowStyleWarning(true)}
             className={`w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-98 border mt-1 ${
               styleSuccess
                 ? 'bg-emerald-500 text-black border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-pulse'
@@ -693,7 +712,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
         </div>
       </div>
 
-      {/* ── MODAL DE ADVERTENCIA DE BORRADO DE CONVERSACIONES AL CAMBIAR COMPORTAMIENTO ── */}
+      {/* ── MODAL DE ADVERTENCIA DE BORRADO DE CONVERSACIONES AL GUARDAR COMPORTAMIENTO ── */}
       {showStyleWarning && (
         <div className="fixed inset-0 z-60 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 font-sans">
           <div className="max-w-sm w-full bg-[#121218] border-2 border-amber-500 rounded-2xl p-4 shadow-2xl space-y-3">
@@ -703,7 +722,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
                 AVISO DE CONVERSACIONES
               </span>
             </div>
-            <p className="text-[11px] text-zinc-200 leading-relaxed">
+            <p className="text-[11px] text-zinc-200 leading-relaxed font-semibold">
               Si cambias el comportamiento de tu asistente, se borrarán todas tus conversaciones anteriores para que empiece de forma 100% limpia.
             </p>
             <p className="text-[10px] text-zinc-400 leading-relaxed">
@@ -712,10 +731,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
             <div className="flex items-center justify-end gap-2 pt-1">
               <button
                 type="button"
-                onClick={() => {
-                  setShowStyleWarning(false);
-                  setPendingStyleId(null);
-                }}
+                onClick={() => setShowStyleWarning(false)}
                 className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-xs font-bold hover:bg-zinc-700 cursor-pointer"
               >
                 Cancelar

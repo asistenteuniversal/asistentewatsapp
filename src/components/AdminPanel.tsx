@@ -1742,7 +1742,7 @@ export const AdminPanel: React.FC = () => {
           onClose={() => setSimulatorClient(null)}
           onSaveInstructions={saveInstructions}
           onSaveVoice={async (clientId, voice) => {
-            await supabase.from('asistente_config').update({ voice_selection: voice } as any).eq('client_id', clientId);
+            // voice is preserved in system_instructions
             setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, voice_selection: voice } : c));
           }}
           supportPhone={supportPhone}
@@ -1751,3 +1751,4 @@ export const AdminPanel: React.FC = () => {
     </div>
   );
 };
+

@@ -75,9 +75,6 @@ interface ClientConfigRow {
   activation_key: string | null;
   hardware_id: string | null;
   client_phone?: string | null;
-  assistant_name?: string | null;
-  personality_style?: string | null;
-  voice_selection?: string | null;
 }
 
 interface ClientPhoneSimulatorModalProps {
@@ -124,7 +121,6 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
   const [styleSuccess, setStyleSuccess] = useState(false);
 
   const [showStyleWarning, setShowStyleWarning] = useState(false);
-  const [pendingStyleId, setPendingStyleId] = useState<string | null>(null);
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearSuccess, setClearSuccess] = useState(false);
@@ -148,15 +144,13 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
 
     // Cargar nombres
     const matchName = instructions.match(/Tu nombre oficial es:\s*"([^"]+)"/i);
-    setAssistantName(matchName && matchName[1] ? matchName[1] : client.assistant_name || 'AVA');
+    setAssistantName(matchName && matchName[1] ? matchName[1] : 'AVA');
 
     const matchUserName = instructions.match(/El usuario se llama:\s*"([^"]+)"/i);
     setUserName(matchUserName && matchUserName[1] ? matchUserName[1] : client.client_name || '');
 
     // Cargar voz
-    if (client.voice_selection) {
-      setCurrentVoice(client.voice_selection.toLowerCase().includes('male') || client.voice_selection.toLowerCase().includes('algieba') ? 'male' : 'female');
-    } else if (instructions.includes('asistente masculino (hombre)')) {
+    if (instructions.includes('asistente masculino (hombre)')) {
       setCurrentVoice('male');
     } else {
       setCurrentVoice('female');
@@ -238,7 +232,6 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
 
     try {
       await onSaveInstructions(client.client_id, updated);
-      if (onSaveVoice) await onSaveVoice(client.client_id, nextVoice);
     } catch (e) {
       console.error('Error cambiando voz:', e);
     }
@@ -284,6 +277,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       const finalName = assistantName.trim() || 'AVA';
       const finalUserName = userName.trim();
       const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
+      const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
 
       const genderDirective = currentVoice === 'male'
         ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
@@ -296,10 +290,10 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       const allPresets = [...businessStyles, ...exclusiveAssistants];
       const presetsMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}\n`;
 
-      const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\n\n`;
+      const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\n${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\nESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
 
       const rawBase = (client.system_instructions || '')
-        .replace(/\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?(?=\n\n|$)/gi, '')
+        .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
         .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
         .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
         .trim();
@@ -311,10 +305,8 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       await supabase
         .from('asistente_config')
         .update({
-          assistant_name: finalName,
-          client_name: finalUserName || client.client_name,
-          voice_selection: currentVoice
-        } as any)
+          client_name: finalUserName || client.client_name
+        })
         .eq('client_id', client.client_id);
 
       setAgentSuccess(true);
@@ -326,22 +318,15 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
     }
   };
 
-  // 🎭 SELECCIÓN CUADRO 2: COMPORTAMIENTO (ADVERTENCIA DE BORRADO)
-  const handleSelectStyleWithWarning = (preset: PersonalityPreset) => {
-    if (preset.id === selectedStyleId) return;
-    setPendingStyleId(preset.id);
-    setShowStyleWarning(true);
-  };
-
+  // 🎭 CONFIRMAR CAMBIO DE COMPORTAMIENTO (BORRA MEMORIA)
   const confirmApplyStyle = async () => {
-    if (!pendingStyleId) return;
     setShowStyleWarning(false);
     setIsApplyingStyle(true);
     setStyleSuccess(false);
 
     try {
-      setSelectedStyleId(pendingStyleId);
-      const activeStyle = businessStyles.find(b => b.id === pendingStyleId) || businessStyles[0];
+      const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
+      const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
 
       const finalName = assistantName.trim() || 'AVA';
       const finalUserName = userName.trim();
@@ -357,10 +342,10 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       const allPresets = [...businessStyles, ...exclusiveAssistants];
       const presetsMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}\n`;
 
-      const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}${presetsMeta}ESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
+      const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\n${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\nESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
 
       const rawBase = (client.system_instructions || '')
-        .replace(/\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?(?=\n\n|$)/gi, '')
+        .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
         .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
         .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
         .trim();
@@ -373,10 +358,9 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       await supabase
         .from('asistente_config')
         .update({
-          personality_style: activeStyle.label,
           daily_memory: '',
           system_memory: 'CLEAR'
-        } as any)
+        })
         .eq('client_id', client.client_id);
 
       setStyleSuccess(true);
@@ -394,7 +378,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
     try {
       await supabase
         .from('asistente_config')
-        .update({ daily_memory: '', system_memory: 'CLEAR' } as any)
+        .update({ daily_memory: '', system_memory: 'CLEAR' })
         .eq('client_id', client.client_id);
 
       setClearSuccess(true);
@@ -408,390 +392,351 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
 
   return (
     <div
-      className={`${
+      className="fixed z-50 select-none font-sans text-white"
+      style={
         isMobile
-          ? 'fixed inset-0 z-[9999] bg-black/90 p-2 overflow-y-auto flex items-center justify-center'
-          : 'fixed z-[9999]'
-      }`}
-      style={!isMobile ? { left: `${position.x}px`, top: `${position.y}px` } : {}}
+          ? { inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', padding: '10px' }
+          : { left: `${position.x}px`, top: `${position.y}px`, width: '420px', maxWidth: '96vw' }
+      }
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap');`}</style>
 
-      {/* Marco de Teléfono Celular */}
-      <div 
-        className="w-full max-w-[430px] bg-[#0a0a0f] border-2 border-[#d4af37]/60 rounded-[36px] shadow-[0_0_60px_rgba(0,0,0,0.95),0_0_30px_rgba(212,175,55,0.3)] overflow-hidden flex flex-col font-sans text-white select-none"
+      <div
+        className="w-full bg-[#0a0a0f] border-2 border-[#d4af37]/60 rounded-3xl p-3.5 sm:p-4 shadow-[0_0_60px_rgba(212,175,55,0.3)] space-y-3 relative max-h-[94vh] overflow-y-auto flex flex-col"
         style={{ fontFamily: "'Outfit', sans-serif" }}
       >
-        {/* Barra Superior Arrastrable */}
+        {/* Barra Superior */}
         <div
-          onMouseDown={handleMouseDown}
-          className="bg-gradient-to-r from-[#14141c] via-[#20202c] to-[#14141c] px-4 py-2 border-b border-[#d4af37]/30 flex items-center justify-between cursor-move"
-          title="Haz clic y arrastra para mover el simulador"
+          onMouseDown={isMobile ? undefined : handleMouseDown}
+          className={`flex items-center justify-between border-b border-[#d4af37]/30 pb-2 ${isMobile ? '' : 'cursor-move'}`}
         >
-          <div className="flex items-center gap-2 text-[#f0d060]">
-            <Move className="w-3.5 h-3.5 opacity-80" />
-            <span className="text-[10px] font-black uppercase tracking-widest">
-              CELULAR EN VIVO: {client.client_name.toUpperCase()}
+          <div className="flex items-center gap-2">
+            {!isMobile && <Move className="w-4 h-4 text-[#d4af37]/70" />}
+            <span className="font-extrabold text-xs sm:text-sm tracking-widest uppercase text-[#d4af37]">
+              SIMULADOR CELULAR: {client.client_name || client.client_id}
             </span>
           </div>
           <button
-            type="button"
             onClick={onClose}
-            className="w-6 h-6 rounded-full bg-black/60 hover:bg-red-600 text-white flex items-center justify-center transition active:scale-95 border border-white/20 cursor-pointer"
-            title="Cerrar Simulador"
+            className="p-1 rounded-xl hover:bg-white/10 text-[#d4af37] hover:text-white transition cursor-pointer"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Cuerpo del Teléfono */}
-        <div className="p-3.5 space-y-3 max-h-[86vh] overflow-y-auto custom-scrollbar bg-[#0a0a0f]">
-          
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-[#d4af37]/25 pb-2">
-            <h2 className="font-extrabold text-sm tracking-widest uppercase text-[#d4af37]">
-              AJUSTES Y ASISTENCIA
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-1 rounded-lg hover:bg-white/10 text-[#d4af37] hover:text-white transition cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        {/* Bloque Superior de Sesión y Voz */}
+        <div className="space-y-2">
+          <div className="w-full py-2 px-3 rounded-2xl border border-emerald-500/40 bg-emerald-950/20 text-emerald-400 font-extrabold text-[11px] tracking-wider uppercase flex items-center justify-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>GMAIL VINCULADO AL DISPOSITIVO</span>
           </div>
 
-          {/* Bloque Superior de Sesión y Voz */}
-          <div className="space-y-1.5">
-            <button
-              disabled
-              className="w-full py-2 px-3 rounded-2xl border border-emerald-500/40 bg-emerald-950/20 text-emerald-400 font-extrabold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-default"
-            >
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>CUENTA VINCULADA CORRECTAMENTE</span>
-            </button>
-
-            <div className="w-full py-1.5 px-3 rounded-2xl bg-red-600 hover:bg-red-500 border-2 border-red-400 text-white transition flex flex-col items-center justify-center shadow-[0_0_15px_rgba(220,38,38,0.4)] leading-tight cursor-default">
-              <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider">
-                <LogOut className="w-3.5 h-3.5 text-white" />
-                <span>CERRAR SESIÓN DE GMAIL</span>
-              </div>
-              <span className="text-[9px] font-bold text-red-100 uppercase tracking-wide mt-0.5">
-                (PRESIONA PARA CAMBIAR TU CORREO)
-              </span>
+          <button
+            type="button"
+            onClick={() => alert("En el celular real, este botón borra la sesión de Google para permitir ingresar una cuenta diferente.")}
+            className="w-full py-1.5 px-4 rounded-2xl bg-red-600 hover:bg-red-500 border-2 border-red-400 text-white transition flex flex-col items-center justify-center cursor-pointer shadow-[0_0_15px_rgba(220,38,38,0.4)] leading-tight active:scale-98"
+          >
+            <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider">
+              <LogOut className="w-3.5 h-3.5 text-white" />
+              <span>CERRAR SESIÓN DE GMAIL</span>
             </div>
+            <span className="text-[9px] font-bold text-red-100 uppercase tracking-wide mt-0.5">
+              (PRESIONA PARA CAMBIAR TU CORREO)
+            </span>
+          </button>
 
-            <button
-              type="button"
-              onClick={handleToggleVoice}
-              className={`w-full py-1.5 px-3 rounded-2xl transition duration-200 flex flex-col items-center justify-center border shadow-lg cursor-pointer leading-tight active:scale-98 ${
-                currentVoice === 'male'
-                  ? 'bg-green-950/30 text-green-400 border-green-500/40 hover:bg-green-950/50'
-                  : 'bg-pink-950/30 text-pink-300 border-pink-400/50 hover:bg-pink-950/50'
-              }`}
-            >
-              <span className="font-black text-xs uppercase tracking-wider">
-                {currentVoice === 'male' ? 'VOZ DE HOMBRE DE TU ASISTENTE' : 'VOZ DE MUJER DE TU ASISTENTE'}
-              </span>
-              <span className="text-[9px] font-bold opacity-90 uppercase tracking-wide mt-0.5">
-                {currentVoice === 'male' ? '(PRESIONA PARA CAMBIAR A VOZ DE MUJER)' : '(PRESIONA PARA CAMBIAR A VOZ DE HOMBRE)'}
-              </span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleToggleVoice}
+            className={`w-full py-2 px-4 rounded-2xl transition duration-200 flex flex-col items-center justify-center border shadow-lg cursor-pointer leading-tight active:scale-98 ${
+              currentVoice === 'male'
+                ? 'bg-green-950/30 text-green-400 border-green-500/40 hover:bg-green-950/50 shadow-green-950/20'
+                : 'bg-pink-950/30 text-pink-300 border-pink-400/50 hover:bg-pink-950/50 shadow-pink-950/20'
+            }`}
+          >
+            <span className="font-black text-xs uppercase tracking-wider">
+              {currentVoice === 'male' ? 'VOZ DE HOMBRE DE TU ASISTENTE' : 'VOZ DE MUJER DE TU ASISTENTE'}
+            </span>
+            <span className="text-[9px] font-bold opacity-90 uppercase tracking-wide mt-0.5">
+              {currentVoice === 'male' ? '(PRESIONA PARA CAMBIAR A VOZ DE MUJER)' : '(PRESIONA PARA CAMBIAR A VOZ DE HOMBRE)'}
+            </span>
+          </button>
+        </div>
 
-          {/* ── CUADRO 1: ASISTENTES EXCLUSIVOS Y NOMBRES (MARCO DORADO GRUESO - NO BORRA MEMORIA) ── */}
-          <div className="rounded-2xl border-2 border-[#d4af37] bg-black/60 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.2)]">
-            {/* Nombres 50% y 50% */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block truncate">
-                  NOMBRE DE TU ASISTENTE:
-                </label>
-                <input
-                  type="text"
-                  value={assistantName}
-                  onChange={(e) => setAssistantName(e.target.value)}
-                  placeholder="Escribe aquí el nombre"
-                  className="w-full bg-[#14141a] border border-[#d4af37]/60 rounded-xl px-2.5 py-1.5 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block truncate">
-                  ¿CÓMO QUIERES QUE TE LLAME?:
-                </label>
-                <input
-                  type="text"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  placeholder="Escribe aquí tu nombre"
-                  className="w-full bg-[#14141a] border border-[#d4af37]/60 rounded-xl px-2.5 py-1.5 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
-                />
-              </div>
-            </div>
-
-            {/* 4 Asistentes Exclusivos (Elegantes, sin emojis) */}
-            <div className="space-y-1 pt-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">
-                  ASISTENTES EXCLUSIVOS:
-                </label>
-                <span className="text-[9px] text-amber-300/80 font-bold">
-                  (✏️ Click para editar)
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-1.5">
-                {exclusiveAssistants.map((preset) => {
-                  const isSelected = selectedAssistantId === preset.id;
-                  const isBeingEdited = editingPresetId === preset.id;
-                  return (
-                    <div key={preset.id} className="relative group">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedAssistantId(preset.id)}
-                        className={`w-full py-2 px-2 pr-6 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 ${
-                          isSelected
-                            ? 'bg-gradient-to-r from-[#d4af37]/40 via-[#f0d060]/30 to-[#d4af37]/40 text-white border-[#f0d060] shadow-[0_0_15px_rgba(212,175,55,0.5)] scale-[1.02]'
-                            : 'bg-black/80 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
-                        }`}
-                      >
-                        <span className="truncate block">{preset.label}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={(e) => handleOpenEditor(preset, e)}
-                        className={`absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-md transition ${
-                          isBeingEdited ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-[#f0d060] hover:bg-black/80'
-                        }`}
-                        title={`Editar: ${preset.label}`}
-                      >
-                        <Edit3 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Panel de edición con Lápiz */}
-            {editingPresetId && (
-              <div className="mt-2 bg-[#121218] border-2 border-amber-500/60 rounded-xl p-2.5 space-y-2 shadow-2xl animate-fadeIn">
-                <div className="flex items-center justify-between border-b border-amber-500/30 pb-1">
-                  <span className="text-[10px] font-black text-amber-300 uppercase tracking-wide flex items-center gap-1">
-                    ✏️ EDITANDO: {editLabel || 'ASISTENTE'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setEditingPresetId(null)}
-                    className="text-zinc-400 hover:text-white text-xs cursor-pointer"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div>
-                  <label className="text-[9px] text-zinc-300 font-bold uppercase block mb-0.5">
-                    Nombre del Botón:
-                  </label>
-                  <input
-                    type="text"
-                    value={editLabel}
-                    onChange={(e) => setEditLabel(e.target.value)}
-                    className="w-full bg-black/80 border border-amber-500/40 rounded-lg px-2 py-1 text-white text-[11px] font-bold outline-none focus:border-amber-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[9px] text-zinc-300 font-bold uppercase block mb-0.5">
-                    Instrucción / Cómo se debe comportar:
-                  </label>
-                  <textarea
-                    value={editPrompt}
-                    onChange={(e) => setEditPrompt(e.target.value)}
-                    rows={2}
-                    className="w-full bg-black/80 border border-amber-500/40 rounded-lg p-1.5 text-white text-[11px] outline-none focus:border-amber-400 resize-none leading-relaxed"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between gap-2 pt-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleResetPreset(editingPresetId)}
-                    className="px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer"
-                    title="Valores de fábrica"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    <span>Fábrica</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSavePreset(editingPresetId)}
-                    className="px-3 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-black text-[9px] font-black uppercase tracking-wider flex items-center gap-1 hover:brightness-110 active:scale-95 shadow cursor-pointer"
-                  >
-                    <Check className="w-3 h-3" />
-                    <span>Aplicar</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Botón Guardar Asistente */}
-            <button
-              type="button"
-              disabled={isApplyingAgent}
-              onClick={handleSaveAgentAndNames}
-              className={`w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-98 border mt-1 ${
-                agentSuccess
-                  ? 'bg-emerald-500 text-black border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-pulse'
-                  : isApplyingAgent
-                    ? 'bg-amber-600/80 text-white border-amber-400 cursor-wait'
-                    : 'bg-gradient-to-r from-[#b8860b] via-[#d4af37] to-[#f0d060] text-black hover:brightness-110 border-[#ffe57f] shadow-[0_0_20px_rgba(212,175,55,0.4)]'
-              }`}
-            >
-              {isApplyingAgent ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                  <span>GUARDANDO ASISTENTE...</span>
-                </>
-              ) : agentSuccess ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4 text-black" />
-                  <span>¡ASISTENTE GUARDADO CON ÉXITO!</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 fill-black" />
-                  <span>GUARDAR Y APLICAR ASISTENTE</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* ── BOTÓN INTERMEDIO: BORRAR CONVERSACIONES ── */}
-          <div className="py-0.5">
-            <button
-              type="button"
-              onClick={() => setShowClearConfirm(true)}
-              className="w-full py-2 px-3 bg-red-950/40 hover:bg-red-900/60 border border-red-500/50 text-red-300 rounded-xl font-black text-[9.5px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 shadow-md active:scale-98 cursor-pointer"
-            >
-              <Trash2 className="w-3.5 h-3.5 text-red-400" />
-              <span>PRESIONA AQUÍ PARA BORRAR TUS CONVERSACIONES CON EL ASISTENTE</span>
-            </button>
-            {clearSuccess && (
-              <p className="text-center text-[10px] text-emerald-400 font-bold mt-1 animate-pulse">
-                ✓ Conversaciones borradas. Pizarra 100% limpia.
-              </p>
-            )}
-          </div>
-
-          {/* ── CUADRO 2: ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE? (MARCO DORADO GRUESO - SÍ BORRA MEMORIA) ── */}
-          <div className="rounded-2xl border-2 border-[#d4af37] bg-black/60 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.2)]">
+        {/* ── CUADRO 1: ASISTENTES EXCLUSIVOS Y NOMBRES (MARCO DORADO GRUESO - NO BORRA MEMORIA) ── */}
+        <div className="rounded-2xl border-2 border-[#d4af37] bg-black/60 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.2)]">
+          {/* Nombres en 2 Columnas Simétricas */}
+          <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">
-                  ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE?
-                </label>
-                <span className="text-[9px] text-amber-300/80 font-bold">
-                  (✏️ Click para editar)
-                </span>
-              </div>
+              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block truncate">
+                NOMBRE DE TU ASISTENTE:
+              </label>
+              <input
+                type="text"
+                value={assistantName}
+                onChange={(e) => setAssistantName(e.target.value)}
+                placeholder="Ej. AVA"
+                className="w-full bg-[#14141a] border border-[#d4af37]/60 rounded-xl px-2.5 py-1.5 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
+              />
+            </div>
 
-              <div className="grid grid-cols-2 gap-1.5">
-                {businessStyles.map((preset) => {
-                  const isSelected = selectedStyleId === preset.id;
-                  const isBeingEdited = editingPresetId === preset.id;
-                  return (
-                    <div key={preset.id} className="relative group">
-                      <button
-                        type="button"
-                        onClick={() => handleSelectStyleWithWarning(preset)}
-                        className={`w-full py-2 px-2 pr-6 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 ${
-                          isSelected
-                            ? 'bg-gradient-to-r from-[#d4af37]/40 via-[#f0d060]/30 to-[#d4af37]/40 text-white border-[#f0d060] shadow-[0_0_15px_rgba(212,175,55,0.5)] scale-[1.02]'
-                            : 'bg-black/80 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
-                        }`}
-                      >
-                        <span className="truncate block">{preset.label}</span>
-                      </button>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block truncate">
+                ¿CÓMO QUIERES QUE TE LLAME?:
+              </label>
+              <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                placeholder="Ej. Alberto"
+                className="w-full bg-[#14141a] border border-[#d4af37]/60 rounded-xl px-2.5 py-1.5 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
+              />
+            </div>
+          </div>
 
-                      <button
-                        type="button"
-                        onClick={(e) => handleOpenEditor(preset, e)}
-                        className={`absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-md transition ${
-                          isBeingEdited ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-[#f0d060] hover:bg-black/80'
-                        }`}
-                        title={`Editar: ${preset.label}`}
-                      >
-                        <Edit3 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  );
-                })}
+          {/* 4 Asistentes Exclusivos */}
+          <div className="space-y-1 pt-1">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">
+                ASISTENTES EXCLUSIVOS:
+              </label>
+              <span className="text-[8px] text-zinc-400 uppercase font-bold">✏️ Edición en web</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {exclusiveAssistants.map((preset) => {
+                const isSelected = selectedAssistantId === preset.id;
+                return (
+                  <div key={preset.id} className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAssistantId(preset.id)}
+                      className={`w-full py-2 px-2 pr-6 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 truncate ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-[#d4af37]/40 via-[#f0d060]/30 to-[#d4af37]/40 text-white border-[#f0d060] shadow-[0_0_15px_rgba(212,175,55,0.5)] scale-[1.02]'
+                          : 'bg-black/80 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                    <button
+                      type="button"
+                      title="Editar título y prompt"
+                      onClick={(e) => handleOpenEditor(preset, e)}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-md bg-black/60 hover:bg-[#d4af37] hover:text-black text-zinc-400 transition"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Botón de Guardar Agente */}
+          <button
+            type="button"
+            disabled={isApplyingAgent}
+            onClick={handleSaveAgentAndNames}
+            className={`w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-98 border mt-1 ${
+              agentSuccess
+                ? 'bg-emerald-500 text-black border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-pulse'
+                : isApplyingAgent
+                  ? 'bg-amber-600/80 text-white border-amber-400 cursor-wait'
+                  : 'bg-gradient-to-r from-[#b8860b] via-[#d4af37] to-[#f0d060] text-black hover:brightness-110 border-[#ffe57f] shadow-[0_0_20px_rgba(212,175,55,0.4)]'
+            }`}
+          >
+            {isApplyingAgent ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <span>GUARDANDO ASISTENTE...</span>
+              </>
+            ) : agentSuccess ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 text-black" />
+                <span>¡ASISTENTE GUARDADO CON ÉXITO!</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 fill-black" />
+                <span>GUARDAR Y APLICAR ASISTENTE</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* ── BOTÓN INTERMEDIO: BORRADO VOLUNTARIO DE CONVERSACIONES ── */}
+        <div className="py-0.5">
+          <button
+            type="button"
+            onClick={() => setShowClearConfirm(true)}
+            className="w-full py-2 px-3 bg-red-950/40 hover:bg-red-900/60 border border-red-500/50 text-red-300 rounded-xl font-black text-[9.5px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 shadow-md active:scale-98 cursor-pointer"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+            <span>PRESIONA AQUÍ PARA BORRAR TUS CONVERSACIONES CON EL ASISTENTE</span>
+          </button>
+          {clearSuccess && (
+            <p className="text-center text-[10px] text-emerald-400 font-bold mt-1 animate-pulse">
+              ✓ Conversaciones borradas. Pizarra 100% limpia.
+            </p>
+          )}
+        </div>
+
+        {/* ── CUADRO 2: ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE? (MARCO DORADO GRUESO - SÍ BORRA MEMORIA) ── */}
+        <div className="rounded-2xl border-2 border-[#d4af37] bg-black/60 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.2)]">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">
+                ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE?
+              </label>
+              <span className="text-[8px] text-zinc-400 uppercase font-bold">✏️ Edición en web</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {businessStyles.map((preset) => {
+                const isSelected = selectedStyleId === preset.id;
+                return (
+                  <div key={preset.id} className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStyleId(preset.id)}
+                      className={`w-full py-2 px-2 pr-6 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 truncate ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-[#d4af37]/40 via-[#f0d060]/30 to-[#d4af37]/40 text-white border-[#f0d060] shadow-[0_0_15px_rgba(212,175,55,0.5)] scale-[1.02]'
+                          : 'bg-black/80 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                    <button
+                      type="button"
+                      title="Editar título y prompt"
+                      onClick={(e) => handleOpenEditor(preset, e)}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-md bg-black/60 hover:bg-[#d4af37] hover:text-black text-zinc-400 transition"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Botón de Guardar Comportamiento */}
+          <button
+            type="button"
+            disabled={isApplyingStyle}
+            onClick={() => setShowStyleWarning(true)}
+            className={`w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-98 border mt-1 ${
+              styleSuccess
+                ? 'bg-emerald-500 text-black border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-pulse'
+                : isApplyingStyle
+                  ? 'bg-amber-600/80 text-white border-amber-400 cursor-wait'
+                  : 'bg-gradient-to-r from-[#b8860b] via-[#d4af37] to-[#f0d060] text-black hover:brightness-110 border-[#ffe57f] shadow-[0_0_20px_rgba(212,175,55,0.4)]'
+            }`}
+          >
+            {isApplyingStyle ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <span>GUARDANDO COMPORTAMIENTO...</span>
+              </>
+            ) : styleSuccess ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 text-black" />
+                <span>¡COMPORTAMIENTO APLICADO!</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 fill-black" />
+                <span>GUARDAR Y APLICAR COMPORTAMIENTO</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Editor Flotante Inline de Botón */}
+        {editingPresetId && (
+          <div className="rounded-2xl border-2 border-cyan-400/80 bg-[#0f172a] p-3 space-y-2 shadow-2xl animate-in fade-in duration-200">
+            <div className="flex items-center justify-between text-cyan-400 border-b border-cyan-400/30 pb-1.5">
+              <span className="font-extrabold text-xs uppercase tracking-wider">
+                EDITAR BOTÓN ({editingPresetId.toUpperCase()})
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  title="Restaurar a valores originales"
+                  onClick={() => handleResetPreset(editingPresetId)}
+                  className="p-1 hover:bg-cyan-950 rounded text-cyan-300 transition"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingPresetId(null)}
+                  className="p-1 hover:bg-cyan-950 rounded text-cyan-300 transition"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
-            {/* Botón Guardar Comportamiento */}
-            <button
-              type="button"
-              disabled={isApplyingStyle}
-              onClick={() => {
-                const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
-                handleSelectStyleWithWarning(activeStyle);
-              }}
-              className={`w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-98 border mt-1 ${
-                styleSuccess
-                  ? 'bg-emerald-500 text-black border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-pulse'
-                  : isApplyingStyle
-                    ? 'bg-amber-600/80 text-white border-amber-400 cursor-wait'
-                    : 'bg-gradient-to-r from-[#b8860b] via-[#d4af37] to-[#f0d060] text-black hover:brightness-110 border-[#ffe57f] shadow-[0_0_20px_rgba(212,175,55,0.4)]'
-              }`}
-            >
-              {isApplyingStyle ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                  <span>GUARDANDO COMPORTAMIENTO...</span>
-                </>
-              ) : styleSuccess ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4 text-black" />
-                  <span>¡COMPORTAMIENTO APLICADO!</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 fill-black" />
-                  <span>GUARDAR Y APLICAR COMPORTAMIENTO</span>
-                </>
-              )}
-            </button>
-          </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-cyan-200 uppercase">
+                Texto del Botón:
+              </label>
+              <input
+                type="text"
+                value={editLabel}
+                onChange={(e) => setEditLabel(e.target.value.toUpperCase())}
+                className="w-full bg-black/60 border border-cyan-400/40 rounded-lg px-2 py-1 text-white text-xs font-bold outline-none focus:border-cyan-400 uppercase"
+              />
+            </div>
 
-          {/* ── CUADRO 3: SOPORTE Y ASISTENCIA COMPACTO (SIN "EN LÍNEA") ── */}
-          <div className="rounded-2xl border-2 border-[#25D366] bg-[#0b141a] p-3 space-y-2 shadow-[0_0_25px_rgba(37,211,102,0.2)] font-sans">
-            <p className="text-xs font-black text-white uppercase tracking-wider">
-              SOPORTE Y ASISTENCIA
-            </p>
-            <p className="text-[10px] text-zinc-300 leading-tight">
-              Presiona el botón para recibir ayuda o soporte técnico para tu asistente.
-            </p>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-cyan-200 uppercase">
+                Instrucción (Prompt) para la IA:
+              </label>
+              <textarea
+                value={editPrompt}
+                onChange={(e) => setEditPrompt(e.target.value)}
+                rows={3}
+                className="w-full bg-black/60 border border-cyan-400/40 rounded-lg p-2 text-white text-xs outline-none focus:border-cyan-400 resize-none font-medium"
+              />
+            </div>
+
             <button
               type="button"
-              onClick={() => {
-                const phone = supportPhone || "5575165733";
-                const msg = "HOLA NECESITO SOPORTE PARA ASISTENTE UNIVERSAL MI PREGUNTA ES ";
-                window.open(`https://wa.me/52${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-              }}
-              className="w-full py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-98 text-black font-black text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(37,211,102,0.4)] cursor-pointer flex items-center justify-center gap-2 border border-white/20"
+              onClick={() => handleSavePreset(editingPresetId)}
+              className="w-full py-1.5 bg-cyan-500 hover:bg-cyan-400 text-black font-black text-xs uppercase tracking-wider rounded-lg flex items-center justify-center gap-1 shadow cursor-pointer active:scale-95"
             >
-              <span className="text-base">💬</span>
-              <span>PRESIONA PARA ASISTENCIA</span>
+              <Check className="w-3.5 h-3.5" />
+              <span>Guardar Cambios del Botón</span>
             </button>
           </div>
+        )}
+
+        {/* ── CUADRO 3: SOPORTE Y ASISTENCIA COMPACTO ── */}
+        <div className="rounded-2xl border-2 border-[#25D366] bg-[#0b141a] p-3 space-y-2 shadow-[0_0_25px_rgba(37,211,102,0.2)] font-sans">
+          <p className="text-xs font-black text-white uppercase tracking-wider">
+            SOPORTE Y ASISTENCIA
+          </p>
+          <p className="text-[10px] text-zinc-300 leading-tight">
+            Presiona el botón para recibir ayuda o soporte técnico para tu asistente.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              const clean = supportPhone.replace(/[^0-9]/g, '');
+              const msg = "HOLA NECESITO SOPORTE PARA ASISTENTE UNIVERSAL MI PREGUNTA ES ";
+              window.open(`https://wa.me/52${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+            }}
+            className="w-full py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-98 text-black font-black text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(37,211,102,0.4)] cursor-pointer flex items-center justify-center gap-2 border border-white/20"
+          >
+            <span className="text-base">💬</span>
+            <span>PRESIONA PARA ASISTENCIA</span>
+          </button>
         </div>
       </div>
 
-      {/* ── MODAL DE ADVERTENCIA DE BORRADO DE CONVERSACIONES AL CAMBIAR COMPORTAMIENTO ── */}
+      {/* ── MODAL DE ADVERTENCIA DE BORRADO DE CONVERSACIONES AL GUARDAR COMPORTAMIENTO ── */}
       {showStyleWarning && (
         <div className="fixed inset-0 z-60 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 font-sans">
           <div className="max-w-sm w-full bg-[#121218] border-2 border-amber-500 rounded-2xl p-4 shadow-2xl space-y-3">
@@ -801,7 +746,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
                 AVISO DE CONVERSACIONES
               </span>
             </div>
-            <p className="text-[11px] text-zinc-200 leading-relaxed">
+            <p className="text-[11px] text-zinc-200 leading-relaxed font-semibold">
               Si cambias el comportamiento de tu asistente, se borrarán todas tus conversaciones anteriores para que empiece de forma 100% limpia.
             </p>
             <p className="text-[10px] text-zinc-400 leading-relaxed">
@@ -810,10 +755,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
             <div className="flex items-center justify-end gap-2 pt-1">
               <button
                 type="button"
-                onClick={() => {
-                  setShowStyleWarning(false);
-                  setPendingStyleId(null);
-                }}
+                onClick={() => setShowStyleWarning(false)}
                 className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-xs font-bold hover:bg-zinc-700 cursor-pointer"
               >
                 Cancelar
