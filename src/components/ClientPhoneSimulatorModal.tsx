@@ -76,6 +76,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
 
   // 1. Estados de edición básica (Carátula)
   const [assistantName, setAssistantName] = useState('');
+  const [userName, setUserName] = useState('');
   const [selectedPresetId, setSelectedPresetId] = useState('elegante');
   const [currentVoice, setCurrentVoice] = useState<'male' | 'female'>('female');
 
@@ -131,6 +132,16 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       setAssistantName(client.assistant_name);
     } else {
       setAssistantName('AVA');
+    }
+
+    // Detectar Nombre del Usuario
+    const matchUserName = instructions.match(/El usuario se llama:\s*"([^"]+)"/i);
+    if (matchUserName && matchUserName[1]) {
+      setUserName(matchUserName[1]);
+    } else if (client.client_name) {
+      setUserName(client.client_name);
+    } else {
+      setUserName('');
     }
 
     // Detectar Voz
@@ -254,13 +265,18 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
 
     try {
       const finalName = assistantName.trim() || 'AVA';
+      const finalUserName = userName.trim();
       const activePreset = customPresets.find(p => p.id === selectedPresetId) || customPresets[0];
 
       const genderDirective = currentVoice === 'male'
         ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
         : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
-      const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${genderDirective}\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
+      const userDirective = finalUserName
+        ? `El usuario se llama: "${finalUserName}". Dirígete siempre a él con este nombre cuando hables con él.\n`
+        : '';
+
+      const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
 
       const rawBase = (client.system_instructions || '')
         .replace(/\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?(?=\n\n|$)/gi, '')
@@ -277,6 +293,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
         .from('asistente_config')
         .update({
           assistant_name: finalName,
+          client_name: finalUserName || client.client_name,
           personality_style: activePreset.label,
           voice_selection: currentVoice
         } as any)
@@ -394,18 +411,33 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
           {/* ── CUADRO INTEGRADO: PERSONALIZACIÓN DEL ASISTENTE Y BOTÓN DE APLICAR ── */}
           <div className="rounded-2xl border border-[#d4af37]/40 bg-black/40 p-3 space-y-2.5 shadow-[0_0_20px_rgba(212,175,55,0.1)]">
             
-            {/* SECCIÓN: NOMBRE DEL ASISTENTE */}
-            <div className="space-y-1">
-              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">
-                NOMBRE DE TU ASISTENTE:
-              </label>
-              <input
-                type="text"
-                value={assistantName}
-                onChange={(e) => setAssistantName(e.target.value)}
-                placeholder="Escribe el nombre de tu asistente aquí... (Ej: Asistente)"
-                className="w-full bg-[#14141a] border border-[#d4af37]/50 rounded-xl px-3 py-2 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
-              />
+            {/* SECCIÓN: NOMBRE DEL ASISTENTE Y NOMBRE DEL USUARIO (2 COLUMNAS SIMÉTRICAS) */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block truncate">
+                  NOMBRE DE TU ASISTENTE:
+                </label>
+                <input
+                  type="text"
+                  value={assistantName}
+                  onChange={(e) => setAssistantName(e.target.value)}
+                  placeholder="Escribe aquí el nombre"
+                  className="w-full bg-[#14141a] border border-[#d4af37]/50 rounded-xl px-2.5 py-2 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block truncate">
+                  ¿CÓMO QUIERES QUE TE LLAME?:
+                </label>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Escribe aquí tu nombre"
+                  className="w-full bg-[#14141a] border border-[#d4af37]/50 rounded-xl px-2.5 py-2 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
+                />
+              </div>
             </div>
 
             {/* SECCIÓN: PERSONALIDADES (6 BOTONES DORADOS CON MODO EDICIÓN) */}

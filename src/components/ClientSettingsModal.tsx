@@ -66,6 +66,9 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
   const [assistantName, setAssistantName] = useState(() => {
     return localStorage.getItem('ava_custom_assistant_name') || '';
   });
+  const [userName, setUserName] = useState(() => {
+    return localStorage.getItem('ava_custom_user_name') || '';
+  });
   const [selectedPersonality, setSelectedPersonality] = useState(() => {
     return localStorage.getItem('ava_custom_personality_id') || 'elegante';
   });
@@ -76,8 +79,10 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
   useEffect(() => {
     const savedName = localStorage.getItem('ava_custom_assistant_name') || '';
+    const savedUserName = localStorage.getItem('ava_custom_user_name') || '';
     const savedId = localStorage.getItem('ava_custom_personality_id') || 'elegante';
     setAssistantName(savedName);
+    setUserName(savedUserName);
     setSelectedPersonality(savedId);
     setIsApplyingChanges(false);
     setApplySuccess(false);
@@ -183,8 +188,11 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     setApplySuccess(false);
 
     const finalName = assistantName.trim() || 'Asistente';
+    const finalUserName = userName.trim();
     localStorage.setItem('ava_custom_assistant_name', finalName);
+    localStorage.setItem('ava_custom_user_name', finalUserName);
     setAssistantName(finalName);
+    setUserName(finalUserName);
 
     const activePreset = PERSONALITY_PRESETS.find(p => p.id === selectedPersonality) || PERSONALITY_PRESETS[0];
     localStorage.setItem('ava_custom_personality_id', activePreset.id);
@@ -197,7 +205,11 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
       ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
       : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
-    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${genderDirective}\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
+    const userDirective = finalUserName
+      ? `El usuario se llama: "${finalUserName}". Dirígete siempre a él con este nombre cuando hables con él.\n`
+      : '';
+
+    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
     
     const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
     const fullInstructionsWithIdentity = `${identityHeader}${rawBaseInstructions}`;
@@ -344,18 +356,33 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
         {/* ── CUADRO INTEGRADO: PERSONALIZACIÓN DEL ASISTENTE Y BOTÓN DE APLICAR ── */}
         <div className="rounded-2xl border border-[#d4af37]/40 bg-black/40 p-3 sm:p-3.5 space-y-2.5 shadow-[0_0_20px_rgba(212,175,55,0.1)]">
-          {/* SECCIÓN: NOMBRE DEL ASISTENTE */}
-          <div className="space-y-1">
-            <label className="text-[10px] sm:text-[11px] font-black tracking-wider text-[#d4af37] uppercase block">
-              NOMBRE DE TU ASISTENTE:
-            </label>
-            <input
-              type="text"
-              value={assistantName}
-              onChange={(e) => setAssistantName(e.target.value)}
-              placeholder="Escribe el nombre de tu asistente aquí... (Ej: Asistente)"
-              className="w-full bg-[#14141a] border border-[#d4af37]/50 rounded-xl px-3 py-2 text-white placeholder-zinc-500 text-xs sm:text-[13px] outline-none focus:border-[#d4af37] font-semibold transition"
-            />
+          {/* SECCIÓN: NOMBRE DEL ASISTENTE Y NOMBRE DEL USUARIO (2 COLUMNAS SIMÉTRICAS) */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="text-[10px] sm:text-[11px] font-black tracking-wider text-[#d4af37] uppercase block truncate">
+                NOMBRE DE TU ASISTENTE:
+              </label>
+              <input
+                type="text"
+                value={assistantName}
+                onChange={(e) => setAssistantName(e.target.value)}
+                placeholder="Escribe aquí el nombre"
+                className="w-full bg-[#14141a] border border-[#d4af37]/50 rounded-xl px-2.5 py-2 text-white placeholder-zinc-500 text-xs sm:text-[12px] outline-none focus:border-[#d4af37] font-semibold transition"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] sm:text-[11px] font-black tracking-wider text-[#d4af37] uppercase block truncate">
+                ¿CÓMO QUIERES QUE TE LLAME?:
+              </label>
+              <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                placeholder="Escribe aquí tu nombre"
+                className="w-full bg-[#14141a] border border-[#d4af37]/50 rounded-xl px-2.5 py-2 text-white placeholder-zinc-500 text-xs sm:text-[12px] outline-none focus:border-[#d4af37] font-semibold transition"
+              />
+            </div>
           </div>
 
           {/* SECCIÓN: PERSONALIDADES (6 BOTONES DORADOS ELEGANTES) */}
