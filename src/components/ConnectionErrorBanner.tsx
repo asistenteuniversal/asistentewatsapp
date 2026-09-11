@@ -45,16 +45,16 @@ export const ConnectionErrorBanner: React.FC<ConnectionErrorBannerProps> = ({
       <button
         type="button"
         onClick={onDismiss}
-        className="py-2.5 px-6 rounded-full font-black text-[11px] sm:text-xs tracking-wider uppercase transition-all duration-300 flex items-center justify-center focus:outline-none active:scale-95 border cursor-pointer backdrop-blur-md whitespace-nowrap shadow-lg hover:bg-black/90 animate-pulse"
+        className="py-3.5 px-8 rounded-full font-black text-xs sm:text-sm tracking-widest uppercase transition-all duration-300 flex items-center justify-center focus:outline-none active:scale-95 border cursor-pointer backdrop-blur-md whitespace-nowrap shadow-2xl hover:bg-black/95"
         style={{
-          backgroundColor: 'rgba(5, 5, 8, 0.9)',
-          borderColor: 'rgba(212, 175, 55, 0.55)', // Contorno fino oro metálico pulido estilo botones de llamada
-          boxShadow: '0 0 16px rgba(212, 175, 55, 0.25), inset 0 0 10px rgba(0, 0, 0, 0.8)',
+          backgroundColor: 'rgba(5, 5, 8, 0.95)',
+          borderColor: 'rgba(212, 175, 55, 0.7)', // Contorno fino oro metálico pulido estilo botones de llamada
+          boxShadow: '0 0 20px rgba(212, 175, 55, 0.35), inset 0 0 12px rgba(0, 0, 0, 0.9)',
           fontFamily: "'Outfit', sans-serif"
         }}
         title="Toca para cerrar"
       >
-        <span style={goldTextStyle} className="drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]">
+        <span style={goldTextStyle} className="drop-shadow-[0_0_10px_rgba(212,175,55,0.6)] select-none">
           {errorMessage}
         </span>
       </button>
