@@ -570,11 +570,25 @@ export default function App() {
             const matchUser = fullInstructionsWithIdentity.match(/El usuario se llama:\s*"([^"]+)"/);
             if (matchUser && matchUser[1]) localStorage.setItem('ava_custom_user_name', matchUser[1]);
 
-            const matchAgent = fullInstructionsWithIdentity.match(/\[AGENTE_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
-            if (matchAgent && matchAgent[1]) localStorage.setItem('ava_custom_agent_id', matchAgent[1]);
+            const matchAgent = fullInstructionsWithIdentity.match(/CONOCIMIENTOS Y HABILIDADES:\s*([^\n]+)/);
+            if (matchAgent && matchAgent[1]) {
+              const a = matchAgent[1].toLowerCase();
+              if (a.includes('especial') || a.includes('íntima')) localStorage.setItem('ava_custom_agent_id', 'alguien_especial');
+              else if (a.includes('confidente') || a.includes('amigo')) localStorage.setItem('ava_custom_agent_id', 'amigo');
+              else if (a.includes('trabajo') || a.includes('laborales')) localStorage.setItem('ava_custom_agent_id', 'asistente_trabajo');
+              else if (a.includes('personal') || a.includes('agenda')) localStorage.setItem('ava_custom_agent_id', 'asistente_personal');
+            }
 
-            const matchStyle = fullInstructionsWithIdentity.match(/\[ESTILO_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
-            if (matchStyle && matchStyle[1]) localStorage.setItem('ava_custom_personality_id', matchStyle[1]);
+            const matchStyle = fullInstructionsWithIdentity.match(/COMPORTAMIENTO Y FORMA DE HABLAR:\s*([^\n]+)/);
+            if (matchStyle && matchStyle[1]) {
+              const s = matchStyle[1].toLowerCase();
+              if (s.includes('barrio')) localStorage.setItem('ava_custom_personality_id', 'barrio');
+              else if (s.includes('negociador')) localStorage.setItem('ava_custom_personality_id', 'negociador');
+              else if (s.includes('ventas')) localStorage.setItem('ava_custom_personality_id', 'ventas');
+              else if (s.includes('cobranza')) localStorage.setItem('ava_custom_personality_id', 'cobranza');
+              else if (s.includes('administración')) localStorage.setItem('ava_custom_personality_id', 'administrador');
+              else if (s.includes('culta') || s.includes('elegante')) localStorage.setItem('ava_custom_personality_id', 'elegante');
+            }
           }
 
           const mergedText = cleanMemory.trim()

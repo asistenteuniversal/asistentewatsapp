@@ -1504,37 +1504,27 @@ export const AdminPanel: React.FC = () => {
                 let detectedVoice: 'male' | 'female' = 'female';
                 if (instructions.includes('asistente masculino (hombre)')) detectedVoice = 'male';
 
-                // Detectar nombres legibles de estilo y agente
+                // Detectar nombres legibles de estilo y agente directamente del texto humano
                 let styleLabel = 'ELEGANTE Y FORMAL';
-                const styleMeta = instructions.match(/\[ESTILO_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
-                if (styleMeta && styleMeta[1]) {
-                  const map: Record<string, string> = {
-                    elegante: 'ELEGANTE Y FORMAL',
-                    negociador: 'NEGOCIADOR',
-                    ventas: 'ASESOR DE VENTAS',
-                    cobranza: 'COBRANZA Y SEGUIMIENTO',
-                    administrador: 'ADMINISTRADOR',
-                    barrio: 'ESTILO DE BARRIO'
-                  };
-                  if (map[styleMeta[1]]) styleLabel = map[styleMeta[1]];
-                } else if (instructions.includes('barrio de Tepito')) {
-                  styleLabel = 'ESTILO DE BARRIO';
+                const matchStylePrompt = instructions.match(/COMPORTAMIENTO Y FORMA DE HABLAR:\s*([^\n]+)/);
+                if (matchStylePrompt && matchStylePrompt[1]) {
+                  const s = matchStylePrompt[1].toLowerCase();
+                  if (s.includes('barrio')) styleLabel = 'ESTILO DE BARRIO';
+                  else if (s.includes('negociador')) styleLabel = 'NEGOCIADOR';
+                  else if (s.includes('ventas')) styleLabel = 'ASESOR DE VENTAS';
+                  else if (s.includes('cobranza')) styleLabel = 'COBRANZA Y SEGUIMIENTO';
+                  else if (s.includes('administración')) styleLabel = 'ADMINISTRADOR';
+                  else if (s.includes('culta') || s.includes('elegante')) styleLabel = 'ELEGANTE Y FORMAL';
                 }
 
                 let agentLabel = 'ASISTENTE PERSONAL';
-                const agentMeta = instructions.match(/\[AGENTE_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
-                if (agentMeta && agentMeta[1]) {
-                  const mapAgent: Record<string, string> = {
-                    asistente_personal: 'ASISTENTE PERSONAL',
-                    asistente_trabajo: 'ASISTENTE DE TRABAJO',
-                    amigo: 'AMIGO',
-                    alguien_especial: 'ALGUIEN ESPECIAL'
-                  };
-                  if (mapAgent[agentMeta[1]]) agentLabel = mapAgent[agentMeta[1]];
-                } else if (instructions.includes('compañía muy especial')) {
-                  agentLabel = 'ALGUIEN ESPECIAL';
-                } else if (instructions.includes('mejor amigo')) {
-                  agentLabel = 'AMIGO';
+                const matchAgentPrompt = instructions.match(/CONOCIMIENTOS Y HABILIDADES:\s*([^\n]+)/);
+                if (matchAgentPrompt && matchAgentPrompt[1]) {
+                  const a = matchAgentPrompt[1].toLowerCase();
+                  if (a.includes('especial') || a.includes('íntima')) agentLabel = 'ALGUIEN ESPECIAL';
+                  else if (a.includes('confidente') || a.includes('amigo')) agentLabel = 'AMIGO';
+                  else if (a.includes('trabajo') || a.includes('laborales')) agentLabel = 'ASISTENTE DE TRABAJO';
+                  else if (a.includes('personal') || a.includes('agenda')) agentLabel = 'ASISTENTE PERSONAL';
                 }
 
                 return (

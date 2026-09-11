@@ -261,17 +261,13 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
     const styleLine = `COMPORTAMIENTO Y FORMA DE HABLAR: ${activeStyle.prompt}`;
     const agentLine = `CONOCIMIENTOS Y HABILIDADES: ${activeAgent.prompt}`;
 
-    const allPresets = [...businessStyles, ...exclusiveAssistants];
-    const trackingMeta = `[AGENTE_ACTIVO]: ${activeAgent.id}\n[ESTILO_ACTIVO]: ${activeStyle.id}\n[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}`;
-
     const lines = [
       '[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:',
       genderLine,
       nameLine,
       userLine,
       styleLine,
-      agentLine,
-      trackingMeta
+      agentLine
     ].filter(Boolean);
 
     return lines.join('\n\n');
@@ -311,7 +307,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
   };
 
   // Guardar preset editado
-  const handleSavePreset = async (id: string) => {
+  const handleSavePreset = (id: string) => {
     const updateList = (list: PersonalityPreset[]) =>
       list.map(p => p.id === id ? { ...p, label: editLabel.trim().toUpperCase() || p.label, prompt: editPrompt.trim() || p.prompt } : p);
 
@@ -320,22 +316,6 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
     setBusinessStyles(updatedStyles);
     setExclusiveAssistants(updatedAssistants);
     setEditingPresetId(null);
-
-    // Guardar inmediatamente en la nube y activar UPDATE_INSTRUCTIONS para que viaje al celular
-    try {
-      const allPresets = [...updatedStyles, ...updatedAssistants];
-      const newMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}`;
-      let currentInst = client.system_instructions || '';
-      if (currentInst.includes('[BOTONES_PERSONALIDADES]:')) {
-        currentInst = currentInst.replace(/\[BOTONES_PERSONALIDADES\]:.*$/m, newMeta);
-      } else {
-        currentInst = `${currentInst}\n${newMeta}`;
-      }
-      await onSaveInstructions(client.client_id, currentInst);
-      await supabase.from('asistente_config').update({ system_memory: 'UPDATE_INSTRUCTIONS' } as any).eq('client_id', client.client_id);
-    } catch (e) {
-      console.error('Error guardando preset en la nube:', e);
-    }
   };
 
   // Fábrica

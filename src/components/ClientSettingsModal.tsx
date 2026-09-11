@@ -247,17 +247,13 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const styleLine = `COMPORTAMIENTO Y FORMA DE HABLAR: ${activeStyle.prompt}`;
     const agentLine = `CONOCIMIENTOS Y HABILIDADES: ${activeAgent.prompt}`;
 
-    const allPresets = [...businessStyles, ...exclusiveAssistants];
-    const trackingMeta = `[AGENTE_ACTIVO]: ${activeAgent.id}\n[ESTILO_ACTIVO]: ${activeStyle.id}\n[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}`;
-
     const lines = [
       '[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:',
       genderLine,
       nameLine,
       userLine,
       styleLine,
-      agentLine,
-      trackingMeta
+      agentLine
     ].filter(Boolean);
 
     return lines.join('\n\n');
