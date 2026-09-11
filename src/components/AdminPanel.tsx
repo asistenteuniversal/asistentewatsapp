@@ -1077,7 +1077,7 @@ export const AdminPanel: React.FC = () => {
                     </div>
 
                     {/* Switch de Activación (Activo / Pausado) y Acciones */}
-                    <div className="flex items-center gap-8 sm:gap-14">
+                    <div className="flex items-center gap-3 sm:gap-4 shrink-0">
                       {/* Contenedor del Switch al centro */}
                       <div className="flex items-center gap-2">
                         {(() => {
@@ -1145,18 +1145,9 @@ export const AdminPanel: React.FC = () => {
                         {client.memory_days === -1 ? '🔴 APP desconectada de nube apagada' : '🟢 APP conectada a nube en vivo'}
                       </button>
 
-                      {/* Botón Lanzador del Simulador Espejo de Celular */}
-                      <button
-                        type="button"
-                        onClick={() => setSimulatorClient(client)}
-                        className="px-3 py-1.5 font-black rounded-xl text-[9px] sm:text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow-md bg-gradient-to-r from-[#BF953F]/30 via-[#FCF6BA]/20 to-[#BF953F]/30 hover:from-[#BF953F]/50 hover:to-[#AA771C]/60 text-[#FCF6BA] border-[#BF953F]/60 flex items-center gap-1.5 active:scale-95 shadow-[0_0_12px_rgba(191,149,63,0.25)]"
-                        title="Abrir Simulador Espejo de Celular en Vivo"
-                      >
-                        <span>📱 SIMULADOR CELULAR</span>
-                      </button>
-
                       {/* Botón de Borrado en la esquina extrema derecha */}
                       <button
+                        type="button"
                         onClick={() => {
                           setModalConfirm({
                             title: "Confirmar Borrado",
@@ -1164,7 +1155,7 @@ export const AdminPanel: React.FC = () => {
                             onConfirm: () => executeDeleteClient(client.client_id)
                           });
                         }}
-                        className="px-2 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-red-900/20 border border-red-500/30"
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-xl text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-red-900/40 border border-red-500 cursor-pointer shrink-0"
                         title="Borrar Cliente"
                       >
                         <span>BORRAR CLIENTE 🗑️</span>
