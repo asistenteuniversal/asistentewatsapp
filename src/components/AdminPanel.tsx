@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Settings } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { DiagnosticModal } from './DiagnosticModal';
 import { ClientPhoneSimulatorModal } from './ClientPhoneSimulatorModal';
@@ -53,6 +54,9 @@ export const AdminPanel: React.FC = () => {
 
   // Estado para el indicador de autoguardado visual (Mejora 5)
   const [saveStatus, setSaveStatus] = useState<{[key: string]: { text: string; isError: boolean } | null}>({});
+
+  // Estado para el control de visibilidad de Ajustes de Administrador en celular por cliente
+  const [adminVisibleMap, setAdminVisibleMap] = useState<Record<string, boolean>>({});
 
   // Estado para las transiciones del botón de guardar días de memoria
   const [savingStates, setSavingStates] = useState<Record<string, 'idle' | 'saving' | 'saved'>>({});
@@ -311,6 +315,13 @@ export const AdminPanel: React.FC = () => {
   useEffect(() => {
     if (isLoggedIn) {
       loadClients();
+      // Siempre iniciar en apagado para todos los clientes (según directiva)
+      setAdminVisibleMap({});
+      supabase
+        .from('asistente_config')
+        .update({ daily_memory: '{}' })
+        .eq('client_id', 'admin')
+        .then(() => {});
 
       // Escucha WebSocket de Supabase en tiempo real (instantáneo)
       const channel = supabase
@@ -342,6 +353,37 @@ export const AdminPanel: React.FC = () => {
     setIsLoggedIn(false);
     localStorage.removeItem('ava_admin_logged');
     setPasswordInput('');
+  };
+
+  // Alternar visibilidad de Ajustes de Administrador en la carátula del celular del cliente
+  const toggleAdminVisibility = async (clientId: string) => {
+    const currentState = Boolean(adminVisibleMap[clientId]);
+    const nextState = !currentState;
+    const updatedMap = { ...adminVisibleMap, [clientId]: nextState };
+    setAdminVisibleMap(updatedMap);
+
+    // 1. Notificación instantánea vía Broadcast WebSocket de Supabase
+    try {
+      const channel = supabase.channel(`mobile_realtime_${clientId}`);
+      await channel.subscribe();
+      await channel.send({
+        type: 'broadcast',
+        event: 'toggle_admin_visibility',
+        payload: { clientId, visible: nextState }
+      });
+    } catch (err) {
+      console.error('Error broadcasting admin visibility:', err);
+    }
+
+    // 2. Persistencia en la fila admin (daily_memory) para notificar vía postgres_changes
+    try {
+      await supabase
+        .from('asistente_config')
+        .update({ daily_memory: JSON.stringify(updatedMap) })
+        .eq('client_id', 'admin');
+    } catch (err) {
+      console.error('Error updating admin row visibility:', err);
+    }
   };
 
   // Crear un nuevo cliente
@@ -1064,6 +1106,25 @@ export const AdminPanel: React.FC = () => {
                           />
                         </button>
                       </div>
+
+                      {/* Botón de Visibilidad de Ajustes de Administrador en Carátula Celular */}
+                      <button
+                        type="button"
+                        onClick={() => toggleAdminVisibility(client.client_id)}
+                        className={`px-3 py-1.5 font-bold rounded-xl text-[9px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow-md flex items-center gap-1.5 ${
+                          adminVisibleMap[client.client_id]
+                            ? 'bg-green-950/40 text-green-400 border-green-500/50 hover:bg-green-950/60 shadow-[0_0_12px_rgba(34,197,94,0.3)] animate-pulse'
+                            : 'bg-red-950/40 text-red-400 border-red-500/50 hover:bg-red-950/60 shadow-[0_0_10px_rgba(239,68,68,0.2)]'
+                        }`}
+                        title="Ocultar o mostrar el icono de Ajustes de Administrador (⚙️) en la carátula del celular del cliente"
+                      >
+                        <Settings className="w-3.5 h-3.5" />
+                        <span>
+                          {adminVisibleMap[client.client_id]
+                            ? 'AJUSTES ADMINISTRADOR: PRENDIDO 🟢'
+                            : 'AJUSTES ADMINISTRADOR: APAGADO 🔴'}
+                        </span>
+                      </button>
 
                       {/* Botón Máster de Desconexión Total Web <-> APK */}
                       <button

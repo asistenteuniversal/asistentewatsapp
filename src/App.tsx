@@ -23,6 +23,7 @@ export default function App() {
     return (saved as AppMode) || 'neon';
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Modal de Administrador (original)
+  const [isAdminVisible, setIsAdminVisible] = useState<boolean>(false); // Control remoto de visibilidad de Ajustes Administrador (apagado por defecto)
   const [isClientSettingsOpen, setIsClientSettingsOpen] = useState(false); // Modal de Cliente (nuevo)
   const [isSystemLoading, setIsSystemLoading] = useState(true); // Temporizador de arranque seguro
   const [updateAvailable, setUpdateAvailable] = useState(false); // Estado de actualizador flotante
@@ -498,6 +499,25 @@ export default function App() {
           // Si la licencia es válida y activa
           setIsLicensePaused(false);
 
+          // Comprobar visibilidad remota de ajustes de administrador para este cliente
+          try {
+            const { data: adminRow } = await supabase
+              .from('asistente_config')
+              .select('daily_memory')
+              .eq('client_id', 'admin')
+              .single();
+            if (adminRow && adminRow.daily_memory) {
+              const activeMap = JSON.parse(adminRow.daily_memory);
+              const isVis = Boolean(activeMap[clientId]);
+              setIsAdminVisible(isVis);
+              if (!isVis) setIsSettingsOpen(false);
+            } else {
+              setIsAdminVisible(false);
+            }
+          } catch (e) {
+            setIsAdminVisible(false);
+          }
+
           // Configuración básica
           const cloudMemoryDays = data.memory_days !== null && data.memory_days !== undefined ? data.memory_days : 2;
           const isAutonomous = cloudMemoryDays === -1;
@@ -674,6 +694,31 @@ export default function App() {
         (payload) => {
           console.log('[MobileRealtime] Cambio detectado desde la web:', payload);
           loadConfig();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'asistente_config', filter: 'client_id=eq.admin' },
+        (payload: any) => {
+          try {
+            const activeMap = JSON.parse(payload.new?.daily_memory || '{}');
+            const vis = Boolean(activeMap[clientId]);
+            setIsAdminVisible(vis);
+            if (!vis) setIsSettingsOpen(false);
+          } catch (e) {
+            // ignore
+          }
+        }
+      )
+      .on(
+        'broadcast',
+        { event: 'toggle_admin_visibility' },
+        ({ payload }: any) => {
+          if (payload && (payload.clientId === clientId || payload.clientId === '*')) {
+            const vis = Boolean(payload.visible);
+            setIsAdminVisible(vis);
+            if (!vis) setIsSettingsOpen(false);
+          }
         }
       )
       .subscribe();
@@ -1246,7 +1291,9 @@ export default function App() {
           setMode={handleSetMode}
           settings={settings}
           setSettings={setSettings}
-          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenSettings={() => {
+            if (isAdminVisible) setIsSettingsOpen(true);
+          }}
           isCallActive={voiceEngine.isCallActive}
           audioLevel={voiceEngine.audioLevel}
         />
@@ -1299,7 +1346,10 @@ export default function App() {
             transcript={voiceEngine.transcript}
             pulseSpeed={settings.pulseSpeed}
             onShowStudio={() => handleSetMode('studio')}
-            onOpenSettings={() => setIsSettingsOpen(true)} // Engrane abre Administrador (original)
+            isAdminVisible={isAdminVisible}
+            onOpenSettings={() => {
+              if (isAdminVisible) setIsSettingsOpen(true);
+            }} // Engrane abre Administrador (solo si está activado)
             onOpenClientSettings={() => setIsClientSettingsOpen(true)} // Sliders abre Cliente (nuevo)
             updateAvailable={updateAvailable}
             connectionErrorVisible={connectionErrorVisible}
@@ -1323,19 +1373,21 @@ export default function App() {
         onTriggerSecurityLoading={() => setIsSystemLoading(true)}
       />
 
-      {/* Settings Modal (Administrador) */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        onSave={handleSaveSettings}
-        settings={settings}
-        setSettings={setSettings}
-        errorLogs={errorLogs}
-      />
+      {/* Settings Modal (Administrador - Totalmente oculto e inaccesible si está apagado) */}
+      {isAdminVisible && (
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          onSave={handleSaveSettings}
+          settings={settings}
+          setSettings={setSettings}
+          errorLogs={errorLogs}
+        />
+      )}
 
       {/* BLOQUE LEGO: Botón Flotante de Retorno */}
       <FloatingReturnOverlay
-        visible={Boolean(isClientSettingsOpen || isSettingsOpen)}
+        visible={Boolean(isClientSettingsOpen || (isAdminVisible && isSettingsOpen))}
         onReturn={() => {
           if (isClientSettingsOpen) {
             setIsClientSettingsOpen(false);

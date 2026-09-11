@@ -36,6 +36,7 @@ interface NeonCoverLayerProps {
   pulseSpeed: number;
   onShowStudio?: () => void;
   onOpenSettings?: () => void; // Abre administrador (Engrane original)
+  isAdminVisible?: boolean; // Controla la visibilidad del botón de administrador
   onOpenClientSettings?: () => void; // Abre cliente (Sliders nuevo)
   updateAvailable?: boolean;
   connectionErrorVisible?: boolean;
@@ -57,6 +58,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   pulseSpeed,
   onShowStudio,
   onOpenSettings,
+  isAdminVisible = false,
   onOpenClientSettings,
   updateAvailable = false,
   connectionErrorVisible = false,
@@ -192,7 +194,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
       )}
 
       {/* ── BOTÓN: CONFIGURACIÓN ADMINISTRADOR (Posición interior al lado del signo de interrogacion) ── */}
-      {SHOW_SETTINGS_BUTTON && onOpenSettings && (
+      {isAdminVisible && SHOW_SETTINGS_BUTTON && onOpenSettings && (
         <button
           type="button"
           onClick={onOpenSettings}
