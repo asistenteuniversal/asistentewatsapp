@@ -280,6 +280,16 @@ export default function App() {
     };
   }, []);
 
+  // Notificar a Android que la carátula React ya montó y está lista (desvanece la máscara nativa de portada)
+  useEffect(() => {
+    if ((window as any).AndroidInterface && (window as any).AndroidInterface.notifyAppReady) {
+      try {
+        (window as any).AndroidInterface.notifyAppReady();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
 
   const handleSetMode = useCallback((newMode: AppMode) => {
     setMode(newMode);
