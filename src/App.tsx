@@ -546,23 +546,36 @@ export default function App() {
           });
 
           // 1. Inyectar primero en Android las instrucciones limpias/actualizadas para que Java lo guarde en memoria
-          const rawIncomingInstructions = isUpdateOrder ? (data.system_instructions || '') : (settings.systemInstructions || '');
+          const rawIncomingInstructions = data.system_instructions || settings.systemInstructions || '';
           const currentMemory = isClearOrder ? '' : (settings.systemMemory || '');
           const cleanMemory = currentMemory.replace(/^\[[^\]]+\]\s*/gm, '');
 
-          // Limpiar de forma blindada cualquier bloque de identidad duplicado que ya viniera en el texto
-          const baseInstructions = rawIncomingInstructions.replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
+          let fullInstructionsWithIdentity = rawIncomingInstructions;
 
-          // Extraer personalización elegida por el cliente (Nombre, Género y Personalidad)
-          const customName = localStorage.getItem('ava_custom_assistant_name') || 'Asistente';
-          const customPersonalityPrompt = localStorage.getItem('ava_custom_personality_prompt') || 'Habla de forma muy culta, distinguida, educada y profesional. Usa un vocabulario refinado y respetuoso.';
-          const genderDirective = settings.voiceMaleEnabled
-            ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
-            : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
+          // Si las instrucciones entrantes no tienen cabecera de identidad, ensamblarla
+          if (!fullInstructionsWithIdentity.includes('[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:')) {
+            const customName = localStorage.getItem('ava_custom_assistant_name') || 'AVA';
+            const customPersonalityPrompt = localStorage.getItem('ava_custom_personality_prompt') || 'Habla de forma muy culta, distinguida, educada y profesional. Usa un vocabulario refinado y respetuoso.';
+            const genderDirective = targetVoiceMale
+              ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
+              : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
-          const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${customName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${genderDirective}\nESTILO DE COMUNICACIÓN: ${customPersonalityPrompt}\n\n`;
+            const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${customName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${genderDirective}\nESTILO DE COMUNICACIÓN: ${customPersonalityPrompt}\n\n`;
+            fullInstructionsWithIdentity = `${identityHeader}${fullInstructionsWithIdentity}`;
+          } else {
+            // Sincronizar baúl local con las etiquetas vigentes de la nube
+            const matchName = fullInstructionsWithIdentity.match(/Tu nombre oficial es:\s*"([^"]+)"/);
+            if (matchName && matchName[1]) localStorage.setItem('ava_custom_assistant_name', matchName[1]);
 
-          const fullInstructionsWithIdentity = `${identityHeader}${baseInstructions}`;
+            const matchUser = fullInstructionsWithIdentity.match(/El usuario se llama:\s*"([^"]+)"/);
+            if (matchUser && matchUser[1]) localStorage.setItem('ava_custom_user_name', matchUser[1]);
+
+            const matchAgent = fullInstructionsWithIdentity.match(/\[AGENTE_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
+            if (matchAgent && matchAgent[1]) localStorage.setItem('ava_custom_agent_id', matchAgent[1]);
+
+            const matchStyle = fullInstructionsWithIdentity.match(/\[ESTILO_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
+            if (matchStyle && matchStyle[1]) localStorage.setItem('ava_custom_personality_id', matchStyle[1]);
+          }
 
           const mergedText = cleanMemory.trim()
             ? `${fullInstructionsWithIdentity}\n\n[MEMORIA DE CONVERSACIONES ANTERIORES CON EL USUARIO (Esta es tu memoria de lo que platicaste anteriormente con la persona con la que estás hablando. No repitas nada de lo que está aquí, son solo tus recuerdos de hoy. Es información confidencial de tu pasado inmediato, úsala solo como referencia para responder)]: \n${cleanMemory}`

@@ -1490,6 +1490,79 @@ export const AdminPanel: React.FC = () => {
                     );
                   })()}
 
+              
+              {/* ── RESUMEN EN VERDE DE IDENTIDAD Y COMPORTAMIENTOS ACTIVOS ── */}
+              {(() => {
+                const instructions = client.system_instructions || '';
+                const nameMatch = instructions.match(/Tu nombre oficial es:\s*"([^"]+)"/);
+                let detectedName = nameMatch ? nameMatch[1] : (client.assistant_name || 'AVA');
+                if (detectedName === '.') detectedName = 'AVA';
+
+                const userMatch = instructions.match(/El usuario se llama:\s*"([^"]+)"/);
+                const detectedUserName = userMatch ? userMatch[1] : (client.client_name || '');
+
+                let detectedVoice: 'male' | 'female' = 'female';
+                if (instructions.includes('asistente masculino (hombre)')) detectedVoice = 'male';
+
+                // Detectar nombres legibles de estilo y agente
+                let styleLabel = 'ELEGANTE Y FORMAL';
+                const styleMeta = instructions.match(/\[ESTILO_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
+                if (styleMeta && styleMeta[1]) {
+                  const map: Record<string, string> = {
+                    elegante: 'ELEGANTE Y FORMAL',
+                    negociador: 'NEGOCIADOR',
+                    ventas: 'ASESOR DE VENTAS',
+                    cobranza: 'COBRANZA Y SEGUIMIENTO',
+                    administrador: 'ADMINISTRADOR',
+                    barrio: 'ESTILO DE BARRIO'
+                  };
+                  if (map[styleMeta[1]]) styleLabel = map[styleMeta[1]];
+                } else if (instructions.includes('barrio de Tepito')) {
+                  styleLabel = 'ESTILO DE BARRIO';
+                }
+
+                let agentLabel = 'ASISTENTE PERSONAL';
+                const agentMeta = instructions.match(/\[AGENTE_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
+                if (agentMeta && agentMeta[1]) {
+                  const mapAgent: Record<string, string> = {
+                    asistente_personal: 'ASISTENTE PERSONAL',
+                    asistente_trabajo: 'ASISTENTE DE TRABAJO',
+                    amigo: 'AMIGO',
+                    alguien_especial: 'ALGUIEN ESPECIAL'
+                  };
+                  if (mapAgent[agentMeta[1]]) agentLabel = mapAgent[agentMeta[1]];
+                } else if (instructions.includes('compañía muy especial')) {
+                  agentLabel = 'ALGUIEN ESPECIAL';
+                } else if (instructions.includes('mejor amigo')) {
+                  agentLabel = 'AMIGO';
+                }
+
+                return (
+                  <div className="flex flex-wrap items-center gap-2 p-3 rounded-2xl bg-black/95 border-2 border-emerald-500/50 shadow-[0_0_25px_rgba(16,185,129,0.2)]">
+                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ESTADO EN VIVO:
+                    </span>
+                    <span className="px-2.5 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 text-[10px] font-black uppercase">
+                      GÉNERO: {detectedVoice === 'male' ? 'HOMBRE 👨' : 'MUJER 👩'}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 text-[10px] font-black uppercase">
+                      ASISTENTE: {detectedName}
+                    </span>
+                    {detectedUserName && (
+                      <span className="px-2.5 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 text-[10px] font-black uppercase">
+                        USUARIO: {detectedUserName}
+                      </span>
+                    )}
+                    <span className="px-2.5 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 text-[10px] font-black uppercase">
+                      HABLA: {styleLabel}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 text-[10px] font-black uppercase">
+                      HABILIDAD: {agentLabel}
+                    </span>
+                  </div>
+                );
+              })()}
+
               {/* Modificar Comportamiento */}
               {(() => {
                 const isEditing = !!editingClientIds[client.client_id];

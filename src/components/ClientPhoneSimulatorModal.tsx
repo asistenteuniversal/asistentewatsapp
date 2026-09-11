@@ -183,17 +183,27 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       setExclusiveAssistants(DEFAULT_EXCLUSIVE_ASSISTANTS);
     }
 
-    // Detectar selecciones
-    for (const b of DEFAULT_BUSINESS_STYLES) {
-      if (instructions.includes(b.prompt)) {
-        setSelectedStyleId(b.id);
-        break;
+    // 1. Detectar agente activo por [AGENTE_ACTIVO] o prompt
+    const matchAgentMeta = instructions.match(/\[AGENTE_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
+    if (matchAgentMeta && matchAgentMeta[1] && exclusiveAssistants.some(a => a.id === matchAgentMeta[1])) {
+      setSelectedAssistantId(matchAgentMeta[1]);
+    } else {
+      const matchAgentPrompt = instructions.match(/CONOCIMIENTOS Y HABILIDADES:\s*([^\n]+)/);
+      if (matchAgentPrompt && matchAgentPrompt[1]) {
+        const found = exclusiveAssistants.find(a => matchAgentPrompt[1].includes(a.prompt.slice(0, 25)));
+        if (found) setSelectedAssistantId(found.id);
       }
     }
-    for (const a of DEFAULT_EXCLUSIVE_ASSISTANTS) {
-      if (instructions.includes(a.prompt)) {
-        setSelectedAssistantId(a.id);
-        break;
+
+    // 2. Detectar estilo activo por [ESTILO_ACTIVO] o prompt
+    const matchStyleMeta = instructions.match(/\[ESTILO_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
+    if (matchStyleMeta && matchStyleMeta[1] && businessStyles.some(b => b.id === matchStyleMeta[1])) {
+      setSelectedStyleId(matchStyleMeta[1]);
+    } else {
+      const matchStylePrompt = instructions.match(/COMPORTAMIENTO Y FORMA DE HABLAR:\s*([^\n]+)/);
+      if (matchStylePrompt && matchStylePrompt[1]) {
+        const found = businessStyles.find(b => matchStylePrompt[1].includes(b.prompt.slice(0, 25)));
+        if (found) setSelectedStyleId(found.id);
       }
     }
     setEditingPresetId(null);
@@ -222,23 +232,89 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
   };
 
   // Alternar voz instantánea
+  
+  const buildCleanInstructions = (params: {
+    voiceMale: boolean;
+    name: string;
+    userName: string;
+    styleId: string;
+    agentId: string;
+    existingInstructions: string;
+  }) => {
+    const finalName = params.name.trim() || 'AVA';
+    const cleanName = finalName === '.' ? 'AVA' : finalName;
+    const cleanUserName = params.userName.trim();
+
+    const activeStyle = businessStyles.find(b => b.id === params.styleId) || businessStyles[0];
+    const activeAgent = exclusiveAssistants.find(a => a.id === params.agentId) || exclusiveAssistants[0];
+
+    const genderLine = params.voiceMale
+      ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
+      : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
+
+    const nameLine = `NOMBRE DE TU ASISTENTE: Tu nombre oficial es: "${cleanName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.`;
+
+    const userLine = cleanUserName
+      ? `¿CÓMO QUIERES QUE TE LLAME?: El usuario se llama: "${cleanUserName}". Dirígete siempre a él con este nombre cuando hables con él.`
+      : '';
+
+    const styleLine = `COMPORTAMIENTO Y FORMA DE HABLAR: ${activeStyle.prompt}`;
+    const agentLine = `CONOCIMIENTOS Y HABILIDADES: ${activeAgent.prompt}`;
+
+    const allPresets = [...businessStyles, ...exclusiveAssistants];
+    const trackingMeta = `[AGENTE_ACTIVO]: ${activeAgent.id}\n[ESTILO_ACTIVO]: ${activeStyle.id}\n[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}`;
+
+    const lines = [
+      '[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:',
+      genderLine,
+      nameLine,
+      userLine,
+      styleLine,
+      agentLine,
+      trackingMeta
+    ].filter(Boolean);
+
+    const header = lines.join('\n\n') + '\n\n';
+
+    let rawBase = (params.existingInstructions || '')
+      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?(?:Directivas de Formato:|(\n\n[A-Z0-9\.\-]))/i, (match, p1) => {
+        if (match.includes('Directivas de Formato:')) return 'Directivas de Formato:';
+        return p1 || '';
+      })
+      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:.*$/gm, '')
+      .replace(/^GÉNERO E IDENTIDAD:.*$/gm, '')
+      .replace(/^NOMBRE DE TU ASISTENTE:.*$/gm, '')
+      .replace(/^Tu nombre oficial es:.*$/gm, '')
+      .replace(/^¿?CÓMO QUIERES QUE TE LLAME\??:.*$/gm, '')
+      .replace(/^El usuario se llama:.*$/gm, '')
+      .replace(/^COMPORTAMIENTO Y FORMA DE HABLAR:.*$/gm, '')
+      .replace(/^ESTILO DE COMUNICACIÓN:.*$/gm, '')
+      .replace(/^CONOCIMIENTOS Y HABILIDADES:.*$/gm, '')
+      .replace(/^ROL DE ASISTENTE:.*$/gm, '')
+      .replace(/^\[AGENTE_ACTIVO\]:.*$/gm, '')
+      .replace(/^\[ESTILO_ACTIVO\]:.*$/gm, '')
+      .replace(/^\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
+      .trim();
+
+    return `${header}${rawBase}`;
+  };
+
   const handleToggleVoice = async () => {
     const nextVoice = currentVoice === 'male' ? 'female' : 'male';
     setCurrentVoice(nextVoice);
 
-    const genderDirective = nextVoice === 'male'
-      ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
-      : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
-
-    let updated = client.system_instructions || '';
-    if (updated.includes('GÉNERO E IDENTIDAD:')) {
-      updated = updated.replace(/GÉNERO E IDENTIDAD:.*$/m, genderDirective);
-    } else {
-      updated = `${genderDirective}\n\n${updated}`;
-    }
+    const updated = buildCleanInstructions({
+      voiceMale: nextVoice === 'male',
+      name: assistantName,
+      userName: userName,
+      styleId: selectedStyleId,
+      agentId: selectedAssistantId,
+      existingInstructions: client.system_instructions || ''
+    });
 
     try {
       await onSaveInstructions(client.client_id, updated);
+      await supabase.from('asistente_config').update({ system_memory: 'UPDATE_INSTRUCTIONS' } as any).eq('client_id', client.client_id);
     } catch (e) {
       console.error('Error cambiando voz:', e);
     }
@@ -257,13 +333,31 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
   };
 
   // Guardar preset editado
-  const handleSavePreset = (id: string) => {
+  const handleSavePreset = async (id: string) => {
     const updateList = (list: PersonalityPreset[]) =>
       list.map(p => p.id === id ? { ...p, label: editLabel.trim().toUpperCase() || p.label, prompt: editPrompt.trim() || p.prompt } : p);
 
-    setBusinessStyles(prev => updateList(prev));
-    setExclusiveAssistants(prev => updateList(prev));
+    const updatedStyles = updateList(businessStyles);
+    const updatedAssistants = updateList(exclusiveAssistants);
+    setBusinessStyles(updatedStyles);
+    setExclusiveAssistants(updatedAssistants);
     setEditingPresetId(null);
+
+    // Guardar inmediatamente en la nube y activar UPDATE_INSTRUCTIONS para que viaje al celular
+    try {
+      const allPresets = [...updatedStyles, ...updatedAssistants];
+      const newMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}`;
+      let currentInst = client.system_instructions || '';
+      if (currentInst.includes('[BOTONES_PERSONALIDADES]:')) {
+        currentInst = currentInst.replace(/\[BOTONES_PERSONALIDADES\]:.*$/m, newMeta);
+      } else {
+        currentInst = `${currentInst}\n${newMeta}`;
+      }
+      await onSaveInstructions(client.client_id, currentInst);
+      await supabase.from('asistente_config').update({ system_memory: 'UPDATE_INSTRUCTIONS' } as any).eq('client_id', client.client_id);
+    } catch (e) {
+      console.error('Error guardando preset en la nube:', e);
+    }
   };
 
   // Fábrica
@@ -284,37 +378,24 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       let finalName = assistantName.trim() || 'AVA';
       if (finalName === '.') finalName = 'AVA';
       const finalUserName = userName.trim();
-      const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
-      const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
 
-      const genderDirective = currentVoice === 'male'
-        ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
-        : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
-
-      const userDirective = finalUserName
-        ? `El usuario se llama: "${finalUserName}". Dirígete siempre a él con este nombre cuando hables con él.\n`
-        : '';
-
-      const allPresets = [...businessStyles, ...exclusiveAssistants];
-      const presetsMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}\n`;
-
-      const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\n${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\nESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
-
-      const rawBase = (client.system_instructions || '')
-        .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
-        .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
-        .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
-        .trim();
-
-      const fullInstructions = `${identityHeader}${rawBase}`;
+      const fullInstructions = buildCleanInstructions({
+        voiceMale: currentVoice === 'male',
+        name: finalName,
+        userName: finalUserName,
+        styleId: selectedStyleId,
+        agentId: selectedAssistantId,
+        existingInstructions: client.system_instructions || ''
+      });
 
       await onSaveInstructions(client.client_id, fullInstructions);
 
       await supabase
         .from('asistente_config')
         .update({
-          client_name: finalUserName || client.client_name
-        })
+          client_name: finalUserName || client.client_name,
+          system_memory: 'UPDATE_INSTRUCTIONS'
+        } as any)
         .eq('client_id', client.client_id);
 
       setAgentSuccess(true);
@@ -333,43 +414,28 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
     setStyleSuccess(false);
 
     try {
-      const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
-      const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
-
       let finalName = assistantName.trim() || 'AVA';
       if (finalName === '.') finalName = 'AVA';
       const finalUserName = userName.trim();
 
-      const genderDirective = currentVoice === 'male'
-        ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
-        : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
-
-      const userDirective = finalUserName
-        ? `El usuario se llama: "${finalUserName}". Dirígete siempre a él con este nombre cuando hables con él.\n`
-        : '';
-
-      const allPresets = [...businessStyles, ...exclusiveAssistants];
-      const presetsMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}\n`;
-
-      const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\n${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\nESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
-
-      const rawBase = (client.system_instructions || '')
-        .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
-        .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
-        .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
-        .trim();
-
-      const fullInstructions = `${identityHeader}${rawBase}`;
+      const fullInstructions = buildCleanInstructions({
+        voiceMale: currentVoice === 'male',
+        name: finalName,
+        userName: finalUserName,
+        styleId: selectedStyleId,
+        agentId: selectedAssistantId,
+        existingInstructions: client.system_instructions || ''
+      });
 
       await onSaveInstructions(client.client_id, fullInstructions);
 
-      // BORRADO TOTAL DE RECUERDOS (FRESCO Y LIMPIO)
+      // BORRADO TOTAL DE RECUERDOS (FRESCO Y LIMPIO) + VIAJE INSTANTÁNEO AL CELULAR
       await supabase
         .from('asistente_config')
         .update({
           daily_memory: '',
-          system_memory: 'CLEAR'
-        })
+          system_memory: 'UPDATE_AND_CLEAR'
+        } as any)
         .eq('client_id', client.client_id);
 
       setStyleSuccess(true);
@@ -509,7 +575,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
           {/* 4 Asistentes Exclusivos */}
           <div className="space-y-1 pt-1">
             <div className="flex items-center justify-between">
-              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">ELIGE QUÉ CONOCIMIENTOS Y HABILIDADES TIENE TU ASISTENTE:</label>
+              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">CONOCIMIENTOS Y HABILIDADES DE TU ASISTENTE</label>
               <span className="text-[8px] text-zinc-400 uppercase font-bold">✏️ Edición en web</span>
             </div>
             <div className="grid grid-cols-2 gap-1.5">
@@ -602,7 +668,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
         <div className="rounded-2xl border-2 border-[#d4af37] bg-black/90 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.25)]">
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">¿CÓMO QUIERES QUE SE COMPORTE Y TE HABLE TU ASISTENTE?</label>
+              <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">COMPORTAMIENTO Y FORMA DE HABLAR DE TU ASISTENTE</label>
               <span className="text-[8px] text-zinc-400 uppercase font-bold">✏️ Edición en web</span>
             </div>
             <div className="grid grid-cols-2 gap-1.5">

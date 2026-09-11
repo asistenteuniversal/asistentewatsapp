@@ -152,22 +152,27 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
       setExclusiveAssistants(DEFAULT_EXCLUSIVE_ASSISTANTS);
     }
 
-    // Detectar estilo activo
-    for (const b of DEFAULT_BUSINESS_STYLES) {
-      if (instructions.includes(b.prompt)) {
-        setSelectedStyleId(b.id);
-        break;
+    // 1. Detectar agente activo por [AGENTE_ACTIVO] o prompt
+    const matchAgentMeta = instructions.match(/\[AGENTE_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
+    if (matchAgentMeta && matchAgentMeta[1] && exclusiveAssistants.some(a => a.id === matchAgentMeta[1])) {
+      setSelectedAssistantId(matchAgentMeta[1]);
+    } else {
+      const matchAgentPrompt = instructions.match(/CONOCIMIENTOS Y HABILIDADES:\s*([^\n]+)/);
+      if (matchAgentPrompt && matchAgentPrompt[1]) {
+        const found = exclusiveAssistants.find(a => matchAgentPrompt[1].includes(a.prompt.slice(0, 25)));
+        if (found) setSelectedAssistantId(found.id);
       }
     }
-    const savedAgentId = localStorage.getItem('ava_custom_agent_id');
-    if (savedAgentId && exclusiveAssistants.some(a => a.id === savedAgentId)) {
-      setSelectedAssistantId(savedAgentId);
+
+    // 2. Detectar estilo activo por [ESTILO_ACTIVO] o prompt
+    const matchStyleMeta = instructions.match(/\[ESTILO_ACTIVO\]:\s*([a-zA-Z0-9_-]+)/);
+    if (matchStyleMeta && matchStyleMeta[1] && businessStyles.some(b => b.id === matchStyleMeta[1])) {
+      setSelectedStyleId(matchStyleMeta[1]);
     } else {
-      for (const a of exclusiveAssistants) {
-        if (instructions.includes(a.prompt)) {
-          setSelectedAssistantId(a.id);
-          break;
-        }
+      const matchStylePrompt = instructions.match(/COMPORTAMIENTO Y FORMA DE HABLAR:\s*([^\n]+)/);
+      if (matchStylePrompt && matchStylePrompt[1]) {
+        const found = businessStyles.find(b => matchStylePrompt[1].includes(b.prompt.slice(0, 25)));
+        if (found) setSelectedStyleId(found.id);
       }
     }
 
@@ -213,35 +218,84 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
   };
 
   // 🎙️ CAMBIO INSTANTÁNEO DE VOZ Y GÉNERO
-  const handleToggleVoiceInstant = async () => {
-    const nextVoiceMale = !settings.voiceMaleEnabled;
-    const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
-    let finalName = assistantName.trim() || localStorage.getItem('ava_custom_assistant_name') || 'AVA';
-    if (finalName === '.') finalName = 'AVA';
-    const finalUserName = userName.trim() || localStorage.getItem('ava_custom_user_name') || '';
+  
+  const buildCleanInstructions = (params: {
+    voiceMale: boolean;
+    name: string;
+    userName: string;
+    styleId: string;
+    agentId: string;
+    existingInstructions: string;
+  }) => {
+    const finalName = params.name.trim() || 'AVA';
+    const cleanName = finalName === '.' ? 'AVA' : finalName;
+    const cleanUserName = params.userName.trim();
 
-    const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
-    const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
+    const activeStyle = businessStyles.find(b => b.id === params.styleId) || businessStyles[0];
+    const activeAgent = exclusiveAssistants.find(a => a.id === params.agentId) || exclusiveAssistants[0];
 
-    const genderDirective = nextVoiceMale
+    const genderLine = params.voiceMale
       ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
       : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
-    const userDirective = finalUserName
-      ? `El usuario se llama: "${finalUserName}". Dirígete siempre a él con este nombre cuando hables con él.\n`
+    const nameLine = `NOMBRE DE TU ASISTENTE: Tu nombre oficial es: "${cleanName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.`;
+
+    const userLine = cleanUserName
+      ? `¿CÓMO QUIERES QUE TE LLAME?: El usuario se llama: "${cleanUserName}". Dirígete siempre a él con este nombre cuando hables con él.`
       : '';
 
+    const styleLine = `COMPORTAMIENTO Y FORMA DE HABLAR: ${activeStyle.prompt}`;
+    const agentLine = `CONOCIMIENTOS Y HABILIDADES: ${activeAgent.prompt}`;
+
     const allPresets = [...businessStyles, ...exclusiveAssistants];
-    const presetsMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}\n`;
+    const trackingMeta = `[AGENTE_ACTIVO]: ${activeAgent.id}\n[ESTILO_ACTIVO]: ${activeStyle.id}\n[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}`;
 
-    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\n${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\nESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
+    const lines = [
+      '[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:',
+      genderLine,
+      nameLine,
+      userLine,
+      styleLine,
+      agentLine,
+      trackingMeta
+    ].filter(Boolean);
 
-    const rawBase = (settings.systemInstructions || '')
-      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
-      .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
-      .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
+    const header = lines.join('\n\n') + '\n\n';
+
+    let rawBase = (params.existingInstructions || '')
+      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?(?:Directivas de Formato:|(\n\n[A-Z0-9\.\-]))/i, (match, p1) => {
+        if (match.includes('Directivas de Formato:')) return 'Directivas de Formato:';
+        return p1 || '';
+      })
+      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:.*$/gm, '')
+      .replace(/^GÉNERO E IDENTIDAD:.*$/gm, '')
+      .replace(/^NOMBRE DE TU ASISTENTE:.*$/gm, '')
+      .replace(/^Tu nombre oficial es:.*$/gm, '')
+      .replace(/^¿?CÓMO QUIERES QUE TE LLAME\??:.*$/gm, '')
+      .replace(/^El usuario se llama:.*$/gm, '')
+      .replace(/^COMPORTAMIENTO Y FORMA DE HABLAR:.*$/gm, '')
+      .replace(/^ESTILO DE COMUNICACIÓN:.*$/gm, '')
+      .replace(/^CONOCIMIENTOS Y HABILIDADES:.*$/gm, '')
+      .replace(/^ROL DE ASISTENTE:.*$/gm, '')
+      .replace(/^\[AGENTE_ACTIVO\]:.*$/gm, '')
+      .replace(/^\[ESTILO_ACTIVO\]:.*$/gm, '')
+      .replace(/^\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
       .trim();
-    const fullInstructions = `${identityHeader}${rawBase}`;
+
+    return `${header}${rawBase}`;
+  };
+
+  const handleToggleVoiceInstant = async () => {
+    const nextVoiceMale = !settings.voiceMaleEnabled;
+    const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
+    const fullInstructions = buildCleanInstructions({
+      voiceMale: nextVoiceMale,
+      name: assistantName,
+      userName: userName,
+      styleId: selectedStyleId,
+      agentId: selectedAssistantId,
+      existingInstructions: settings.systemInstructions || ''
+    });
 
     // 1. Actualizar React localmente
     setSettings((prev) => ({
@@ -289,34 +343,19 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     const finalUserName = userName.trim();
     localStorage.setItem('ava_custom_assistant_name', finalName);
     localStorage.setItem('ava_custom_user_name', finalUserName);
+    localStorage.setItem('ava_custom_agent_id', selectedAssistantId);
     setAssistantName(finalName);
     setUserName(finalUserName);
 
-    const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
-    localStorage.setItem('ava_custom_agent_id', activeAgent.id);
-
-    const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
     const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
-
-    const genderDirective = settings.voiceMaleEnabled
-      ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
-      : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
-
-    const userDirective = finalUserName
-      ? `El usuario se llama: "${finalUserName}". Dirígete siempre a él con este nombre cuando hables con él.\n`
-      : '';
-
-    const allPresets = [...businessStyles, ...exclusiveAssistants];
-    const presetsMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}\n`;
-
-    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\n${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\nESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
-
-    const rawBase = (settings.systemInstructions || '')
-      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
-      .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
-      .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
-      .trim();
-    const fullInstructions = `${identityHeader}${rawBase}`;
+    const fullInstructions = buildCleanInstructions({
+      voiceMale: !!settings.voiceMaleEnabled,
+      name: finalName,
+      userName: finalUserName,
+      styleId: selectedStyleId,
+      agentId: selectedAssistantId,
+      existingInstructions: settings.systemInstructions || ''
+    });
 
     try {
       await supabase
@@ -366,32 +405,19 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     localStorage.setItem('ava_custom_personality_id', activeStyle.id);
     localStorage.setItem('ava_custom_personality_prompt', activeStyle.prompt);
 
-    const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
-
     let finalName = assistantName.trim() || 'AVA';
     if (finalName === '.') finalName = 'AVA';
     const finalUserName = userName.trim();
     const clientId = localStorage.getItem('ava_client_id') || 'al_pachus_9468';
 
-    const genderDirective = settings.voiceMaleEnabled
-      ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
-      : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
-
-    const userDirective = finalUserName
-      ? `El usuario se llama: "${finalUserName}". Dirígete siempre a él con este nombre cuando hables con él.\n`
-      : '';
-
-    const allPresets = [...businessStyles, ...exclusiveAssistants];
-    const presetsMeta = `[BOTONES_PERSONALIDADES]: ${JSON.stringify(allPresets)}\n`;
-
-    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\n${presetsMeta}ROL DE ASISTENTE: ${activeAgent.prompt}\nESTILO DE COMUNICACIÓN: ${activeStyle.prompt}\n\n`;
-
-    const rawBase = (settings.systemInstructions || '')
-      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
-      .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
-      .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
-      .trim();
-    const fullInstructions = `${identityHeader}${rawBase}`;
+    const fullInstructions = buildCleanInstructions({
+      voiceMale: !!settings.voiceMaleEnabled,
+      name: finalName,
+      userName: finalUserName,
+      styleId: selectedStyleId,
+      agentId: selectedAssistantId,
+      existingInstructions: settings.systemInstructions || ''
+    });
 
     try {
       await supabase
@@ -584,7 +610,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
 
           {/* 4 Asistentes Exclusivos */}
           <div className="space-y-1 pt-1">
-            <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">ELIGE QUÉ CONOCIMIENTOS Y HABILIDADES TIENE TU ASISTENTE:</label>
+            <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">CONOCIMIENTOS Y HABILIDADES DE TU ASISTENTE</label>
             <div className="grid grid-cols-2 gap-1.5">
               {exclusiveAssistants.map((preset) => {
                 const isSelected = selectedAssistantId === preset.id;
@@ -665,7 +691,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
         {/* ── CUADRO 2: ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE? (MARCO ORO METÁLICO) ── */}
         <div className="rounded-2xl border-2 border-[#d4af37] bg-black/90 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.25)]">
           <div className="space-y-1">
-            <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">¿CÓMO QUIERES QUE SE COMPORTE Y TE HABLE TU ASISTENTE?</label>
+            <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">COMPORTAMIENTO Y FORMA DE HABLAR DE TU ASISTENTE</label>
             <div className="grid grid-cols-2 gap-1.5">
               {businessStyles.map((preset) => {
                 const isSelected = selectedStyleId === preset.id;
