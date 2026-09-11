@@ -18,15 +18,20 @@ export const ConnectionErrorBanner: React.FC<ConnectionErrorBannerProps> = ({
   onDismiss,
   errorMessage = 'FALLÓ CONEXIÓN, VUÉLVELO A INTENTAR'
 }) => {
-  // Auto-apagado exacto a los 5 segundos de activarse
+  // Auto-apagado inteligente:
+  // - Intento 1 y 2 ("VUÉLVELO A INTENTAR"): 5 segundos.
+  // - Intento 3+ ("INTÉNTALO MÁS TARDE"): 1 minuto (60 segundos).
+  // En cualquier momento, si el usuario lo presiona con el dedo, se apaga de inmediato.
   useEffect(() => {
     if (visible && onDismiss) {
+      const isThirdAttempt = errorMessage.includes('INTÉNTALO MÁS TARDE');
+      const duration = isThirdAttempt ? 60000 : 5000;
       const timer = setTimeout(() => {
         onDismiss();
-      }, 5000);
+      }, duration);
       return () => clearTimeout(timer);
     }
-  }, [visible, onDismiss]);
+  }, [visible, onDismiss, errorMessage]);
 
   if (!visible) return null;
 
