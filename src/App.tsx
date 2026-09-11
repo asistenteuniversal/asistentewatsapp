@@ -785,6 +785,17 @@ export default function App() {
       }
       lastHandledErrorTimestamp = nowMs;
 
+      // ── CANDADO DE SEGURIDAD: REBOTE INMEDIATO A CARÁTULA ──
+      // Si Google Studio estaba al frente, ocultarlo de inmediato y regresar a carátula
+      if ((window as any).AndroidInterface && (window as any).AndroidInterface.showStudio) {
+        try {
+          (window as any).AndroidInterface.showStudio(false);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      setMode('neon');
+
       consecutiveFailureCount += 1;
 
       // Si pasan 60 segundos sin fallas, reiniciar contador a 0
