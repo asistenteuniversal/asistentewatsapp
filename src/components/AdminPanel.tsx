@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { DiagnosticModal } from './DiagnosticModal';
+import { ClientPhoneSimulatorModal } from './ClientPhoneSimulatorModal';
 
 interface ClientConfigRow {
   client_id: string;
@@ -80,6 +81,7 @@ export const AdminPanel: React.FC = () => {
   // Estados para modales profesionales centralizados y responsivos (creación y confirmación)
   const [modalNotification, setModalNotification] = useState<{ title: string; text: string; isError?: boolean } | null>(null);
   const [modalConfirm, setModalConfirm] = useState<{ title: string; text: string; onConfirm: () => void } | null>(null);
+  const [simulatorClient, setSimulatorClient] = useState<ClientConfigRow | null>(null);
 
   // Función para determinar el estado de la renta (Mejora 1)
   const getClientRentalStatus = (client: ClientConfigRow) => {
@@ -1082,6 +1084,16 @@ export const AdminPanel: React.FC = () => {
                         {client.memory_days === -1 ? '🔴 APP desconectada de nube apagada' : '🟢 APP conectada a nube en vivo'}
                       </button>
 
+                      {/* Botón Lanzador del Simulador Espejo de Celular */}
+                      <button
+                        type="button"
+                        onClick={() => setSimulatorClient(client)}
+                        className="px-3 py-1.5 font-black rounded-xl text-[9px] sm:text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow-md bg-gradient-to-r from-[#BF953F]/30 via-[#FCF6BA]/20 to-[#BF953F]/30 hover:from-[#BF953F]/50 hover:to-[#AA771C]/60 text-[#FCF6BA] border-[#BF953F]/60 flex items-center gap-1.5 active:scale-95 shadow-[0_0_12px_rgba(191,149,63,0.25)]"
+                        title="Abrir Simulador Espejo de Celular en Vivo"
+                      >
+                        <span>📱 SIMULADOR CELULAR</span>
+                      </button>
+
                       {/* Botón de Borrado en la esquina extrema derecha */}
                       <button
                         onClick={() => {
@@ -1377,6 +1389,14 @@ export const AdminPanel: React.FC = () => {
                             <span className="px-3 py-1 bg-gradient-to-r from-[#d4af37]/20 to-amber-950/40 border border-[#d4af37]/40 rounded-xl text-[#FCF6BA] font-black text-xs uppercase tracking-wider shadow-sm">
                               {detectedPersonality}
                             </span>
+                            <button
+                              type="button"
+                              onClick={() => setSimulatorClient(client)}
+                              className="px-2.5 py-1 font-bold rounded-lg text-[10px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow bg-gradient-to-r from-amber-500/20 to-yellow-500/30 hover:from-amber-500/40 hover:to-yellow-500/50 text-[#FCF6BA] border-amber-500/40 flex items-center gap-1 active:scale-95 ml-1"
+                              title="Abrir Simulador Espejo de Celular"
+                            >
+                              <span>📱 ABRIR SIMULADOR</span>
+                            </button>
                           </div>
                         </div>
 
@@ -1713,6 +1733,21 @@ export const AdminPanel: React.FC = () => {
         isOpen={isDiagnosticOpen}
         onClose={() => setIsDiagnosticOpen(false)}
       />
+
+      {/* Modal de Simulador Espejo de Celular */}
+      {simulatorClient && (
+        <ClientPhoneSimulatorModal
+          isOpen={!!simulatorClient}
+          client={simulatorClient}
+          onClose={() => setSimulatorClient(null)}
+          onSaveInstructions={saveInstructions}
+          onSaveVoice={async (clientId, voice) => {
+            await supabase.from('asistente_config').update({ voice_selection: voice } as any).eq('client_id', clientId);
+            setClients(prev => prev.map(c => c.client_id === clientId ? { ...c, voice_selection: voice } : c));
+          }}
+          supportPhone={supportPhone}
+        />
+      )}
     </div>
   );
 };
