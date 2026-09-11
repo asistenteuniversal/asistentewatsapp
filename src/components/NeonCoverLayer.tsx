@@ -99,6 +99,24 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
     }
   }, [isCallActive]);
 
+  // =========================================================================
+  // 🧱 BLOQUE LEGO INDEPENDIENTE: AUTO-APAGADO POR FALLO DE CONEXIÓN
+  // =========================================================================
+  // Al encenderse el aviso de 'falló conexión', simula una pulsación de dedo
+  // física para colgar/apagar la videollamada o llamada activa.
+  // No modifica ningún botón ni la lógica interna del sistema.
+  // =========================================================================
+  useEffect(() => {
+    if (connectionErrorVisible && isCallActive) {
+      if (activeCallType === 'audio' && onToggleAudio) {
+        onToggleAudio();
+      } else {
+        onToggleVoice();
+      }
+      setActiveCallType(null);
+    }
+  }, [connectionErrorVisible]);
+
   // Manejar el encendido/apagado del silencio a nivel de hardware
   const handleToggleMute = () => {
     const nextMute = !isMuted;
@@ -273,7 +291,19 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
       {/* ── BLOQUE LEGO INDEPENDIENTE: AVISO DE FALLA DE CONEXIÓN ── */}
       <ConnectionErrorBanner
         visible={connectionErrorVisible}
-        onDismiss={onDismissConnectionError}
+        onDismiss={() => {
+          if (isCallActive) {
+            if (activeCallType === 'audio' && onToggleAudio) {
+              onToggleAudio();
+            } else {
+              onToggleVoice();
+            }
+            setActiveCallType(null);
+          }
+          if (onDismissConnectionError) {
+            onDismissConnectionError();
+          }
+        }}
         errorMessage={connectionErrorMessage}
       />
 
