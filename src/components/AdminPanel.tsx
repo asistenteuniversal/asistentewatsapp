@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { DiagnosticModal } from './DiagnosticModal';
 
@@ -55,6 +55,10 @@ export const AdminPanel: React.FC = () => {
 
   // Estado para las transiciones del botón de guardar días de memoria
   const [savingStates, setSavingStates] = useState<Record<string, 'idle' | 'saving' | 'saved'>>({});
+
+  // Estado y referencia para el modo de edición de comportamiento (Sin carreras ni bloqueos)
+  const [editingClientIds, setEditingClientIds] = useState<Record<string, boolean>>({});
+  const editingInstructionsRef = useRef<Record<string, string | null>>({});
 
   const showSaveStatus = (clientId: string, text: string, isError: boolean = false) => {
     setSaveStatus(prev => ({ ...prev, [clientId]: { text, isError } }));
@@ -209,7 +213,18 @@ export const AdminPanel: React.FC = () => {
         .order('client_id', { ascending: true });
 
       if (error) throw error;
-      setClients(data || []);
+      if (!data) return;
+
+      // Preservar borradores en edición activa para que no se le borre el texto a Don Alberto
+      setClients(prev => {
+        return data.map(newC => {
+          const draft = editingInstructionsRef.current[newC.client_id];
+          if (draft !== undefined && draft !== null) {
+            return { ...newC, system_instructions: draft };
+          }
+          return newC;
+        });
+      });
     } catch (err: any) {
       console.warn('Error en recarga silenciosa de clientes:', err);
     }
@@ -1437,13 +1452,23 @@ export const AdminPanel: React.FC = () => {
               })()}
 
               {/* Modificar Comportamiento */}
+              {(() => {
+                const isEditing = !!editingClientIds[client.client_id];
+                return (
                   <div className="space-y-2">
                     <div className="flex justify-between items-center flex-wrap gap-2">
-                      <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
-                        COMPORTAMIENTO ASISTENTE
-                      </label>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <label className="text-[9px] text-[#FCF6BA] uppercase tracking-widest font-extrabold block">
+                          COMPORTAMIENTO ASISTENTE
+                        </label>
+                        {isEditing && (
+                          <span className="text-[9px] sm:text-[10px] text-amber-300 italic font-bold">
+                            Escribe tus cambios con calma. Al terminar presiona Guardar.
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        {/* Foquito de Estado de Actualización en el Celular */}
+                        {/* Foquito de Estado de Actualización en el Celular (INTACTO) */}
                         {client.system_memory === 'UPDATE_INSTRUCTIONS' || client.system_memory === 'UPDATE_AND_CLEAR' ? (
                           <span className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.25)]">
                             <span className="w-2 h-2 rounded-full bg-amber-400" />
@@ -1455,35 +1480,58 @@ export const AdminPanel: React.FC = () => {
                             <span>🟢 ACTUALIZADO</span>
                           </span>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const textarea = document.getElementById(`instructions-${client.client_id}`) as HTMLTextAreaElement;
-                            if (textarea) {
-                              saveInstructions(client.client_id, textarea.value);
-                            }
-                          }}
-                          className="px-4 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-[11px] font-black rounded-xl uppercase tracking-wider transition duration-300 border border-red-500/30 font-sans cursor-pointer shadow-lg flex items-center gap-1.5"
-                        >
-                          <span>💾 GUARDAR</span>
-                        </button>
+                        {!isEditing ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              editingInstructionsRef.current[client.client_id] = client.system_instructions || '';
+                              setEditingClientIds(prev => ({ ...prev, [client.client_id]: true }));
+                              setTimeout(() => {
+                                const textarea = document.getElementById(`instructions-${client.client_id}`) as HTMLTextAreaElement;
+                                if (textarea) textarea.focus();
+                              }, 50);
+                            }}
+                            className="px-3.5 py-1.5 bg-gradient-to-r from-[#BF953F]/25 to-[#AA771C]/35 hover:from-[#BF953F]/45 hover:to-[#AA771C]/55 active:scale-95 text-[#FCF6BA] text-[10px] sm:text-[11px] font-black rounded-xl uppercase tracking-wider transition duration-300 border border-[#BF953F]/50 font-sans cursor-pointer shadow-md flex items-center gap-1.5"
+                          >
+                            <span>✏️ PRESIONA AQUÍ PARA HACER CAMBIOS</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const textarea = document.getElementById(`instructions-${client.client_id}`) as HTMLTextAreaElement;
+                              const valToSave = textarea ? textarea.value : (editingInstructionsRef.current[client.client_id] || client.system_instructions || '');
+                              saveInstructions(client.client_id, valToSave);
+                              editingInstructionsRef.current[client.client_id] = null;
+                              setEditingClientIds(prev => ({ ...prev, [client.client_id]: false }));
+                            }}
+                            className="px-4 py-1.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-400 hover:from-amber-400 hover:to-yellow-300 active:scale-95 text-black text-[11px] font-black rounded-xl uppercase tracking-wider transition duration-300 border border-yellow-200 font-sans cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-1.5 animate-pulse"
+                          >
+                            <span>✨ GUARDAR Y REANUDAR ASISTENTE</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                     <textarea
                       id={`instructions-${client.client_id}`}
                       value={client.system_instructions || ''}
+                      readOnly={!isEditing}
                       onChange={(e) => {
                         const val = e.target.value;
+                        editingInstructionsRef.current[client.client_id] = val;
                         setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, system_instructions: val } : c));
                       }}
                       placeholder="Escribe el comportamiento del asistente aquí..."
                       rows={12}
-                      className="w-full bg-black border border-[#BF953F]/25 rounded-2xl p-4 text-base text-white font-sans font-medium leading-relaxed focus:outline-none focus:border-[#FCF6BA] transition duration-300 shadow-inner"
-                      onBlur={(e) => {
-                        saveInstructions(client.client_id, e.target.value);
-                      }}
+                      className={`w-full bg-black border rounded-2xl p-4 text-base text-white font-sans font-medium leading-relaxed transition duration-300 shadow-inner ${
+                        isEditing
+                          ? 'border-[#FCF6BA] shadow-[0_0_15px_rgba(252,246,186,0.18)] focus:outline-none'
+                          : 'border-[#BF953F]/25 opacity-90 cursor-default'
+                      }`}
                     />
                   </div>
+                );
+              })()}
 
                   {/* Memoria de Conversación (Recuerdos del Cliente) */}
                   <div className="space-y-2">
