@@ -774,6 +774,9 @@ export default function App() {
 
     // Escuchar avisos de corte o falla de conexión desde el motor nativo o Google Studio
     let lastHandledErrorTimestamp = 0;
+    let consecutiveFailureCount = 0;
+    let failureResetTimer: any = null;
+
     (window as any).onGoogleStreamError = (errorDetail?: string) => {
       const nowMs = Date.now();
       // Debounce de 3 segundos para evitar registrar la misma falla dos veces
@@ -782,9 +785,22 @@ export default function App() {
       }
       lastHandledErrorTimestamp = nowMs;
 
-      console.warn('[FallaConexión] Detectada desconexión en vivo:', errorDetail);
+      consecutiveFailureCount += 1;
+
+      // Si pasan 60 segundos sin fallas, reiniciar contador a 0
+      if (failureResetTimer) clearTimeout(failureResetTimer);
+      failureResetTimer = setTimeout(() => {
+        consecutiveFailureCount = 0;
+      }, 60000);
+
+      // Mensaje según el número de intento continuo (Sin iconos de manitas, texto puro)
+      const errorMsg = consecutiveFailureCount >= 3
+        ? 'FALLÓ CONEXIÓN, INTÉNTALO MÁS TARDE'
+        : 'FALLÓ CONEXIÓN, VUÉLVELO A INTENTAR';
+
+      console.warn(`[FallaConexión #${consecutiveFailureCount}] ${errorMsg}:`, errorDetail);
+      setConnectionErrorMessage(errorMsg);
       setConnectionErrorVisible(true);
-      setConnectionErrorMessage('fallo conexión');
 
       const now = new Date();
       const pad = (n: number) => n.toString().padStart(2, '0');
