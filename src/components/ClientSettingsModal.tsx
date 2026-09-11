@@ -72,6 +72,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
   const [selectedPersonality, setSelectedPersonality] = useState(() => {
     return localStorage.getItem('ava_custom_personality_id') || 'elegante';
   });
+  const [activePresets, setActivePresets] = useState(PERSONALITY_PRESETS);
   const [isApplyingChanges, setIsApplyingChanges] = useState(false);
   const [applySuccess, setApplySuccess] = useState(false);
   const [supportMessage, setSupportMessage] = useState('');
@@ -86,7 +87,23 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     setSelectedPersonality(savedId);
     setIsApplyingChanges(false);
     setApplySuccess(false);
-  }, [isOpen]);
+
+    // Leer los 6 botones enviados desde la página web a través de la nube
+    const instructions = settings.systemInstructions || '';
+    const matchPresets = instructions.match(/\[BOTONES_PERSONALIDADES\]:\s*(\[\{.*?\}\])/);
+    if (matchPresets && matchPresets[1]) {
+      try {
+        const parsed = JSON.parse(matchPresets[1]);
+        if (Array.isArray(parsed) && parsed.length === 6) {
+          setActivePresets(parsed);
+          return;
+        }
+      } catch (e) {
+        console.error('Error parseando presets en celular:', e);
+      }
+    }
+    setActivePresets(PERSONALITY_PRESETS);
+  }, [isOpen, settings.systemInstructions]);
 
   if (!isOpen) return null;
 
@@ -194,7 +211,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
     setAssistantName(finalName);
     setUserName(finalUserName);
 
-    const activePreset = PERSONALITY_PRESETS.find(p => p.id === selectedPersonality) || PERSONALITY_PRESETS[0];
+    const activePreset = activePresets.find(p => p.id === selectedPersonality) || activePresets[0];
     localStorage.setItem('ava_custom_personality_id', activePreset.id);
     localStorage.setItem('ava_custom_personality_label', activePreset.label);
     localStorage.setItem('ava_custom_personality_prompt', activePreset.prompt);
@@ -209,9 +226,16 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
       ? `El usuario se llama: "${finalUserName}". Dirígete siempre a él con este nombre cuando hables con él.\n`
       : '';
 
-    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
+    // Preservar la configuración de los 6 botones enviada por el Administrador desde la web
+    const presetsPayload = JSON.stringify(activePresets);
+    const presetsMeta = `[BOTONES_PERSONALIDADES]: ${presetsPayload}\n`;
+
+    const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}${presetsMeta}ESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
     
-    const rawBaseInstructions = (settings.systemInstructions || '').replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '');
+    const rawBaseInstructions = (settings.systemInstructions || '')
+      .replace(/^\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?\n\n/gm, '')
+      .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
+      .trim();
     const fullInstructionsWithIdentity = `${identityHeader}${rawBaseInstructions}`;
 
     try {
@@ -391,7 +415,7 @@ export const ClientSettingsModal: React.FC<ClientSettingsModalProps> = ({
               ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE?
             </label>
             <div className="grid grid-cols-2 gap-1.5">
-              {PERSONALITY_PRESETS.map((preset) => {
+              {activePresets.map((preset) => {
                 const isSelected = selectedPersonality === preset.id;
                 return (
                   <button

@@ -108,21 +108,36 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
 
     const instructions = client.system_instructions || '';
 
-    // Cargar o restaurar personalidades guardadas en localStorage para este cliente
-    const storageKey = `ava_custom_presets_${client.client_id}`;
-    const savedPresetsJson = localStorage.getItem(storageKey);
-    if (savedPresetsJson) {
+    // Cargar o restaurar personalidades guardadas en las instrucciones de la nube o en localStorage
+    const matchPresets = instructions.match(/\[BOTONES_PERSONALIDADES\]:\s*(\[\{.*?\}\])/);
+    let loadedPresets: PersonalityPreset[] | null = null;
+    if (matchPresets && matchPresets[1]) {
       try {
-        const parsed = JSON.parse(savedPresetsJson);
+        const parsed = JSON.parse(matchPresets[1]);
         if (Array.isArray(parsed) && parsed.length === 6) {
-          setCustomPresets(parsed);
+          loadedPresets = parsed;
         }
       } catch (e) {
-        console.error('Error leyendo presets guardados:', e);
+        console.error('Error parseando presets de instrucciones:', e);
       }
-    } else {
-      setCustomPresets(DEFAULT_PERSONALITY_PRESETS);
     }
+
+    if (!loadedPresets) {
+      const storageKey = `ava_custom_presets_${client.client_id}`;
+      const savedPresetsJson = localStorage.getItem(storageKey);
+      if (savedPresetsJson) {
+        try {
+          const parsed = JSON.parse(savedPresetsJson);
+          if (Array.isArray(parsed) && parsed.length === 6) {
+            loadedPresets = parsed;
+          }
+        } catch (e) {
+          console.error('Error leyendo presets guardados:', e);
+        }
+      }
+    }
+
+    setCustomPresets(loadedPresets || DEFAULT_PERSONALITY_PRESETS);
 
     // Detectar Nombre del Asistente
     const matchName = instructions.match(/Tu nombre oficial es:\s*"([^"]+)"/i);
@@ -276,11 +291,16 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
         ? `El usuario se llama: "${finalUserName}". Dirígete siempre a él con este nombre cuando hables con él.\n`
         : '';
 
-      const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}\nESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
+      // Serializar los 6 botones para que viajen al celular a través de la nube
+      const presetsPayload = JSON.stringify(customPresets);
+      const presetsMeta = `[BOTONES_PERSONALIDADES]: ${presetsPayload}\n`;
+
+      const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${finalName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${userDirective}${genderDirective}${presetsMeta}ESTILO DE COMUNICACIÓN: ${activePreset.prompt}\n\n`;
 
       const rawBase = (client.system_instructions || '')
         .replace(/\[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE\]:[\s\S]*?(?=\n\n|$)/gi, '')
         .replace(/GÉNERO E IDENTIDAD:.*$/gm, '')
+        .replace(/\[BOTONES_PERSONALIDADES\]:.*$/gm, '')
         .trim();
 
       const fullInstructions = rawBase ? `${identityHeader}${rawBase}` : identityHeader.trim();
