@@ -1032,86 +1032,77 @@ export const AdminPanel: React.FC = () => {
                   style={goldBorderGradient}
                   className="bg-[#050508] rounded-[2rem] p-6 space-y-4 shadow-[0_4px_30px_rgba(0,0,0,0.6)]"
                 >
-                  {/* Encabezado del Cliente: NOMBRE A LA IZQUIERDA, LUEGO N. CLIENTE */}
-                  <div className="flex justify-between items-start gap-4">
-                    <div>
-                      <div className="flex items-center gap-4 flex-wrap">
-                        
-                        {/* 1. NOMBRE DEL CLIENTE (PRIMERO A LA IZQUIERDA) */}
-                        <div className="flex flex-col items-start">
-                          <span className="text-[7.5px] text-white uppercase tracking-widest font-black">NOMBRE DE CLIENTE</span>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <h3 className="text-lg font-black text-white">{client.client_name || 'Sin Nombre'}</h3>
-                            {saveStatus[client.client_id] && (
-                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full transition-all duration-300 ${
-                                saveStatus[client.client_id]?.isError 
-                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
-                                  : saveStatus[client.client_id]?.text === 'Guardando...'
-                                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30 animate-pulse'
-                                    : 'bg-green-500/20 text-green-300 border border-green-500/30'
-                              }`}>
-                                {saveStatus[client.client_id]?.text}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* 2. N. CLIENTE A UN LADO (UN POCO MÁS GRANDE) */}
-                        <div className="flex flex-col items-center">
-                          <span className="text-[7.5px] text-white uppercase tracking-widest font-black">N. CLIENTE</span>
-                          <input
-                            type="number"
-                            min="1"
-                            max="999"
-                            defaultValue={client.client_number !== undefined && client.client_number !== null ? client.client_number : (client.client_id === 'al_pachus_9468' ? 1 : 2)}
-                            className="w-[52px] bg-black/90 border border-[#BF953F]/40 rounded-lg px-1.5 py-1 text-sm font-mono font-black text-[#FCF6BA] text-center focus:outline-none focus:border-[#FCF6BA] shadow-inner mt-0.5"
-                            onBlur={(e) => {
-                              const val = parseInt(e.target.value, 10) || 1;
-                              setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, client_number: val } : c));
-                              saveClientNumber(client.client_id, val);
-                            }}
-                          />
-                        </div>
-
+                  {/* Encabezado del Cliente: Todo en 1 sola línea compacta */}
+                  <div className="flex justify-between items-center gap-2 w-full">
+                    {/* IZQUIERDA: Nombre del cliente y N. Cliente juntos a un lado */}
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex flex-col">
+                        <span className="text-[7.5px] text-gray-400 uppercase tracking-widest font-black leading-none">NOMBRE DE CLIENTE</span>
+                        <h3 className="text-base sm:text-lg font-black text-white leading-tight mt-0.5">{client.client_name || 'Sin Nombre'}</h3>
                       </div>
+
+                      {/* N. CLIENTE A UN LADO DE MACHOMAN */}
+                      <div className="flex items-center gap-1.5 bg-black/80 border border-[#BF953F]/40 rounded-lg px-2 py-0.5">
+                        <span className="text-[8px] text-gray-300 uppercase tracking-widest font-black shrink-0">N.</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="999"
+                          defaultValue={client.client_number !== undefined && client.client_number !== null ? client.client_number : (client.client_id === 'al_pachus_9468' ? 1 : 2)}
+                          className="w-7 bg-transparent text-xs font-mono font-black text-[#FCF6BA] text-center focus:outline-none"
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value, 10) || 1;
+                            setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, client_number: val } : c));
+                            saveClientNumber(client.client_id, val);
+                          }}
+                        />
+                      </div>
+
+                      {saveStatus[client.client_id] && (
+                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
+                          saveStatus[client.client_id]?.isError ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-green-500/20 text-green-300 border border-green-500/30'
+                        }`}>
+                          {saveStatus[client.client_id]?.text}
+                        </span>
+                      )}
                     </div>
 
-                    {/* Switch de Activación (Activo / Pausado) y Acciones */}
-                    <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-                      {/* Contenedor del Switch al centro */}
-                      <div className="flex items-center gap-2">
+                    {/* DERECHA: Botones cuadraditos compactos en una sola línea */}
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                      {/* 1. Switch de Activación */}
+                      <div className="flex items-center gap-1.5 bg-black/60 border border-zinc-800 px-2 py-1 rounded-xl">
                         {(() => {
                           const status = getClientRentalStatus(client);
                           if (status === 'paused') {
-                            return <span className="text-[8px] uppercase font-black tracking-widest text-red-500 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">Pausado ⚪</span>;
+                            return <span className="text-[8px] uppercase font-black text-red-500">Pausado ⚪</span>;
                           }
                           if (status === 'free') {
-                            return <span className="text-[8px] uppercase font-black tracking-widest text-blue-400 px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-md">ACTIVO 🔵</span>;
+                            return <span className="text-[8px] uppercase font-black text-blue-400">ACTIVO 🔵</span>;
                           }
                           if (status === 'expired') {
-                            return <span className="text-[8px] uppercase font-black tracking-widest text-red-400 px-2 py-0.5 bg-red-500/15 border border-red-500/30 rounded-md animate-pulse">Vencido 🔴</span>;
+                            return <span className="text-[8px] uppercase font-black text-red-400 animate-pulse">Vencido 🔴</span>;
                           }
                           if (status === 'warning') {
-                            return <span className="text-[8px] uppercase font-black tracking-widest text-amber-400 px-2 py-0.5 bg-amber-500/15 border border-amber-500/30 rounded-md animate-pulse">Por Vencer 🟡</span>;
+                            return <span className="text-[8px] uppercase font-black text-amber-400 animate-pulse">Vence 🟡</span>;
                           }
-                          return <span className="text-[8px] uppercase font-black tracking-widest text-green-400 px-2 py-0.5 bg-green-500/15 border border-green-500/30 rounded-md">Vigente 🟢</span>;
+                          return <span className="text-[8px] uppercase font-black text-green-400">Vigente 🟢</span>;
                         })()}
                         
                         <button
                           onClick={() => toggleClientActive(client.client_id, client.is_active)}
-                          className={`w-12 h-6 rounded-full p-1 transition duration-300 focus:outline-none ${client.is_active ? 'bg-green-500' : 'bg-gray-800'}`}
+                          className={`w-9 h-5 rounded-full p-0.5 transition duration-300 focus:outline-none cursor-pointer ${client.is_active ? 'bg-green-500' : 'bg-gray-800'}`}
                         >
                           <div
-                            className={`w-4 h-4 rounded-full bg-white transition duration-300 ${client.is_active ? 'transform translate-x-6' : ''}`}
+                            className={`w-4 h-4 rounded-full bg-white transition duration-300 ${client.is_active ? 'transform translate-x-4' : ''}`}
                           />
                         </button>
                       </div>
 
-                      {/* Botón de Visibilidad de Ajustes de Administrador en Carátula Celular */}
+                      {/* 2. Botón de Ajustes Administrador (Cuadradito compacto) */}
                       <button
                         type="button"
                         onClick={() => toggleAdminVisibility(client.client_id)}
-                        className={`px-3 py-1.5 font-bold rounded-xl text-[9px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow-md flex items-center gap-1.5 ${
+                        className={`px-2.5 py-1 font-black rounded-xl text-[9px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow-md flex items-center gap-1 ${
                           adminVisibleMap[client.client_id]
                             ? 'bg-green-950/40 text-green-400 border-green-500/50 hover:bg-green-950/60 shadow-[0_0_12px_rgba(34,197,94,0.3)] animate-pulse'
                             : 'bg-red-950/40 text-red-400 border-red-500/50 hover:bg-red-950/60 shadow-[0_0_10px_rgba(239,68,68,0.2)]'
@@ -1121,12 +1112,12 @@ export const AdminPanel: React.FC = () => {
                         <Settings className="w-3.5 h-3.5" />
                         <span>
                           {adminVisibleMap[client.client_id]
-                            ? 'AJUSTES ADMINISTRADOR: PRENDIDO 🟢'
-                            : 'AJUSTES ADMINISTRADOR: APAGADO 🔴'}
+                            ? 'ADMIN: PRENDIDO 🟢'
+                            : 'ADMIN: APAGADO 🔴'}
                         </span>
                       </button>
 
-                      {/* Botón Máster de Desconexión Total Web <-> APK */}
+                      {/* 3. Botón Máster Nube Conectada (Cuadradito compacto) */}
                       <button
                         type="button"
                         onClick={async () => {
@@ -1135,17 +1126,17 @@ export const AdminPanel: React.FC = () => {
                           setClients(prev => prev.map(c => c.client_id === client.client_id ? { ...c, memory_days: nextDays } : c));
                           await saveMemoryDays(client.client_id, nextDays);
                         }}
-                        className={`px-3 py-1.5 font-black rounded-xl text-[9px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow-md ${
+                        className={`px-2.5 py-1 font-black rounded-xl text-[9px] uppercase tracking-wider transition duration-300 border cursor-pointer font-sans shadow-md ${
                           client.memory_days === -1
                             ? 'bg-red-950/40 text-red-400 border-red-500/50 hover:bg-red-950/60 shadow-[0_0_12px_rgba(239,68,68,0.3)] animate-pulse'
                             : 'bg-green-950/40 text-green-400 border-green-500/50 hover:bg-green-950/60 shadow-[0_0_12px_rgba(34,197,94,0.3)]'
                         }`}
                         title="Conectar o desconectar totalmente la página web de la APK del celular"
                       >
-                        {client.memory_days === -1 ? '🔴 APP desconectada de nube apagada' : '🟢 APP conectada a nube en vivo'}
+                        {client.memory_days === -1 ? '🔴 NUBE: APAGADA' : '🟢 NUBE: EN VIVO'}
                       </button>
 
-                      {/* Botón de Borrado en la esquina extrema derecha */}
+                      {/* 4. Botón de Borrado de Cliente (Cuadradito compacto) */}
                       <button
                         type="button"
                         onClick={() => {
@@ -1155,10 +1146,10 @@ export const AdminPanel: React.FC = () => {
                             onConfirm: () => executeDeleteClient(client.client_id)
                           });
                         }}
-                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-xl text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-red-900/40 border border-red-500 cursor-pointer shrink-0"
+                        className="px-2.5 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-black rounded-xl text-[9px] uppercase tracking-wider transition duration-300 flex items-center gap-1 shadow-md shadow-red-900/40 border border-red-500 cursor-pointer shrink-0"
                         title="Borrar Cliente"
                       >
-                        <span>BORRAR CLIENTE 🗑️</span>
+                        <span>BORRAR 🗑️</span>
                       </button>
                     </div>
                   </div>
