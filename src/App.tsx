@@ -552,15 +552,15 @@ export default function App() {
 
           let fullInstructionsWithIdentity = rawIncomingInstructions;
 
-          // Si las instrucciones entrantes no tienen cabecera de identidad, ensamblarla
-          if (!fullInstructionsWithIdentity.includes('[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:')) {
+          // Si las instrucciones entrantes no tienen cabecera de reglas/identidad, ensamblarla
+          if (!fullInstructionsWithIdentity.includes('TÚ ERES EL ASISTENTE') && !fullInstructionsWithIdentity.includes('[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:')) {
             const customName = localStorage.getItem('ava_custom_assistant_name') || 'AVA';
             const customPersonalityPrompt = localStorage.getItem('ava_custom_personality_prompt') || 'Habla de forma muy culta, distinguida, educada y profesional. Usa un vocabulario refinado y respetuoso.';
             const genderDirective = targetVoiceMale
               ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
               : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
-            const identityHeader = `[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:\nTu nombre oficial es: "${customName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n${genderDirective}\nESTILO DE COMUNICACIÓN: ${customPersonalityPrompt}\n\n`;
+            const identityHeader = `TÚ ERES EL ASISTENTE Y TE VAS A REGIR BAJO LAS SIGUIENTES REGLAS:\n\n${genderDirective}\n\nESTE ES TU NOMBRE DE ASISTENTE: Tu nombre oficial es: "${customName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.\n\nCOMPORTAMIENTO Y FORMA DE HABLAR: ${customPersonalityPrompt}\n\n`;
             fullInstructionsWithIdentity = `${identityHeader}${fullInstructionsWithIdentity}`;
           } else {
             // Sincronizar baúl local con las etiquetas vigentes de la nube

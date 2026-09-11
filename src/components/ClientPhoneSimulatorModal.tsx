@@ -252,17 +252,17 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
       : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
-    const nameLine = `NOMBRE DE TU ASISTENTE: Tu nombre oficial es: "${cleanName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.`;
+    const nameLine = `ESTE ES TU NOMBRE DE ASISTENTE: Tu nombre oficial es: "${cleanName}". Cuando el usuario te pregunte cómo te llamas o se dirija a ti, responde y reconócete siempre con este nombre.`;
 
     const userLine = cleanUserName
-      ? `¿CÓMO QUIERES QUE TE LLAME?: El usuario se llama: "${cleanUserName}". Dirígete siempre a él con este nombre cuando hables con él.`
+      ? `USUARIO A QUIEN ATIENDES: El usuario se llama: "${cleanUserName}". Dirígete siempre a él con este nombre cuando hables con él.`
       : '';
 
     const styleLine = `COMPORTAMIENTO Y FORMA DE HABLAR: ${activeStyle.prompt}`;
     const agentLine = `CONOCIMIENTOS Y HABILIDADES: ${activeAgent.prompt}`;
 
     const lines = [
-      '[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:',
+      'TÚ ERES EL ASISTENTE Y TE VAS A REGIR BAJO LAS SIGUIENTES REGLAS:',
       genderLine,
       nameLine,
       userLine,
