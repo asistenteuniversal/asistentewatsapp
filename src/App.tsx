@@ -1382,6 +1382,10 @@ export default function App() {
             connectionErrorVisible={connectionErrorVisible}
             connectionErrorMessage={connectionErrorMessage}
             onDismissConnectionError={() => setConnectionErrorVisible(false)}
+            onLimit30Reached={() => {
+              setConnectionErrorMessage('SESIÓN DE 30 MIN FINALIZADA • VUELVE A LLAMAR');
+              setConnectionErrorVisible(true);
+            }}
           />
         </div>
       </main>

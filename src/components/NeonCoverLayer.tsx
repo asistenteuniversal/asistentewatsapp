@@ -42,6 +42,7 @@ interface NeonCoverLayerProps {
   connectionErrorVisible?: boolean;
   onDismissConnectionError?: () => void;
   connectionErrorMessage?: string;
+  onLimit30Reached?: () => void;
 }
 
 export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
@@ -64,6 +65,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   connectionErrorVisible = false,
   onDismissConnectionError,
   connectionErrorMessage,
+  onLimit30Reached,
 }) => {
 
   const [activeCallType, setActiveCallType] = useState<'video' | 'audio' | null>(null);
@@ -116,6 +118,26 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
       setActiveCallType(null);
     }
   }, [connectionErrorVisible]);
+
+  // =========================================================================
+  // 🧱 BLOQUE LEGO INDEPENDIENTE: CORTE AUTOMÁTICO A LOS 30 MINUTOS EXACTOS
+  // =========================================================================
+  // Al llegar el cronómetro a 1800 segundos (30:00 exactos), cuelga la llamada
+  // limpiamente y notifica para mostrar el aviso que dura 30 segundos.
+  // =========================================================================
+  useEffect(() => {
+    if (isCallActive && callDuration >= 1800) {
+      if (activeCallType === 'audio' && onToggleAudio) {
+        onToggleAudio();
+      } else {
+        onToggleVoice();
+      }
+      setActiveCallType(null);
+      if (onLimit30Reached) {
+        onLimit30Reached();
+      }
+    }
+  }, [isCallActive, callDuration]);
 
   // Manejar el encendido/apagado del silencio a nivel de hardware
   const handleToggleMute = () => {

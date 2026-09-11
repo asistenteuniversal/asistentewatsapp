@@ -19,13 +19,15 @@ export const ConnectionErrorBanner: React.FC<ConnectionErrorBannerProps> = ({
   errorMessage = 'FALLÓ CONEXIÓN, VUÉLVELO A INTENTAR'
 }) => {
   // Auto-apagado inteligente:
+  // - Límite de sesión ("30 MIN"): 30 segundos.
   // - Intento 1 y 2 ("VUÉLVELO A INTENTAR"): 5 segundos.
   // - Intento 3+ ("INTÉNTALO MÁS TARDE"): 1 minuto (60 segundos).
   // En cualquier momento, si el usuario lo presiona con el dedo, se apaga de inmediato.
   useEffect(() => {
     if (visible && onDismiss) {
+      const is30MinLimit = errorMessage.includes('30 MIN');
       const isThirdAttempt = errorMessage.includes('INTÉNTALO MÁS TARDE');
-      const duration = isThirdAttempt ? 60000 : 5000;
+      const duration = is30MinLimit ? 30000 : (isThirdAttempt ? 60000 : 5000);
       const timer = setTimeout(() => {
         onDismiss();
       }, duration);
@@ -50,7 +52,7 @@ export const ConnectionErrorBanner: React.FC<ConnectionErrorBannerProps> = ({
       <button
         type="button"
         onClick={onDismiss}
-        className="py-3.5 px-8 rounded-full font-black text-xs sm:text-sm tracking-widest uppercase transition-all duration-300 flex items-center justify-center focus:outline-none active:scale-95 border cursor-pointer backdrop-blur-md whitespace-nowrap shadow-2xl hover:bg-black/95"
+        className="py-3 px-6 sm:px-8 rounded-full font-black text-[11px] sm:text-xs md:text-sm tracking-wider uppercase transition-all duration-300 flex items-center justify-center focus:outline-none active:scale-95 border cursor-pointer backdrop-blur-md whitespace-nowrap shadow-2xl hover:bg-black/95 max-w-[94vw] text-center"
         style={{
           backgroundColor: 'rgba(5, 5, 8, 0.95)',
           borderColor: 'rgba(212, 175, 55, 0.7)', // Contorno fino oro metálico pulido estilo botones de llamada
