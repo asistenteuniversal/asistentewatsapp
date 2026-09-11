@@ -144,7 +144,8 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
 
     // Cargar nombres
     const matchName = instructions.match(/Tu nombre oficial es:\s*"([^"]+)"/i);
-    setAssistantName(matchName && matchName[1] ? matchName[1] : 'AVA');
+    const parsedName = matchName && matchName[1] ? matchName[1] : 'AVA';
+    setAssistantName(parsedName === '.' ? 'AVA' : parsedName);
 
     const matchUserName = instructions.match(/El usuario se llama:\s*"([^"]+)"/i);
     setUserName(matchUserName && matchUserName[1] ? matchUserName[1] : client.client_name || '');
@@ -162,10 +163,16 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       try {
         const parsed = JSON.parse(matchPresets[1]);
         if (Array.isArray(parsed)) {
-          if (parsed.length === 6) setBusinessStyles(parsed);
-          else if (parsed.length === 10) {
-            setBusinessStyles(parsed.slice(0, 6));
-            setExclusiveAssistants(parsed.slice(6, 10));
+          const hasLegacy = parsed.some((p: any) => p.id === 'alegre' || p.id === 'conciso' || p.id === 'agresivo' || p.id === 'ejecutivo');
+          if (!hasLegacy) {
+            if (parsed.length === 6) setBusinessStyles(parsed);
+            else if (parsed.length === 10) {
+              setBusinessStyles(parsed.slice(0, 6));
+              setExclusiveAssistants(parsed.slice(6, 10));
+            }
+          } else {
+            setBusinessStyles(DEFAULT_BUSINESS_STYLES);
+            setExclusiveAssistants(DEFAULT_EXCLUSIVE_ASSISTANTS);
           }
         }
       } catch (e) {
@@ -268,13 +275,14 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
     setEditPrompt(def.prompt);
   };
 
-  // 📦 GUARDAR CUADRO 1: ASISTENTE Y NOMBRES (NO BORRA MEMORIA)
+  // 📦 GUARDAR CUADRO 1: GUARDAR ASISTENTE (NO BORRA MEMORIA)
   const handleSaveAgentAndNames = async () => {
     setIsApplyingAgent(true);
     setAgentSuccess(false);
 
     try {
-      const finalName = assistantName.trim() || 'AVA';
+      let finalName = assistantName.trim() || 'AVA';
+      if (finalName === '.') finalName = 'AVA';
       const finalUserName = userName.trim();
       const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
       const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
@@ -328,7 +336,8 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       const activeStyle = businessStyles.find(b => b.id === selectedStyleId) || businessStyles[0];
       const activeAgent = exclusiveAssistants.find(a => a.id === selectedAssistantId) || exclusiveAssistants[0];
 
-      const finalName = assistantName.trim() || 'AVA';
+      let finalName = assistantName.trim() || 'AVA';
+      if (finalName === '.') finalName = 'AVA';
       const finalUserName = userName.trim();
 
       const genderDirective = currentVoice === 'male'
@@ -402,7 +411,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap');`}</style>
 
       <div
-        className="w-full bg-[#0a0a0f] border-2 border-[#d4af37]/60 rounded-3xl p-3.5 sm:p-4 shadow-[0_0_60px_rgba(212,175,55,0.3)] space-y-3 relative max-h-[94vh] overflow-y-auto flex flex-col"
+        className="w-full bg-[#000000] border-2 border-[#d4af37] rounded-3xl p-3.5 sm:p-4 shadow-[0_0_60px_rgba(212,175,55,0.25)] space-y-3 relative max-h-[94vh] overflow-y-auto flex flex-col"
         style={{ fontFamily: "'Outfit', sans-serif" }}
       >
         {/* Barra Superior */}
@@ -445,26 +454,29 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
             </span>
           </button>
 
+          {/* Botón: Voz de tu Asistente (Rosa fuerte / Azul fuerte con figuritas de mujer y hombre) */}
           <button
             type="button"
             onClick={handleToggleVoice}
-            className={`w-full py-2 px-4 rounded-2xl transition duration-200 flex flex-col items-center justify-center border shadow-lg cursor-pointer leading-tight active:scale-98 ${
+            className={`w-full py-2 px-4 rounded-2xl transition duration-200 flex flex-col items-center justify-center border-2 shadow-lg cursor-pointer leading-tight active:scale-98 ${
               currentVoice === 'male'
-                ? 'bg-green-950/30 text-green-400 border-green-500/40 hover:bg-green-950/50 shadow-green-950/20'
-                : 'bg-pink-950/30 text-pink-300 border-pink-400/50 hover:bg-pink-950/50 shadow-pink-950/20'
+                ? 'bg-blue-600 border-blue-400 text-white shadow-[0_0_20px_rgba(37,99,235,0.5)] hover:bg-blue-500'
+                : 'bg-pink-600 border-pink-400 text-white shadow-[0_0_20px_rgba(219,39,119,0.5)] hover:bg-pink-500'
             }`}
           >
-            <span className="font-black text-xs uppercase tracking-wider">
-              {currentVoice === 'male' ? 'VOZ DE HOMBRE DE TU ASISTENTE' : 'VOZ DE MUJER DE TU ASISTENTE'}
-            </span>
-            <span className="text-[9px] font-bold opacity-90 uppercase tracking-wide mt-0.5">
+            <div className="flex items-center justify-center gap-2 font-black text-xs uppercase tracking-wider text-white">
+              <span className="text-sm">{currentVoice === 'male' ? '👨' : '👩'}</span>
+              <span>{currentVoice === 'male' ? 'VOZ DE HOMBRE DE TU ASISTENTE' : 'VOZ DE MUJER DE TU ASISTENTE'}</span>
+              <span className="text-sm">{currentVoice === 'male' ? '👨' : '👩'}</span>
+            </div>
+            <span className="text-[9.5px] font-extrabold text-white/95 uppercase tracking-wide mt-0.5">
               {currentVoice === 'male' ? '(PRESIONA PARA CAMBIAR A VOZ DE MUJER)' : '(PRESIONA PARA CAMBIAR A VOZ DE HOMBRE)'}
             </span>
           </button>
         </div>
 
-        {/* ── CUADRO 1: ASISTENTES EXCLUSIVOS Y NOMBRES (MARCO DORADO GRUESO - NO BORRA MEMORIA) ── */}
-        <div className="rounded-2xl border-2 border-[#d4af37] bg-black/60 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.2)]">
+        {/* ── CUADRO 1: ASISTENTES EXCLUSIVOS Y NOMBRES (MARCO ORO METÁLICO) ── */}
+        <div className="rounded-2xl border-2 border-[#d4af37] bg-black/90 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.25)]">
           {/* Nombres en 2 Columnas Simétricas */}
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
@@ -476,7 +488,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
                 value={assistantName}
                 onChange={(e) => setAssistantName(e.target.value)}
                 placeholder="Ej. AVA"
-                className="w-full bg-[#14141a] border border-[#d4af37]/60 rounded-xl px-2.5 py-1.5 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
+                className="w-full bg-[#111118] border border-[#d4af37]/60 rounded-xl px-2.5 py-1.5 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
               />
             </div>
 
@@ -489,7 +501,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
                 placeholder="Ej. Alberto"
-                className="w-full bg-[#14141a] border border-[#d4af37]/60 rounded-xl px-2.5 py-1.5 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
+                className="w-full bg-[#111118] border border-[#d4af37]/60 rounded-xl px-2.5 py-1.5 text-white placeholder-zinc-500 text-xs outline-none focus:border-[#d4af37] font-semibold transition"
               />
             </div>
           </div>
@@ -513,7 +525,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
                       className={`w-full py-2 px-2 pr-6 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 truncate ${
                         isSelected
                           ? 'bg-gradient-to-r from-[#d4af37]/40 via-[#f0d060]/30 to-[#d4af37]/40 text-white border-[#f0d060] shadow-[0_0_15px_rgba(212,175,55,0.5)] scale-[1.02]'
-                          : 'bg-black/80 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
+                          : 'bg-black/90 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
                       }`}
                     >
                       {preset.label}
@@ -532,7 +544,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
             </div>
           </div>
 
-          {/* Botón de Guardar Agente */}
+          {/* Botón: GUARDAR ASISTENTE (Placa de Oro Metálico Puro) */}
           <button
             type="button"
             disabled={isApplyingAgent}
@@ -542,8 +554,12 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
                 ? 'bg-emerald-500 text-black border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-pulse'
                 : isApplyingAgent
                   ? 'bg-amber-600/80 text-white border-amber-400 cursor-wait'
-                  : 'bg-gradient-to-r from-[#b8860b] via-[#d4af37] to-[#f0d060] text-black hover:brightness-110 border-[#ffe57f] shadow-[0_0_20px_rgba(212,175,55,0.4)]'
+                  : 'text-black hover:brightness-110 border-[#fff5c0] shadow-[0_0_25px_rgba(212,175,55,0.5)]'
             }`}
+            style={!agentSuccess && !isApplyingAgent ? {
+              background: 'linear-gradient(135deg, #fff5c0 0%, #f0d060 20%, #d4af37 45%, #b8860b 70%, #f0d060 85%, #fff5c0 100%)',
+              color: '#000000'
+            } : undefined}
           >
             {isApplyingAgent ? (
               <>
@@ -557,22 +573,25 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 fill-black" />
-                <span>GUARDAR Y APLICAR ASISTENTE</span>
+                <Sparkles className="w-4 h-4 fill-black text-black" />
+                <span className="font-black text-black">GUARDAR ASISTENTE</span>
               </>
             )}
           </button>
         </div>
 
-        {/* ── BOTÓN INTERMEDIO: BORRADO VOLUNTARIO DE CONVERSACIONES ── */}
+        {/* ── BOTÓN INTERMEDIO: BORRADO VOLUNTARIO DE CONVERSACIONES (ROJO FONDO, LETRA BLANCA EN 2 LÍNEAS) ── */}
         <div className="py-0.5">
           <button
             type="button"
             onClick={() => setShowClearConfirm(true)}
-            className="w-full py-2 px-3 bg-red-950/40 hover:bg-red-900/60 border border-red-500/50 text-red-300 rounded-xl font-black text-[9.5px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 shadow-md active:scale-98 cursor-pointer"
+            className="w-full py-2 px-3 bg-red-600 hover:bg-red-500 border-2 border-red-400 text-white rounded-xl font-black uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.4)] active:scale-98 cursor-pointer"
           >
-            <Trash2 className="w-3.5 h-3.5 text-red-400" />
-            <span>PRESIONA AQUÍ PARA BORRAR TUS CONVERSACIONES CON EL ASISTENTE</span>
+            <Trash2 className="w-4 h-4 text-white shrink-0" />
+            <div className="flex flex-col items-center leading-tight">
+              <span className="text-[11px] font-black text-white">PRESIONA AQUÍ PARA BORRAR</span>
+              <span className="text-[10px] font-extrabold text-red-100">TUS CONVERSACIONES CON EL ASISTENTE</span>
+            </div>
           </button>
           {clearSuccess && (
             <p className="text-center text-[10px] text-emerald-400 font-bold mt-1 animate-pulse">
@@ -581,8 +600,8 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
           )}
         </div>
 
-        {/* ── CUADRO 2: ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE? (MARCO DORADO GRUESO - SÍ BORRA MEMORIA) ── */}
-        <div className="rounded-2xl border-2 border-[#d4af37] bg-black/60 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.2)]">
+        {/* ── CUADRO 2: ¿CÓMO QUIERES QUE SE COMPORTE TU ASISTENTE? (MARCO ORO METÁLICO) ── */}
+        <div className="rounded-2xl border-2 border-[#d4af37] bg-black/90 p-3 space-y-2.5 shadow-[0_0_25px_rgba(212,175,55,0.25)]">
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="text-[10px] font-black tracking-wider text-[#d4af37] uppercase block">
@@ -601,7 +620,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
                       className={`w-full py-2 px-2 pr-6 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all duration-200 border cursor-pointer text-center leading-tight active:scale-95 truncate ${
                         isSelected
                           ? 'bg-gradient-to-r from-[#d4af37]/40 via-[#f0d060]/30 to-[#d4af37]/40 text-white border-[#f0d060] shadow-[0_0_15px_rgba(212,175,55,0.5)] scale-[1.02]'
-                          : 'bg-black/80 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
+                          : 'bg-black/90 text-zinc-300 border-[#d4af37]/30 hover:border-[#d4af37]/70 hover:text-white'
                       }`}
                     >
                       {preset.label}
@@ -620,7 +639,7 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
             </div>
           </div>
 
-          {/* Botón de Guardar Comportamiento */}
+          {/* Botón: GUARDAR COMPORTAMIENTO (Placa de Oro Metálico Puro, mismo tamaño que arriba) */}
           <button
             type="button"
             disabled={isApplyingStyle}
@@ -630,8 +649,12 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
                 ? 'bg-emerald-500 text-black border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-pulse'
                 : isApplyingStyle
                   ? 'bg-amber-600/80 text-white border-amber-400 cursor-wait'
-                  : 'bg-gradient-to-r from-[#b8860b] via-[#d4af37] to-[#f0d060] text-black hover:brightness-110 border-[#ffe57f] shadow-[0_0_20px_rgba(212,175,55,0.4)]'
+                  : 'text-black hover:brightness-110 border-[#fff5c0] shadow-[0_0_25px_rgba(212,175,55,0.5)]'
             }`}
+            style={!styleSuccess && !isApplyingStyle ? {
+              background: 'linear-gradient(135deg, #fff5c0 0%, #f0d060 20%, #d4af37 45%, #b8860b 70%, #f0d060 85%, #fff5c0 100%)',
+              color: '#000000'
+            } : undefined}
           >
             {isApplyingStyle ? (
               <>
@@ -641,12 +664,12 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
             ) : styleSuccess ? (
               <>
                 <CheckCircle2 className="w-4 h-4 text-black" />
-                <span>¡COMPORTAMIENTO APLICADO!</span>
+                <span>¡COMPORTAMIENTO GUARDADO!</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 fill-black" />
-                <span>GUARDAR Y APLICAR COMPORTAMIENTO</span>
+                <Sparkles className="w-4 h-4 fill-black text-black" />
+                <span className="font-black text-black">GUARDAR COMPORTAMIENTO</span>
               </>
             )}
           </button>
@@ -713,12 +736,12 @@ export const ClientPhoneSimulatorModal: React.FC<ClientPhoneSimulatorModalProps>
           </div>
         )}
 
-        {/* ── CUADRO 3: SOPORTE Y ASISTENCIA COMPACTO ── */}
-        <div className="rounded-2xl border-2 border-[#25D366] bg-[#0b141a] p-3 space-y-2 shadow-[0_0_25px_rgba(37,211,102,0.2)] font-sans">
+        {/* ── CUADRO 3: SOPORTE Y ASISTENCIA COMPACTO (LETRA MÁS GRANDE Y CLARA EN BLANCO) ── */}
+        <div className="rounded-2xl border-2 border-[#25D366] bg-black/90 p-3 space-y-2 shadow-[0_0_25px_rgba(37,211,102,0.25)] font-sans">
           <p className="text-xs font-black text-white uppercase tracking-wider">
             SOPORTE Y ASISTENCIA
           </p>
-          <p className="text-[10px] text-zinc-300 leading-tight">
+          <p className="text-xs text-white font-bold leading-snug">
             Presiona el botón para recibir ayuda o soporte técnico para tu asistente.
           </p>
           <button
