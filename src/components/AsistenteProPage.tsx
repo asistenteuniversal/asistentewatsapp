@@ -122,7 +122,7 @@ export const AsistenteProPage: React.FC<AsistenteProPageProps> = ({ onBack }) =>
 
           {/* 3. ASISTENTE WHATSAPP */}
           <div
-            onClick={() => handleOpenModule('ASISTENTE WHATSAPP', 'https://app-web-cambiar-imagenes-texto.web.app')}
+            onClick={() => { window.location.href = 'https://restauran-editable-premiun.firebaseapp.com/'; }}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}
           >
             <div style={crystalCircleStyle}>
