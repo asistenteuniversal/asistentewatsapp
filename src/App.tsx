@@ -11,8 +11,10 @@ import { useVoiceEngine } from './hooks/useVoiceEngine';
 import { supabase } from './supabaseClient';
 import { AdminPanel } from './components/AdminPanel';
 import { DestroyedScreen } from './components/DestroyedScreen';
+import { AsistenteProPage } from './components/AsistenteProPage';
 
 export default function App() {
+  const [isProPageOpen, setIsProPageOpen] = useState(false);
   const [isAppDestroyed, setIsAppDestroyed] = useState<boolean>(() => localStorage.getItem('ava_destroyed') === 'true');
   const [mode, setMode] = useState<AppMode>(() => {
     // Detectar si el usuario quiere entrar al panel de administración con la ruta oculta
@@ -1384,10 +1386,9 @@ export default function App() {
             pulseSpeed={settings.pulseSpeed}
             onShowStudio={() => handleSetMode('studio')}
             isAdminVisible={isAdminVisible}
-            onOpenSettings={() => {
-              if (isAdminVisible) setIsSettingsOpen(true);
-            }} // Engrane abre Administrador (solo si está activado)
-            onOpenClientSettings={() => setIsClientSettingsOpen(true)} // Sliders abre Cliente (nuevo)
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenClientSettings={() => setIsClientSettingsOpen(true)}
+            onOpenProCover={() => setIsProPageOpen(true)}
             updateAvailable={updateAvailable}
             connectionErrorVisible={connectionErrorVisible}
             connectionErrorMessage={connectionErrorMessage}
@@ -1399,6 +1400,11 @@ export default function App() {
           />
         </div>
       </main>
+
+      {/* Página Visual Pura de Asistente Pro (6 Módulos - Sin PIN) */}
+      {isProPageOpen && (
+        <AsistenteProPage onBack={() => setIsProPageOpen(false)} />
+      )}
 
       {/* Modal de Ajustes del Cliente (Público) */}
       <ClientSettingsModal
@@ -1414,8 +1420,8 @@ export default function App() {
         onTriggerSecurityLoading={() => setIsSystemLoading(true)}
       />
 
-      {/* Settings Modal (Administrador - Totalmente oculto e inaccesible si está apagado) */}
-      {isAdminVisible && (
+      {/* Settings Modal (Administrador) */}
+      {(isAdminVisible || isSettingsOpen) && (
         <SettingsModal
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
@@ -1428,7 +1434,7 @@ export default function App() {
 
       {/* BLOQUE LEGO: Botón Flotante de Retorno */}
       <FloatingReturnOverlay
-        visible={Boolean(isClientSettingsOpen || (isAdminVisible && isSettingsOpen))}
+        visible={Boolean(isClientSettingsOpen || isSettingsOpen)}
         onReturn={() => {
           if (isClientSettingsOpen) {
             setIsClientSettingsOpen(false);

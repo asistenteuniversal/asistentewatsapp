@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARCADOR TELEFONICO</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+        body { background: #000; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
+        .dialer-card { background: #050505; border: 1px solid #d4af37; border-radius: 20px; padding: 25px; width: 100%; max-width: 340px; text-align: center; }
+        #display { font-size: 26px; color: #fcf6ba; height: 50px; line-height: 50px; border-bottom: 2px solid #b38728; margin-bottom: 20px; letter-spacing: 2px; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .btn { background: #0d0d0d; border: 1px solid #332608; color: #fcf6ba; font-size: 22px; font-weight: bold; height: 55px; border-radius: 50%; cursor: pointer; }
+        .btn:active { background: #d4af37; color: #000; }
+        .btn-call { background: #15803d; color: #fff; border: none; border-radius: 12px; height: 50px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="dialer-card">
+    <div id="display">---</div>
+    <div class="grid">
+        <button class="btn" onclick="add('1')">1</button>
+        <button class="btn" onclick="add('2')">2</button>
+        <button class="btn" onclick="add('3')">3</button>
+        <button class="btn" onclick="add('4')">4</button>
+        <button class="btn" onclick="add('5')">5</button>
+        <button class="btn" onclick="add('6')">6</button>
+        <button class="btn" onclick="add('7')">7</button>
+        <button class="btn" onclick="add('8')">8</button>
+        <button class="btn" onclick="add('9')">9</button>
+        <button class="btn" onclick="add('*')">*</button>
+        <button class="btn" onclick="add('0')">0</button>
+        <button class="btn" onclick="del()">⌫</button>
+    </div>
+    <button class="btn-call" onclick="alert('Marcando a: ' + num)">LLAMAR 📞</button>
+</div>
+<script>
+    let num = '';
+    const d = document.getElementById('display');
+    function add(n) { if (num.length < 15) num += n; d.innerText = num || '---'; }
+    function del() { num = num.slice(0, -1); d.innerText = num || '---'; }
+</script>
+</body>
+</html>

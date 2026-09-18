@@ -38,6 +38,7 @@ interface NeonCoverLayerProps {
   onOpenSettings?: () => void; // Abre administrador (Engrane original)
   isAdminVisible?: boolean; // Controla la visibilidad del botón de administrador
   onOpenClientSettings?: () => void; // Abre cliente (Sliders nuevo)
+  onOpenProCover?: () => void; // Abre página visual de Asistente Pro
   updateAvailable?: boolean;
   connectionErrorVisible?: boolean;
   onDismissConnectionError?: () => void;
@@ -61,6 +62,7 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
   onOpenSettings,
   isAdminVisible = false,
   onOpenClientSettings,
+  onOpenProCover,
   updateAvailable = false,
   connectionErrorVisible = false,
   onDismissConnectionError,
@@ -233,8 +235,8 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
         </button>
       )}
 
-      {/* ── BOTÓN: CONFIGURACIÓN ADMINISTRADOR (Posición interior al lado del signo de interrogacion) ── */}
-      {isAdminVisible && SHOW_SETTINGS_BUTTON && onOpenSettings && (
+      {/* ── BOTÓN: CONFIGURACIÓN ADMINISTRADOR (Engranaje siempre visible al lado del ?) ── */}
+      {SHOW_SETTINGS_BUTTON && onOpenSettings && (
         <button
           type="button"
           onClick={onOpenSettings}
@@ -242,10 +244,31 @@ export const NeonCoverLayer: React.FC<NeonCoverLayerProps> = ({
                      bg-black/70 border border-[#d4af37]/40 text-[#d4af37]
                      shadow-[0_0_12px_rgba(212,175,55,0.15)]
                      active:scale-95 transition-all duration-150 focus:outline-none
-                     hover:bg-[#d4af37]/10 cursor-pointer"
+                     hover:bg-[#d4af37]/10 cursor-pointer flex items-center justify-center min-w-[36px] min-h-[36px]"
           title="Configuración Avanzada"
         >
           <Settings className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* ── BOTÓN: ASISTENTE PRO (Cuadrito elegante con letra P) ── */}
+      {onOpenProCover && (
+        <button
+          type="button"
+          onClick={onOpenProCover}
+          className="absolute top-[5%] right-[27%] z-30 p-2.5 rounded-xl
+                     bg-black/80 border border-[#d4af37]/60
+                     shadow-[0_0_12px_rgba(212,175,55,0.25)]
+                     active:scale-95 transition-all duration-150 focus:outline-none
+                     hover:bg-[#d4af37]/15 cursor-pointer flex items-center justify-center min-w-[36px] min-h-[36px]"
+          title="Abrir Asistente Pro"
+        >
+          <span 
+            style={goldTextStyle} 
+            className="text-base font-black leading-none select-none tracking-tight"
+          >
+            P
+          </span>
         </button>
       )}
 
