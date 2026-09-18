@@ -94,14 +94,14 @@ export const AsistenteProPage: React.FC<AsistenteProPageProps> = ({ onBack }) =>
           maxWidth: '340px',
           width: '100%'
         }}>
-          {/* 1. ASISTENTE PERSONAL (Desconectado por ahora) */}
+          {/* 1. ASISTENTE PERSONAL */}
           <div
             onClick={() => handleOpenModule('ASISTENTE PERSONAL', '')}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}
           >
             <div style={crystalCircleStyle}>
               <svg style={iconSvgStyle} viewBox="0 0 24 24">
-                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"/>
+                <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.72 11.72 0 0 0 3.7.59 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.72 11.72 0 0 0 .59 3.7 1 1 0 0 1-.24 1.02z"/>
               </svg>
             </div>
             <div style={moduleLabelStyle}>ASISTENTE PERSONAL</div>
@@ -114,7 +114,7 @@ export const AsistenteProPage: React.FC<AsistenteProPageProps> = ({ onBack }) =>
           >
             <div style={crystalCircleStyle}>
               <svg style={iconSvgStyle} viewBox="0 0 24 24">
-                <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.72 11.72 0 0 0 3.7.59 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.72 11.72 0 0 0 .59 3.7 1 1 0 0 1-.24 1.02z"/>
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"/>
               </svg>
             </div>
             <div style={moduleLabelStyle}>ASISTENTE TELÉFONO</div>
