@@ -14,29 +14,54 @@ export function useVoiceEngine(
   const [transcript, setTranscript] = useState<string>('');
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(0);
 
-  // Alternar el estado de llamada (solo temporizador visual, gasta 0% recursos)
+  const updateDuration = useCallback(() => {
+    if (startTimeRef.current > 0) {
+      const elapsedSec = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      setCallDuration(elapsedSec);
+    }
+  }, []);
+
+  // Alternar el estado de llamada con cálculo exacto por timestamp del reloj físico del celular
   const toggleCall = useCallback(async () => {
     if (isCallActive) {
       setIsCallActive(false);
       setCallDuration(0);
+      startTimeRef.current = 0;
       if (timerRef.current) clearInterval(timerRef.current);
     } else {
       setIsCallActive(true);
       setCallDuration(0);
+      const now = Date.now();
+      startTimeRef.current = now;
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
-        setCallDuration((prev) => prev + 1);
+        if (startTimeRef.current > 0) {
+          const elapsedSec = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          setCallDuration(elapsedSec);
+        }
       }, 1000);
     }
   }, [isCallActive]);
 
-  // Limpiar temporizadores al desmontar
+  // Actualizar el cronómetro inmediatamente al regresar a primer plano o reanudar pantalla
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isCallActive && startTimeRef.current > 0) {
+        updateDuration();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+
     return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, []);
+  }, [isCallActive, updateDuration]);
 
   return {
     isCallActive,

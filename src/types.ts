@@ -41,4 +41,13 @@ export interface AppSettings {
   memorySaveTimestamp?: number;
   syncMemoryEnabled?: boolean;
   voiceMaleEnabled?: boolean;
+  maxContinuousSessions?: number;
+  sessionCooldownMinutes?: number;
+  connectionFailuresLockMinutes?: number;
+  bannerDurationSeconds?: number;
+  vpnCountry?: string;
+  vpnAutoRotate?: boolean;
+  callDurationLimitMinutes?: number;
+  hourlyCallQuota?: number;
+  memorySyncIntervalMinutes?: number;
 }

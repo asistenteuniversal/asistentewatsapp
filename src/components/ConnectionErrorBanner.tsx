@@ -11,29 +11,38 @@ interface ConnectionErrorBannerProps {
   visible?: boolean;
   onDismiss?: () => void;
   errorMessage?: string;
+  durationMs?: number;
 }
 
 export const ConnectionErrorBanner: React.FC<ConnectionErrorBannerProps> = ({
   visible = true,
   onDismiss,
-  errorMessage = 'FALLÓ CONEXIÓN, VUÉLVELO A INTENTAR'
+  errorMessage = 'FALLÓ CONEXIÓN, VUÉLVELO A INTENTAR',
+  durationMs
 }) => {
   // Auto-apagado inteligente:
-  // - Límite de sesión ("30 MIN"): 30 segundos.
-  // - Intento 1 y 2 ("VUÉLVELO A INTENTAR"): 5 segundos.
-  // - Intento 3+ ("INTÉNTALO MÁS TARDE"): 1 minuto (60 segundos).
-  // En cualquier momento, si el usuario lo presiona con el dedo, se apaga de inmediato.
+  // - Límite de sesión / avisos de sesión: 15 segundos (15000 ms).
+  // - Intento 1 de fallo de conexión: 7 segundos.
+  // - Si se especifica durationMs personalizado, se usa ese valor.
+  // En cualquier momento, si el usuario lo presiona con el dedo, se apaga de inmediato sin accionar nada más.
   useEffect(() => {
     if (visible && onDismiss) {
-      const is30MinLimit = errorMessage.includes('30 MIN');
-      const isThirdAttempt = errorMessage.includes('INTÉNTALO MÁS TARDE');
-      const duration = is30MinLimit ? 30000 : (isThirdAttempt ? 60000 : 5000);
+      let duration = durationMs;
+      if (!duration) {
+        if (errorMessage.toUpperCase().includes('SESIÓN') || errorMessage.toUpperCase().includes('SESION') || errorMessage.toUpperCase().includes('MIN')) {
+          duration = 15000; // 15 segundos exactos
+        } else if (errorMessage.toUpperCase().includes('1 HORA') || errorMessage.toUpperCase().includes('HORA')) {
+          duration = 15000;
+        } else {
+          duration = 7000;
+        }
+      }
       const timer = setTimeout(() => {
         onDismiss();
       }, duration);
       return () => clearTimeout(timer);
     }
-  }, [visible, onDismiss, errorMessage]);
+  }, [visible, onDismiss, errorMessage, durationMs]);
 
   if (!visible) return null;
 

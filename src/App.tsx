@@ -11,10 +11,8 @@ import { useVoiceEngine } from './hooks/useVoiceEngine';
 import { supabase } from './supabaseClient';
 import { AdminPanel } from './components/AdminPanel';
 import { DestroyedScreen } from './components/DestroyedScreen';
-import { AsistenteProPage } from './components/AsistenteProPage';
 
 export default function App() {
-  const [isProPageOpen, setIsProPageOpen] = useState(false);
   const [isAppDestroyed, setIsAppDestroyed] = useState<boolean>(() => localStorage.getItem('ava_destroyed') === 'true');
   const [mode, setMode] = useState<AppMode>(() => {
     // Detectar si el usuario quiere entrar al panel de administración con la ruta oculta
@@ -390,7 +388,16 @@ export default function App() {
       memorySaveDate: new Date().toDateString(),
       memoryDays: 2,
       syncMemoryEnabled: true,
-      voiceMaleEnabled: false
+      voiceMaleEnabled: false,
+      maxContinuousSessions: 3,
+      sessionCooldownMinutes: 60,
+      connectionFailuresLockMinutes: 60,
+      bannerDurationSeconds: 15,
+      vpnCountry: localStorage.getItem('ava_vpn_country') || 'GB',
+      vpnAutoRotate: localStorage.getItem('ava_vpn_auto_rotate') !== 'false',
+      callDurationLimitMinutes: parseInt(localStorage.getItem('ava_call_duration_limit_min') || '30', 10),
+      hourlyCallQuota: parseInt(localStorage.getItem('ava_hourly_quota') || '5', 10),
+      memorySyncIntervalMinutes: parseInt(localStorage.getItem('ava_memory_sync_interval_min') || '3', 10)
     };
 
     if (saved) {
@@ -588,7 +595,8 @@ export default function App() {
           if (!fullInstructionsWithIdentity.includes('TÚ ERES EL ASISTENTE') && !fullInstructionsWithIdentity.includes('[IDENTIDAD Y PERSONALIDAD DEL ASISTENTE]:')) {
             const customName = localStorage.getItem('ava_custom_assistant_name') || 'AVA';
             const customPersonalityPrompt = localStorage.getItem('ava_custom_personality_prompt') || 'Habla de forma muy culta, distinguida, educada y profesional. Usa un vocabulario refinado y respetuoso.';
-            const genderDirective = targetVoiceMale
+            const currentVoiceMale = nextVoiceMale !== undefined ? nextVoiceMale : settings.voiceMaleEnabled;
+            const genderDirective = currentVoiceMale
               ? 'GÉNERO E IDENTIDAD: Eres un asistente masculino (hombre). Expresate, habla y reconócete siempre como hombre en todas tus respuestas.'
               : 'GÉNERO E IDENTIDAD: Eres una asistente femenina (mujer). Expresate, habla y reconócete siempre como mujer en todas tus respuestas.';
 
@@ -763,17 +771,30 @@ export default function App() {
         setSettings((prev) => {
           const currentMemory = prev.systemMemory || '';
           const cleanText = text.trim();
-          // Evitar duplicar el mismo bloque de conversación
           if (currentMemory.includes(cleanText)) return prev;
 
           const now = new Date();
-          const formattedDate = now.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
-          const formattedTime = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
+          const pad = (n: number) => n.toString().padStart(2, '0');
+          const formattedDate = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
+          let hours = now.getHours();
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          hours = hours % 12;
+          hours = hours ? hours : 12;
+          const formattedTime = `${pad(hours)}:${pad(now.getMinutes())} ${ampm}`;
           const todayPrefix = `[${formattedDate} ${formattedTime}]`;
 
+          // Extraer líneas individuales que no existan aún en el historial local
+          const incomingLines = cleanText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          const uniqueLines = incomingLines.filter(l => !currentMemory.includes(l));
+          if (uniqueLines.length === 0) return prev;
+
+          const blockToAdd = `${todayPrefix}\n${uniqueLines.join('\n')}`;
           const newMemory = currentMemory.trim()
-            ? `${currentMemory}\n${todayPrefix} ${cleanText}`
-            : `${todayPrefix} ${cleanText}`;
+            ? `${currentMemory}\n\n${blockToAdd}`
+            : blockToAdd;
+
+          console.log('[Memoria Local] Guardado incremental de 3 minutos ejecutado en local.');
+
           return {
             ...prev,
             systemMemory: newMemory,
@@ -797,8 +818,15 @@ export default function App() {
       }
       lastHandledErrorTimestamp = nowMs;
 
-      // ── CANDADO DE SEGURIDAD: REBOTE INMEDIATO A CARÁTULA ──
-      // Si Google Studio estaba al frente, ocultarlo de inmediato y regresar a carátula
+      const rawDetail = (errorDetail || 'Connection failed').toLowerCase();
+      const isSomethingWrong = rawDetail.includes('something went wrong');
+
+      // Si es "Something went wrong", ignorar por completo para que el motor nativo reanude el audio sin cortar
+      if (isSomethingWrong) {
+        return;
+      }
+
+      // ── CANDADO DE SEGURIDAD: REBOTE INMEDIATO A CARÁTULA SOLO EN FALLA FATAL ──
       if ((window as any).AndroidInterface && (window as any).AndroidInterface.showStudio) {
         try {
           (window as any).AndroidInterface.showStudio(false);
@@ -810,20 +838,24 @@ export default function App() {
 
       consecutiveFailureCount += 1;
 
-      // Si pasan 60 segundos sin fallas, reiniciar contador a 0
+      // Si pasan 60 segundos sin fallas adicionales, reiniciar contador a 0
       if (failureResetTimer) clearTimeout(failureResetTimer);
       failureResetTimer = setTimeout(() => {
         consecutiveFailureCount = 0;
       }, 60000);
 
-      // Mensaje según el número de intento continuo (Sin iconos de manitas, texto puro)
-      const errorMsg = consecutiveFailureCount >= 3
-        ? 'FALLÓ CONEXIÓN, INTÉNTALO MÁS TARDE'
-        : 'FALLÓ CONEXIÓN, VUÉLVELO A INTENTAR';
-
-      console.warn(`[FallaConexión #${consecutiveFailureCount}] ${errorMsg}:`, errorDetail);
-      setConnectionErrorMessage(errorMsg);
-      setConnectionErrorVisible(true);
+      if (consecutiveFailureCount < 2) {
+        setConnectionErrorMessage('FALLÓ CONEXIÓN, VUÉLVELO A INTENTAR');
+        setConnectionErrorVisible(true);
+      } else {
+        const lockMins = settings.connectionFailuresLockMinutes || 60;
+        const lockUntil = Date.now() + lockMins * 60 * 1000;
+        localStorage.setItem('ava_fail_lock_until', lockUntil.toString());
+        const lockLabel = lockMins >= 60 ? `${lockMins / 60} HORA` : `${lockMins} MIN`;
+        setConnectionErrorMessage(`CONEXIÓN FALLIDA • LLAMAR EN ${lockLabel}`);
+        setConnectionErrorVisible(true);
+        consecutiveFailureCount = 0;
+      }
 
       const now = new Date();
       const pad = (n: number) => n.toString().padStart(2, '0');
@@ -834,7 +866,11 @@ export default function App() {
       hours = hours % 12;
       hours = hours ? hours : 12;
       const timeFormatted = `${pad(hours)}:${pad(now.getMinutes())}:${pad(now.getSeconds())} ${ampm}`;
-      const newLine = `[${dateFormatted} ${timeFormatted}] ${errorDetail || 'Connection failed'}`;
+      
+      const logText = isSomethingWrong 
+        ? 'Something went wrong (Auto-recuperado)' 
+        : (errorDetail || 'Connection failed');
+      const newLine = `[${dateFormatted} ${timeFormatted}] ${logText}`;
 
       const previousLogs = localStorage.getItem('ava_last_error_log') || '';
       const logsArray = previousLogs.split('\n').filter(Boolean);
@@ -1019,6 +1055,31 @@ export default function App() {
     };
   }, []);
 
+  // Manejador central de fin de sesión y sistema de cuotas anti-bloqueo
+  const handleSessionFinished = useCallback(() => {
+    const currentSessions = parseInt(localStorage.getItem('ava_consecutive_sessions') || '0', 10);
+    const nextSessions = currentSessions + 1;
+    const maxSessions = settings.maxContinuousSessions || 3;
+    const cooldownMins = settings.sessionCooldownMinutes || 60;
+
+    const ordinals = ['PRIMERA', 'SEGUNDA', 'TERCERA', 'CUARTA', 'QUINTA', 'SEXTA'];
+
+    if (nextSessions < maxSessions) {
+      localStorage.setItem('ava_consecutive_sessions', nextSessions.toString());
+      const ordStr = ordinals[nextSessions - 1] || `${nextSessions}ª`;
+      setConnectionErrorMessage(`${ordStr} SESIÓN FINALIZADA`);
+      setConnectionErrorVisible(true);
+    } else {
+      localStorage.setItem('ava_consecutive_sessions', '0');
+      const cooldownExpiry = Date.now() + cooldownMins * 60 * 1000;
+      localStorage.setItem('ava_session_cooldown_until', cooldownExpiry.toString());
+      const ordStr = ordinals[maxSessions - 1] || `${maxSessions}ª`;
+      const cooldownLabel = cooldownMins >= 60 ? `${cooldownMins / 60} HORA` : `${cooldownMins} MINUTOS`;
+      setConnectionErrorMessage(`${ordStr} SESIÓN TERMINADA • POR FAVOR ESPERE ${cooldownLabel}`);
+      setConnectionErrorVisible(true);
+    }
+  }, [settings.maxContinuousSessions, settings.sessionCooldownMinutes]);
+
   // =========================================================================================
   // 🛑🛑🛑 [ZONA SAGRADA DE MÁXIMA SEGURIDAD - DISPARADORES DE LLAMADA Y VIDEOLLAMADA] 🛑🛑🛑
   // ⚠️⚠️⚠️ ¡ESTRICTAMENTE PROHIBIDO MODIFICAR O REFACTORIZAR ESTAS DOS FUNCIONES! ⚠️⚠️⚠️
@@ -1026,15 +1087,63 @@ export default function App() {
   // Ambos están 100% probados y funcionando idénticos a la copia de seguridad 1-1.
   // =========================================================================================
   const handleToggleCall = useCallback(async () => {
+    const willBeActive = !voiceEngine.isCallActive;
+
+    if (willBeActive) {
+      // 1. Verificar si hay bloqueo por 2 fallas consecutivas activo
+      const failLockUntil = parseInt(localStorage.getItem('ava_fail_lock_until') || '0', 10);
+      if (Date.now() < failLockUntil) {
+        const minsLeft = Math.max(1, Math.ceil((failLockUntil - Date.now()) / 60000));
+        setConnectionErrorMessage(`CONEXIÓN FALLIDA • LLAMAR EN ${minsLeft} MIN`);
+        setConnectionErrorVisible(true);
+        return;
+      }
+
+      // 2. Verificar si hay descanso tras límite de sesiones activo
+      const sessionCooldownUntil = parseInt(localStorage.getItem('ava_session_cooldown_until') || '0', 10);
+      if (Date.now() < sessionCooldownUntil) {
+        const minsLeft = Math.max(1, Math.ceil((sessionCooldownUntil - Date.now()) / 60000));
+        setConnectionErrorMessage(`PROTECCIÓN ACTIVA • ESPERE ${minsLeft} MINUTOS`);
+        setConnectionErrorVisible(true);
+        return;
+      }
+
+      // 3. Verificar cuota de llamadas por hora (Anti-bloqueo y control de tráfico)
+      const hourlyQuota = settings.hourlyCallQuota || parseInt(localStorage.getItem('ava_hourly_quota') || '5', 10);
+      if (hourlyQuota > 0) {
+        const historyStr = localStorage.getItem('ava_hourly_call_history') || '[]';
+        let history: number[] = [];
+        try { history = JSON.parse(historyStr); } catch (e) { history = []; }
+        const oneHourAgo = Date.now() - 60 * 60 * 1000;
+        const recentCalls = history.filter((ts: number) => ts > oneHourAgo);
+        if (recentCalls.length >= hourlyQuota) {
+          const oldestCall = Math.min(...recentCalls);
+          const minsToReset = Math.max(1, Math.ceil((oldestCall + 60 * 60 * 1000 - Date.now()) / 60000));
+          setConnectionErrorMessage(`LÍMITE POR HORA (${hourlyQuota}) • ESPERE ${minsToReset} MIN`);
+          setConnectionErrorVisible(true);
+          return;
+        }
+      }
+    }
+
     // 1. Toggle call locally in UI
     await voiceEngine.toggleCall();
-
-    const willBeActive = !voiceEngine.isCallActive;
 
     // 2. Tell the native Android app directly (if running inside APK)
     if ((window as any).AndroidInterface) {
       try {
         if (willBeActive) {
+          // Registrar llamada para cuota por hora
+          try {
+            const histStr = localStorage.getItem('ava_hourly_call_history') || '[]';
+            let hist: number[] = [];
+            try { hist = JSON.parse(histStr); } catch (e) { hist = []; }
+            const oneHourAgo = Date.now() - 60 * 60 * 1000;
+            const recent = hist.filter((ts: number) => ts > oneHourAgo);
+            recent.push(Date.now());
+            localStorage.setItem('ava_hourly_call_history', JSON.stringify(recent));
+          } catch (e) {}
+
           // Asegurar sincronización de instrucciones previa al inicio de llamada
           if ((window as any).AndroidInterface.updateSystemInstructions) {
             try {
@@ -1053,9 +1162,14 @@ export default function App() {
         } else {
           setIsSystemLoading(true); // <── ¡Activa la línea de protección al instante!
           (window as any).AndroidInterface.endVoiceCall();
+          handleSessionFinished();
         }
       } catch (e) {
         console.error("Error calling native voice toggler:", e);
+      }
+    } else {
+      if (!willBeActive) {
+        handleSessionFinished();
       }
     }
 
@@ -1065,15 +1179,63 @@ export default function App() {
       console.log('[Controller] Enviando comando por WebSocket:', command);
       wsRef.current.send(JSON.stringify({ type: 'command', action: command }));
     }
-  }, [voiceEngine, settings.systemInstructions, settings.systemMemory]);
+  }, [voiceEngine, settings.systemInstructions, settings.systemMemory, settings.hourlyCallQuota, handleSessionFinished]);
 
   const handleToggleAudioCall = useCallback(async () => {
-    await voiceEngine.toggleCall();
     const willBeActive = !voiceEngine.isCallActive;
+
+    if (willBeActive) {
+      // 1. Verificar si hay bloqueo por 2 fallas consecutivas activo
+      const failLockUntil = parseInt(localStorage.getItem('ava_fail_lock_until') || '0', 10);
+      if (Date.now() < failLockUntil) {
+        const minsLeft = Math.max(1, Math.ceil((failLockUntil - Date.now()) / 60000));
+        setConnectionErrorMessage(`CONEXIÓN FALLIDA • LLAMAR EN ${minsLeft} MIN`);
+        setConnectionErrorVisible(true);
+        return;
+      }
+
+      // 2. Verificar si hay descanso tras límite de sesiones activo
+      const sessionCooldownUntil = parseInt(localStorage.getItem('ava_session_cooldown_until') || '0', 10);
+      if (Date.now() < sessionCooldownUntil) {
+        const minsLeft = Math.max(1, Math.ceil((sessionCooldownUntil - Date.now()) / 60000));
+        setConnectionErrorMessage(`PROTECCIÓN ACTIVA • ESPERE ${minsLeft} MINUTOS`);
+        setConnectionErrorVisible(true);
+        return;
+      }
+
+      // 3. Verificar cuota de llamadas por hora (Anti-bloqueo y control de tráfico)
+      const hourlyQuota = settings.hourlyCallQuota || parseInt(localStorage.getItem('ava_hourly_quota') || '5', 10);
+      if (hourlyQuota > 0) {
+        const historyStr = localStorage.getItem('ava_hourly_call_history') || '[]';
+        let history: number[] = [];
+        try { history = JSON.parse(historyStr); } catch (e) { history = []; }
+        const oneHourAgo = Date.now() - 60 * 60 * 1000;
+        const recentCalls = history.filter((ts: number) => ts > oneHourAgo);
+        if (recentCalls.length >= hourlyQuota) {
+          const oldestCall = Math.min(...recentCalls);
+          const minsToReset = Math.max(1, Math.ceil((oldestCall + 60 * 60 * 1000 - Date.now()) / 60000));
+          setConnectionErrorMessage(`LÍMITE POR HORA (${hourlyQuota}) • ESPERE ${minsToReset} MIN`);
+          setConnectionErrorVisible(true);
+          return;
+        }
+      }
+    }
+
+    await voiceEngine.toggleCall();
 
     if ((window as any).AndroidInterface) {
       try {
         if (willBeActive) {
+          // Registrar llamada para cuota por hora
+          try {
+            const histStr = localStorage.getItem('ava_hourly_call_history') || '[]';
+            let hist: number[] = [];
+            try { hist = JSON.parse(histStr); } catch (e) { hist = []; }
+            const oneHourAgo = Date.now() - 60 * 60 * 1000;
+            const recent = hist.filter((ts: number) => ts > oneHourAgo);
+            recent.push(Date.now());
+            localStorage.setItem('ava_hourly_call_history', JSON.stringify(recent));
+          } catch (e) {}
           // Asegurar sincronización de instrucciones previa al inicio de llamada
           if ((window as any).AndroidInterface.updateSystemInstructions) {
             try {
@@ -1092,9 +1254,14 @@ export default function App() {
         } else {
           setIsSystemLoading(true); // <── ¡Activa la línea de protección al instante!
           (window as any).AndroidInterface.endVoiceCall(); // Colgar idéntico
+          handleSessionFinished();
         }
       } catch (e) {
         console.error("Error calling native voice toggler:", e);
+      }
+    } else {
+      if (!willBeActive) {
+        handleSessionFinished();
       }
     }
 
@@ -1102,7 +1269,7 @@ export default function App() {
       const command = willBeActive ? 'start-call' : 'end-call';
       wsRef.current.send(JSON.stringify({ type: 'command', action: command }));
     }
-  }, [voiceEngine]);
+  }, [voiceEngine, settings.systemInstructions, settings.systemMemory, handleSessionFinished]);
   // =========================================================================================
   // 🛑🛑🛑 [FIN DE ZONA SAGRADA DE LLAMADAS Y VIDEOLLAMADAS] 🛑🛑🛑
   // =========================================================================================
@@ -1386,25 +1553,18 @@ export default function App() {
             pulseSpeed={settings.pulseSpeed}
             onShowStudio={() => handleSetMode('studio')}
             isAdminVisible={isAdminVisible}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onOpenClientSettings={() => setIsClientSettingsOpen(true)}
-            onOpenProCover={() => setIsProPageOpen(true)}
+            onOpenSettings={() => {
+              if (isAdminVisible) setIsSettingsOpen(true);
+            }} // Engrane abre Administrador (solo si está activado)
+            onOpenClientSettings={() => setIsClientSettingsOpen(true)} // Sliders abre Cliente (nuevo)
             updateAvailable={updateAvailable}
             connectionErrorVisible={connectionErrorVisible}
             connectionErrorMessage={connectionErrorMessage}
             onDismissConnectionError={() => setConnectionErrorVisible(false)}
-            onLimit30Reached={() => {
-              setConnectionErrorMessage('SESIÓN DE 30 MIN FINALIZADA • VUELVE A LLAMAR');
-              setConnectionErrorVisible(true);
-            }}
+            onLimit30Reached={handleSessionFinished}
           />
         </div>
       </main>
-
-      {/* Página Visual Pura de Asistente Pro (6 Módulos - Sin PIN) */}
-      {isProPageOpen && (
-        <AsistenteProPage onBack={() => setIsProPageOpen(false)} />
-      )}
 
       {/* Modal de Ajustes del Cliente (Público) */}
       <ClientSettingsModal
@@ -1420,8 +1580,8 @@ export default function App() {
         onTriggerSecurityLoading={() => setIsSystemLoading(true)}
       />
 
-      {/* Settings Modal (Administrador) */}
-      {(isAdminVisible || isSettingsOpen) && (
+      {/* Settings Modal (Administrador - Totalmente oculto e inaccesible si está apagado) */}
+      {isAdminVisible && (
         <SettingsModal
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
@@ -1434,7 +1594,7 @@ export default function App() {
 
       {/* BLOQUE LEGO: Botón Flotante de Retorno */}
       <FloatingReturnOverlay
-        visible={Boolean(isClientSettingsOpen || isSettingsOpen)}
+        visible={Boolean(isClientSettingsOpen || (isAdminVisible && isSettingsOpen))}
         onReturn={() => {
           if (isClientSettingsOpen) {
             setIsClientSettingsOpen(false);
